@@ -1,6 +1,6 @@
 # highfive-5th-Client
 
-Flutter 3.47.7 (fvm) 기반 클라이언트입니다.
+Flutter 3.47.9 (fvm) 기반 클라이언트입니다.
 
 ```bash
 fvm install
