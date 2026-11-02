@@ -11,14 +11,10 @@ Dio createDio({required String baseUrl}) {
     ),
   );
   if (kDebugMode) {
-    // 헤더에는 토큰이 섞이므로 남기지 않는다. 디버그 실행에서만 켠다.
+    // 헤더와 본문에는 토큰·개인정보가 섞이므로 기본으로 남기지 않는다.
+    // 본문이 필요하면 로컬에서만 잠시 켜고 커밋하지 않는다.
     dio.interceptors.add(
-      LogInterceptor(
-        requestHeader: false,
-        responseHeader: false,
-        requestBody: true,
-        responseBody: true,
-      ),
+      LogInterceptor(requestHeader: false, responseHeader: false),
     );
   }
   return dio;

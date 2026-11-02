@@ -1,4 +1,4 @@
-import { env } from '../../app/env';
+import { env } from '../config/env';
 
 export class HttpError extends Error {
   public readonly status: number;
@@ -12,14 +12,23 @@ export class HttpError extends Error {
   }
 }
 
+function parseBody(text: string): unknown {
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${env.apiBaseUrl}${path}`, {
     ...init,
     headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
   });
-  const body = await res.json();
+  const body = parseBody(await res.text());
   if (!res.ok) throw new HttpError(res.status, body);
-  return body;
+  return body as T;
 }
 
 export const http = {
