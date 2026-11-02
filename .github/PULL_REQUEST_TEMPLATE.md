@@ -25,7 +25,7 @@
 ## 작성자 체크 (docs/pr-checklist.md A절)
 
 - [ ] A1 형식: 브랜치·커밋·PR 제목 규칙, PR 하나 = Task 하나
-- [ ] A2 자동 검증: 앱 format·analyze·test / 웹 format·lint·typecheck·test·build 전부 통과
+- [ ] A2 자동 검증: 앱 format·analyze·check_imports·test / 웹 format·lint·typecheck·test·build 전부 통과 (CI도 같은 검사)
 - [ ] A3 구조: 파일이 규칙 위치에 있고, features→app·다른 기능 내부 import 없음, 미래용 코드 없음
 - [ ] A4 명령: 쓰기 요청은 버튼→ViewModel, 중복 실행 방지, 서버 판단을 화면에서 확정하지 않음 (해당 시)
 - [ ] A5 화면 상태: 로딩·빈·실패·정상 전부 있고 공통 위젯 사용 (해당 시)

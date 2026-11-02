@@ -270,3 +270,22 @@ Service(DioException) ─► core/network/api_error_mapper ─► AppException
 | Provider | `xxxProvider` | `sessionProvider`, `performanceDetailProvider` |
 | 라우트 경로 | `AppRoutes`에만 | `AppRoutes.performanceDetail` |
 | 테스트 | `<파일>_test.dart`, 테스트명은 한국어 문장 | `'중복 탭은 한 번만 요청한다'` |
+
+## 10. 환경(flavor)
+
+dev와 prod는 네이티브 flavor로 나눈다. 앱 ID가 달라서 두 앱이 한 기기에 같이 설치된다.
+
+| | dev | prod |
+| --- | --- | --- |
+| 실행 | `fvm flutter run --flavor dev` | `fvm flutter run --flavor prod` |
+| 빌드 | `fvm flutter build apk\|ipa --flavor dev` | `fvm flutter build apk\|ipa --flavor prod` |
+| 앱 ID (Android `applicationId`, iOS bundle id) | `com.ject.highfive.dev` | `com.ject.highfive` |
+| 홈 화면 이름 | `highfive DEV` | `highfive` |
+| 환경값 (`app/env.dart`) | `Flavor.dev`: dev API 주소 | `Flavor.prod`: prod API 주소 |
+| 화면 | 왼쪽 위 `DEV` 배너 | 배너 없음 |
+
+- 값이 정해지는 순서: `--flavor dev`를 주면 Flutter가 `FLUTTER_APP_FLAVOR=dev`를 넣고, `AppEnv.fromEnvironment()`가 그 값을 먼저 읽는다. 없으면 `--dart-define=FLAVOR`(flavor 없이 도는 테스트·도구용)를, 그것도 없으면 dev를 쓴다. 모르는 값이면 시작할 때 바로 실패한다.
+- 설정 위치: Android는 `android/app/build.gradle.kts`의 `productFlavors`다. 앱 이름은 `resValue("string", "app_name", ...)`로 넣고, AGP 9는 이 기능이 기본으로 꺼져 있어 `buildFeatures.resValues = true`가 필요하다. iOS는 빌드 구성 `Debug-dev`·`Release-dev`·`Profile-dev`(prod도 같은 셋)와 공유 스킴 `dev`·`prod`다. Flutter는 스킴 이름이 flavor 이름과 같아야 찾는다. iOS 앱 이름은 빌드 설정 `APP_DISPLAY_NAME`이 `Info.plist`의 `CFBundleDisplayName`으로 들어간다.
+- **명령에는 항상 `--flavor`를 붙인다.** Android는 flavor 없이 빌드하면 `Gradle build failed to produce an .apk file` 오류로 실패한다. iOS는 원래 `Runner` 스킴이 남아 있어 flavor 없이도 빌드되지만, 결과는 prod 앱 ID에 dev 환경(DEV 배너·dev API)이 섞인 앱이다. 이 빌드는 배포에 쓰지 않는다.
+- Xcode에서 직접 Run·Archive하지 않는다. 그때 Dart 쪽 flavor는 고른 스킴이 아니라, 마지막 `fvm flutter` 명령이 `ios/Flutter/Generated.xcconfig`에 남긴 `FLAVOR` 값을 따른다(flutter_tools `bin/xcode_backend.dart`). 그래서 스킴과 환경이 어긋날 수 있다.
+- CocoaPods를 쓰게 되면 `ios/Podfile`의 `project 'Runner', {...}`에 새 구성 6개를 매핑해야 한다(`Debug-dev`는 `:debug`, `Release-dev`·`Profile-dev`는 `:release`, prod도 같게). 각 구성의 Pods xcconfig도 include해야 한다. 지금은 SwiftPM을 써서 Podfile이 없다.

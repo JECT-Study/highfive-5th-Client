@@ -6,7 +6,7 @@
 | --- | --- |
 | 전체를 그림으로 한 번에 (처음 읽을 때) | [docs/overview.md](./docs/overview.md) |
 | 일을 어떤 순서로 하나 (Jira → 브랜치 → 구현 순서 → 검증 → PR → 리뷰 → 릴리스) | [docs/workflow.md](./docs/workflow.md) |
-| 앱 폴더에 어떤 파일이 들어가고 누가 누구를 import하나 | [docs/mobile-architecture.md](./docs/mobile-architecture.md) |
+| 앱 폴더에 어떤 파일이 들어가고 누가 누구를 import하나, dev/prod flavor | [docs/mobile-architecture.md](./docs/mobile-architecture.md) |
 | 웹 폴더 구조·의존성·bridge·환경 | [docs/web-architecture.md](./docs/web-architecture.md) |
 | 색·간격·글자 크기 값과 바꾸는 절차 | [docs/design-tokens.md](./docs/design-tokens.md) |
 | PR 올리기 전·리뷰할 때 무엇을 왜 보나 | [docs/pr-checklist.md](./docs/pr-checklist.md) |
@@ -41,7 +41,7 @@ Flutter 버전은 `apps/mobile/.fvmrc`, Node는 `apps/web/.nvmrc`·`packageManag
 5. 로그아웃·계정 전환 시 세션·캐시·소켓·보안 저장소를 정리하고 이전 세션의 늦은 응답은 버린다. → [mobile 4절](./docs/mobile-architecture.md#4-상태를-어디에-두는가)
 6. 토큰·개인정보는 로그·URL·prefs·분석 이벤트에 넣지 않는다. 인증 정보는 `FlutterSecureStorage`에만. → [checklist A9](./docs/pr-checklist.md#a9-데이터보안설정-위치)
 7. 색·간격·모서리·글자 크기는 토큰만 쓴다. 토큰 변경은 앱·웹·문서를 한 PR에서. → [design-tokens](./docs/design-tokens.md)
-8. 환경값은 앱 `app/env.dart`, 웹 `shared/config/env.ts`에서만 읽는다. 경로 문자열은 `AppRoutes`/`routes.ts`에만.
+8. 환경값은 앱 `app/env.dart`, 웹 `shared/config/env.ts`에서만 읽는다. 경로 문자열은 `AppRoutes`/`routes.ts`에만. 앱 명령에는 항상 `--flavor dev|prod`를 붙인다. → [mobile 10절](./docs/mobile-architecture.md#10-환경flavor)
 9. 생성 파일(`*.g.dart`, `*.freezed.dart`)은 손대지 않고 커밋한다. `any`, `// ignore:`, `eslint-disable`로 오류를 숨기지 않는다.
 10. 테스트는 앱 `test/`에 `lib/` 미러, 웹은 파일 옆. 문구 고정·고정 sleep 금지. → [checklist A10](./docs/pr-checklist.md#a10-테스트)
 11. PR 전 로컬 검증 전부 통과 + 체크리스트. DI·모델·라우팅·네이티브·bridge·토큰·의존성 변경은 PR 전에 상대에게 한 줄 알린다. → [workflow 4·5절](./docs/workflow.md#4-로컬-검증-pr-전-필수)

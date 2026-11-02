@@ -11,7 +11,7 @@ flowchart LR
   repo --> mobile["apps/mobile<br/>Flutter 3.47.9 · fvm"]
   repo --> web["apps/web<br/>React 19 · TypeScript · Vite 8 · pnpm"]
   repo --> docs["docs/<br/>규칙 문서"]
-  repo --> gh[".github/<br/>PR 템플릿"]
+  repo --> gh[".github/<br/>PR 템플릿 · CI"]
   repo --> agents["AGENTS.md<br/>항상 지킬 것 + 문서 지도"]
 ```
 
@@ -20,7 +20,7 @@ flowchart LR
 | `apps/mobile` | Flutter 앱. 로그인·공연·신청·채팅·티켓·QR | `cd apps/mobile && fvm flutter ...` |
 | `apps/web` | 공개 웹(이벤트·공지·FAQ) + 관객용 모바일 웹(예정) | `cd apps/web && pnpm ...` |
 | `docs` | 작업 흐름, 앱·웹 구조, 디자인 토큰, PR 체크리스트 | - |
-| `.github` | PR 템플릿. CI는 아직 없음 | - |
+| `.github` | PR 템플릿, CI(`workflows/mobile.yml`·`web.yml`: PR마다 앱·웹 검증) | - |
 
 ## 2. 전체 그림: 누가 누구와 통신하나
 
