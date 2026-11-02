@@ -29,6 +29,25 @@ android {
         versionName = flutter.versionName
     }
 
+    // AGP 9부터 resValues 기본값이 꺼져 있어 flavor별 app_name 생성에 필요하다.
+    buildFeatures {
+        resValues = true
+    }
+
+    flavorDimensions += "env"
+    productFlavors {
+        create("dev") {
+            dimension = "env"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            resValue("string", "app_name", "highfive DEV")
+        }
+        create("prod") {
+            dimension = "env"
+            resValue("string", "app_name", "highfive")
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
