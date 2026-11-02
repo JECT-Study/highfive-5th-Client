@@ -24,19 +24,27 @@ feature 브랜치 → PR → (PR Check 통과) → develop / main merge
 
 ## GitHub 설정
 
-### 1. Environments: `dev`, `prod`
-Settings → Environments에서 `dev`, `prod`를 만들고 각각 아래 Secrets를 넣는다 (값은 flavor별로 다를 수 있음).
+### 1. Repository secrets
+Settings → Secrets and variables → Actions → New repository secret. 파일은 git에 넣지 않는다.
+바이너리 파일은 `base64 -i <파일> | pbcopy`, 텍스트 파일은 `pbcopy < <파일>`로 복사해서 붙여넣는다.
 
-| Secret | 설명 |
+| Secret | 파일 / 값 |
 | --- | --- |
+| `IOS_DISTRIBUTION_P12_BASE64` | `Highfive_Distribution.p12` (base64) |
+| `IOS_P12_PASSWORD` | `비밀번호.txt` |
+| `IOS_PROFILE_PROD_BASE64` | `Highfive_AppStore.mobileprovision` (base64) |
+| `IOS_PROFILE_DEV_BASE64` | `Highfive_Dev_AppStore.mobileprovision` (base64) |
+| `ASC_KEY_ID` | App Store Connect API 키 ID (`highfive-ci`) |
+| `ASC_ISSUER_ID` | App Store Connect Issuer ID |
+| `ASC_KEY_P8` | `AuthKey_<KEY_ID>.p8` (원문) |
+| `ANDROID_KEYSTORE_BASE64` | `highfive-upload.jks` (base64) |
+| `ANDROID_KEYSTORE_PASSWORD` | `비밀번호.txt` |
+| `ANDROID_KEY_PASSWORD` | keystore 암호와 같음 |
+| `ANDROID_KEY_ALIAS` | `highfive-upload` |
+| `PLAY_SERVICE_ACCOUNT_JSON` | `highfive-play-ci.json` (원문) |
 | `SHOREBIRD_TOKEN` | `shorebird login:ci`로 발급 |
-| `ANDROID_KEYSTORE_BASE64` | `base64 -i upload-keystore.jks` |
-| `ANDROID_KEYSTORE_PASSWORD` / `ANDROID_KEY_ALIAS` / `ANDROID_KEY_PASSWORD` | keystore 정보 |
-| `PLAY_SERVICE_ACCOUNT_JSON` | Play Console API 서비스 계정 JSON (원문) |
-| `IOS_CERTIFICATE_P12_BASE64` / `IOS_CERTIFICATE_PASSWORD` | Apple Distribution 인증서 (.p12) |
-| `IOS_PROFILE_BASE64` | 해당 flavor bundle id의 App Store 프로비저닝 프로파일 |
-| `APPLE_TEAM_ID` | Apple Developer Team ID |
-| `ASC_KEY_ID` / `ASC_ISSUER_ID` / `ASC_KEY_P8_BASE64` | App Store Connect API 키 (.p8 base64) |
+
+Apple Team ID(`Q4E6NKD9VN`)는 비밀이 아니라서 workflow에 직접 적었다.
 
 ### 2. Branch protection (`develop`, `main`)
 Settings → Branches → Require a pull request + Require status checks: `PR Check / app`.
