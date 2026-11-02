@@ -49,3 +49,11 @@ app.*.map.json
 
 # FVM Version Cache
 .fvm/
+# Signing files (never commit)
+*.p12
+*.cer
+*.p8
+*.mobileprovision
+*.jks
+**/key.properties
+비밀번호.txt
