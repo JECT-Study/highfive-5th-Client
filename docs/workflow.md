@@ -29,7 +29,7 @@ main ──── fix/JECT-140-hotfix ──(PR)──► main ──(merge)─�
 2. 구현 (3절 순서)
 3. 로컬 검증 (4절)
 4. PR: 제목 `[JECT-123] 예매 폼 화면`, 본문은 `.github/PULL_REQUEST_TEMPLATE.md`
-5. 상대 리뷰 → 수정 → 승인 → squash merge
+5. 상대 리뷰 → 수정 → 승인 → squash merge. squash 커밋 제목은 커밋 규칙(`feat(JECT-123): 요약`)으로 고친다 — GitHub 기본값은 PR 제목(`[JECT-123] 요약`)이라 그대로 두면 규칙에 어긋난다
 6. 머지 후 브랜치 삭제
 
 `develop` 브랜치는 아직 없다. 첫 기능 작업 전에 `main`에서 만든다.
@@ -99,4 +99,4 @@ pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build
 ## 7. 장애가 나면 보는 순서
 
 - 앱: 세션 상태 → Provider 상태 → Repository 캐시 → HTTP 응답·토큰 갱신 → 라우팅
-- 웹: 라우트·환경값(`app/env.ts`) → API 응답 → bridge 명령·버전·출처
+- 웹: 라우트·환경값(`shared/config/env.ts`) → API 응답 → bridge 명령·버전·출처

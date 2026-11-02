@@ -117,7 +117,7 @@ PR 템플릿(`.github/PULL_REQUEST_TEMPLATE.md`)의 체크박스는 이 문서�
 
 - 본다:
   - 토큰·개인정보(이름·연락처·입금자명)·비회원 조회 비밀값이 로그, URL, 분석 이벤트, SharedPreferences/localStorage에 들어가지 않는다.
-  - 환경값은 앱 `app/env.dart`, 웹 `app/env.ts`에서만 읽는다. 경로 문자열은 `AppRoutes`/`routes.ts`에만.
+  - 환경값은 앱 `app/env.dart`, 웹 `shared/config/env.ts`에서만 읽는다. 경로 문자열은 `AppRoutes`/`routes.ts`에만.
   - 역할별로 서버가 제한한 필드만 쓰고, 화면에서 더 보여주지 않는다(현장 담당자는 연락처 뒤 4자리만 등).
   - 외부 링크는 브라우저로, 외부 앱 scheme은 허용 목록으로. bridge는 `shared/bridge` 한 곳.
 - 왜: 한 번 새면 되돌릴 수 없는 것들. 사람마다 다르게 다루면 반드시 한 곳이 뚫린다.
@@ -177,7 +177,7 @@ PR 템플릿(`.github/PULL_REQUEST_TEMPLATE.md`)의 체크박스는 이 문서�
 
 ## C. 머지 뒤
 
-- squash 커밋 제목이 PR 제목과 같은지 본다.
+- squash 커밋 제목이 커밋 규칙 `type(JECT-123): 요약`인지 본다. GitHub 기본값은 PR 제목(`[JECT-123] 요약`)이므로 머지할 때 고친다.
 - 공통 변경(A13)이었으면 상대가 `develop`을 당겨 받았는지 확인한다.
 - 배포에 들어갔으면 `docs/releases.md`에 한 줄(소스 커밋·검증·patch 번호).
 

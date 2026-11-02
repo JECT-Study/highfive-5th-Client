@@ -222,7 +222,7 @@ flowchart TB
   main["main.tsx"] --> app
   subgraph app["app/ — 묶기"]
     direction LR
-    env["env.ts<br/>VITE_* 읽기·검증"] ~~~ routes["routes.ts<br/>경로 상수"] ~~~ router["router.tsx"]
+    routes["routes.ts<br/>경로 상수"] ~~~ router["router.tsx"]
   end
   subgraph features["features/ — 기능"]
     direction LR
@@ -230,7 +230,7 @@ flowchart TB
   end
   subgraph shared["shared/ — 공통"]
     direction LR
-    styles["styles/<br/>tokens.css · global.css"] ~~~ api["api/http.ts"] ~~~ bridge["bridge/ (예정)"] ~~~ ui["ui/ (예정)"]
+    config["config/env.ts<br/>VITE_* 읽기·검증"] ~~~ styles["styles/<br/>tokens.css · global.css"] ~~~ api["api/http.ts"] ~~~ bridge["bridge/ (예정)"] ~~~ ui["ui/ (예정)"]
   end
   app --> features
   features --> shared
@@ -251,7 +251,7 @@ flowchart LR
 | `.env` | `VITE_FLAVOR=dev`, dev API 주소 | `pnpm dev`, `pnpm build:dev` |
 | `.env.production` | `VITE_FLAVOR=prod`, prod API 주소 | `pnpm build` |
 
-`VITE_*`는 번들에 그대로 들어가므로 비밀값을 넣지 않는다. 환경값은 `app/env.ts`로만 읽는다.
+`VITE_*`는 번들에 그대로 들어가므로 비밀값을 넣지 않는다. 환경값은 `shared/config/env.ts`로만 읽고, 잘못된 값은 빌드 때(`vite.config.ts`)와 시작 때 두 번 걸린다.
 
 자세히: [web-architecture.md](./web-architecture.md)
 
@@ -305,12 +305,12 @@ gitGraph
   commit id: "모델·DTO"
   commit id: "ViewModel·View"
   checkout develop
-  merge feat-JECT-123-login id: "squash: [JECT-123] 로그인"
+  merge feat-JECT-123-login id: "feat(JECT-123): 로그인"
   checkout main
   merge develop id: "릴리스 (merge 커밋)"
 ```
 
-- 기능 브랜치 → `develop`은 squash, `develop` → `main`은 이력을 남기는 merge.
+- 기능 브랜치 → `develop`은 squash(커밋 제목은 `feat(JECT-123): 요약` 규칙으로 고친다), `develop` → `main`은 이력을 남기는 merge.
 - `develop`은 아직 없다. 첫 기능 작업 전에 만든다.
 
 ### 6-2. 기능 하나를 만드는 순서 — 아래층부터
@@ -335,11 +335,11 @@ flowchart TB
   impl["구현 끝"] --> local["로컬 검증<br/>format · analyze/lint · test · (웹) build"]
   local -->|"실패"| impl
   local -->|"통과"| self["작성자 체크 A1~A13<br/>docs/pr-checklist.md"]
-  self --> pr["PR 생성<br/>템플릿: 변경 · 검증 · 캡처 · 호환성 · 리뷰 순서 · 새 문구"]
-  pr --> share{"공통 변경?"}
+  self --> share{"공통 변경?"}
   share -->|"예"| notify["상대에게 한 줄 사전 공유<br/>DI · 모델 · 라우팅 · 네이티브 · bridge · 토큰 · 의존성"]
-  notify --> review
-  share -->|"아니오"| review["리뷰 B1→B6<br/>진입점 → 상태·요청 → 실패 방어 → 테스트 → 일관성 → 범위"]
+  notify --> pr
+  share -->|"아니오"| pr["PR 생성<br/>템플릿: 변경 · 검증 · 캡처 · 호환성 · 리뷰 순서 · 새 문구"]
+  pr --> review["리뷰 B1→B6<br/>진입점 → 상태·요청 → 실패 방어 → 테스트 → 일관성 → 범위"]
   review -->|"must 있음"| impl
   review -->|"승인"| merge["squash → develop"]
 ```

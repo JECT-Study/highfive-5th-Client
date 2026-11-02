@@ -48,7 +48,7 @@ PR 전에 포맷·분석·테스트(웹은 빌드까지)가 전부 통과해야 
 앱 계층
 
 - View는 표시·입력·이동만, ViewModel(Riverpod Notifier/AsyncNotifier)은 상태·명령, Repository는 변환·캐시·저장, Service는 HTTP·SDK 호출만.
-- `getIt`은 `app/di.dart`(등록)와 `presentation/providers/`(연결 Provider)에서만. ViewModel은 get_it에 등록하지 않는다.
+- `getIt`은 `app/di.dart`(등록), `app/providers.dart`(앱 전역 연결 Provider), `presentation/providers/`(기능 연결 Provider)에서만. ViewModel은 get_it에 등록하지 않는다.
 - 신청·예매·결제 같은 쓰기 명령은 Provider `build()`가 아니라 버튼 → ViewModel 메서드로 실행하고 중복 실행을 막는다. 권한·재고·가격은 서버가 최종 판단한다.
 - 로그아웃·계정 전환 시 세션·Repository 캐시·소켓·보안 저장소를 정리하고 이전 세션의 늦은 응답은 버린다.
 - 인증 정보는 `FlutterSecureStorage`에만. 토큰을 SharedPreferences·로그·URL·분석 이벤트에 넣지 않는다.
@@ -60,7 +60,7 @@ PR 전에 포맷·분석·테스트(웹은 빌드까지)가 전부 통과해야 
 코드·테스트
 
 - 모델은 freezed + json_serializable. `*.g.dart`·`*.freezed.dart`는 직접 수정하지 않고 생성 파일도 커밋한다.
-- 환경값은 앱 `app/env.dart`, 웹 `app/env.ts`에서만 읽는다. 라우트 경로는 앱 `AppRoutes`, 웹 `routes.ts`에만.
+- 환경값은 앱 `app/env.dart`, 웹 `shared/config/env.ts`에서만 읽는다. 라우트 경로는 앱 `AppRoutes`, 웹 `routes.ts`에만.
 - 테스트는 앱은 `test/`에 `lib/`와 같은 경로, 웹은 파일 옆 `*.test.tsx`. 연결 Provider를 바꿔 끼우고 전역 getIt에 기대지 않는다. 문구를 고정하는 테스트, 고정 sleep으로 기다리는 테스트는 만들지 않는다.
 - `any`, `// ignore:`, `eslint-disable`로 오류를 숨기지 않는다.
 
@@ -71,7 +71,7 @@ PR 전에 포맷·분석·테스트(웹은 빌드까지)가 전부 통과해야 
 | 브랜치 | `feat/JECT-123-login`, `fix/JECT-124-login-error` (type: feat / fix / chore / refactor / docs) |
 | 커밋 | `feat(JECT-123): 로그인 기능 구현`. 본문은 "왜"만, 파일 나열 금지 |
 | PR | `[JECT-123] 로그인 기능 구현`. 본문은 `.github/PULL_REQUEST_TEMPLATE.md`, 체크 항목은 `docs/pr-checklist.md` |
-| 기능 머지 | 기능 브랜치 → `develop`, 상대 1명 리뷰 후 squash |
+| 기능 머지 | 기능 브랜치 → `develop`, 상대 1명 리뷰 후 squash. squash 커밋 제목은 커밋 규칙으로 고친다 |
 | 릴리스 | `develop` → `main`, 이력 유지하는 merge |
 | 긴급 수정 | `main`에서 fix 브랜치 → PR로 main 반영 → develop에도 반영 |
 | 사전 공유 | DI·공유 모델·라우팅·네이티브·bridge·토큰·pubspec/package.json 변경은 PR 전에 한 줄 알림 |

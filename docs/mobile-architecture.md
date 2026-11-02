@@ -235,7 +235,7 @@ Service(DioException) ─► core/network/api_error_mapper ─► AppException
 
 - View에서 Dio·Repository·getIt 직접 호출
 - ViewModel에서 `BuildContext`·위젯·`Navigator` 사용
-- `getIt<...>()`을 `app/di.dart`와 `presentation/providers/` 밖에서 호출
+- `getIt<...>()`을 `app/di.dart`, `app/providers.dart`, `presentation/providers/` 밖에서 호출
 - ViewModel을 get_it에 등록
 - Provider `build()`에서 신청·예매·결제 같은 쓰기 요청
 - 다른 기능의 `presentation/` import (View·ViewModel·widgets·providers)

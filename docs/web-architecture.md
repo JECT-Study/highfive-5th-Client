@@ -11,7 +11,6 @@ src/
 ├── vite-env.d.ts                    (있음) VITE_* 타입
 │
 ├── app/                             앱 전체를 묶는 것만
-│   ├── env.ts                       (있음) VITE_FLAVOR, VITE_API_BASE_URL 읽기·검증
 │   ├── routes.ts                    (있음) 경로 문자열 상수. 여기 말고는 경로를 쓰지 않는다
 │   ├── router.tsx                   (있음) appRoutes(RouteObject[]) + createBrowserRouter
 │   ├── router.test.tsx              (있음)
@@ -19,6 +18,7 @@ src/
 │   └── NotFoundPage.tsx             잘못된 경로 (첫 공개 페이지 만들 때)
 │
 ├── shared/                          도메인을 모르는 공통 코드
+│   ├── config/env.ts                (있음) VITE_FLAVOR, VITE_API_BASE_URL 읽기·검증. 아무것도 import하지 않는다
 │   ├── styles/
 │   │   ├── tokens.css               (있음) 디자인 토큰 (CSS 변수)
 │   │   └── global.css               (있음) 리셋, body 기본
@@ -97,7 +97,8 @@ main.tsx ─► app ─► features ─► shared
 | `.env.production` | prod 값 | `pnpm build` |
 
 - `VITE_*`는 번들에 그대로 들어간다. 비밀값을 넣지 않는다.
-- 환경값은 `app/env.ts`로만 읽는다. `import.meta.env`를 다른 파일에서 직접 쓰지 않는다. 잘못된 값이면 시작 시 바로 실패한다.
+- 환경값은 `shared/config/env.ts`로만 읽는다. `import.meta.env`를 다른 파일에서 직접 쓰지 않는다. `shared`에 두는 이유: `shared/api`가 쓰는데 `shared`는 `app`을 import할 수 없기 때문이다.
+- 잘못된 값은 두 번 걸린다: `vite.config.ts`가 빌드·dev 서버 시작 때 검사해 실패시키고(잘못된 산출물이 배포되지 않게), `env.ts`가 실행 시작 때 한 번 더 검사한다.
 - dev 배포는 `pnpm build:dev`(mode `dev`, NODE_ENV는 production). `--mode development`로 배포 빌드를 만들지 않는다(React 개발 빌드가 들어간다).
 
 ## 7. 도구 버전
@@ -108,7 +109,7 @@ main.tsx ─► app ─► features ─► shared
 ## 8. 하면 안 되는 것
 
 - 컴포넌트에서 `fetch`·`http` 직접 호출 (→ `features/<x>/api`)
-- `import.meta.env`를 `app/env.ts` 밖에서 읽기
+- `import.meta.env`를 `shared/config/env.ts` 밖에서 읽기
 - 경로 문자열을 `app/routes.ts` 밖에 쓰기
 - 다른 기능의 `components`·`hooks`·`pages` import
 - `shared`에서 `features`·`app` import
