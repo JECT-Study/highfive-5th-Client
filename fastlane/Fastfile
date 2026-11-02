@@ -1,0 +1,33 @@
+# 업로드만 담당 (빌드는 Shorebird가 이미 끝냄, 재빌드 X)
+
+platform :ios do
+  lane :upload_testflight do |options|
+    api_key = app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_content: ENV["ASC_KEY_P8_BASE64"],
+      is_key_content_base64: true
+    )
+    upload_to_testflight(
+      api_key: api_key,
+      ipa: options[:ipa],
+      app_identifier: options[:app_identifier],
+      skip_waiting_for_build_processing: true
+    )
+  end
+end
+
+platform :android do
+  lane :upload_internal do |options|
+    upload_to_play_store(
+      json_key_data: ENV["PLAY_SERVICE_ACCOUNT_JSON"],
+      package_name: options[:package_name],
+      aab: options[:aab],
+      track: "internal",
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+end
