@@ -8,6 +8,7 @@
 | 앱 폴더에 어떤 파일이 들어가고 누가 누구를 import하나 | [docs/mobile-architecture.md](./docs/mobile-architecture.md) |
 | 웹 폴더 구조·의존성·bridge·환경 | [docs/web-architecture.md](./docs/web-architecture.md) |
 | 색·간격·글자 크기 값과 바꾸는 절차 | [docs/design-tokens.md](./docs/design-tokens.md) |
+| PR 올리기 전·리뷰할 때 무엇을 왜 보나 ("누가 만들어도 같은 느낌"의 검사 항목) | [docs/pr-checklist.md](./docs/pr-checklist.md) |
 
 ## 저장소
 
@@ -68,7 +69,7 @@ PR 전에 포맷·분석·테스트(웹은 빌드까지)가 전부 통과해야 
 | --- | --- |
 | 브랜치 | `feat/JECT-123-login`, `fix/JECT-124-login-error` (type: feat / fix / chore / refactor / docs) |
 | 커밋 | `feat(JECT-123): 로그인 기능 구현`. 본문은 "왜"만, 파일 나열 금지 |
-| PR | `[JECT-123] 로그인 기능 구현`. 본문은 `.github/PULL_REQUEST_TEMPLATE.md` |
+| PR | `[JECT-123] 로그인 기능 구현`. 본문은 `.github/PULL_REQUEST_TEMPLATE.md`, 체크 항목은 `docs/pr-checklist.md` |
 | 기능 머지 | 기능 브랜치 → `develop`, 상대 1명 리뷰 후 squash |
 | 릴리스 | `develop` → `main`, 이력 유지하는 merge |
 | 긴급 수정 | `main`에서 fix 브랜치 → PR로 main 반영 → develop에도 반영 |
