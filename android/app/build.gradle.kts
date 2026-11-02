@@ -29,6 +29,20 @@ android {
         versionName = flutter.versionName
     }
 
+    // dev: com.ject.highfive.dev, prod: com.ject.highfive (두 앱 동시 설치 가능)
+    flavorDimensions += "env"
+    productFlavors {
+        create("dev") {
+            dimension = "env"
+            applicationIdSuffix = ".dev"
+            manifestPlaceholders["appName"] = "Highfive Dev"
+        }
+        create("prod") {
+            dimension = "env"
+            manifestPlaceholders["appName"] = "Highfive"
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
