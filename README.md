@@ -8,7 +8,7 @@ apps/web      공개 웹·관객용 모바일 웹 (Node 24, pnpm)
 docs/         작업 흐름·구조·디자인 토큰 규칙
 ```
 
-작업 규칙은 [AGENTS.md](./AGENTS.md)에서 시작한다.
+처음이면 [docs/overview.md](./docs/overview.md)(그림으로 보는 전체 구조)부터, 작업 규칙은 [AGENTS.md](./AGENTS.md)에서 시작한다.
 
 ## 앱 실행
 

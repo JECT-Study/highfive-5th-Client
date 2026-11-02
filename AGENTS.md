@@ -4,6 +4,7 @@
 
 | 알고 싶은 것 | 문서 |
 | --- | --- |
+| 전체를 그림으로 한 번에 (처음 읽을 때) | [docs/overview.md](./docs/overview.md) |
 | 일을 어떤 순서로 하나 (Jira → 브랜치 → 구현 순서 → 검증 → PR → 리뷰 → 릴리스) | [docs/workflow.md](./docs/workflow.md) |
 | 앱 폴더에 어떤 파일이 들어가고 누가 누구를 import하나 | [docs/mobile-architecture.md](./docs/mobile-architecture.md) |
 | 웹 폴더 구조·의존성·bridge·환경 | [docs/web-architecture.md](./docs/web-architecture.md) |
