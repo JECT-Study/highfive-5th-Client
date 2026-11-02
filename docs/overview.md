@@ -192,7 +192,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart TB
-  m["main()"] --> e["AppEnv.fromEnvironment()<br/>--dart-define=FLAVOR 읽기"]
+  m["main()"] --> e["AppEnv.fromEnvironment()<br/>--flavor dev|prod 읽기"]
   e --> d["setupDi(env)<br/>Dio · SecureStorage · Prefs 등록"]
   d --> p["ProviderScope"]
   p --> a["HighfiveApp<br/>테마 · 라우터 · dev면 DEV 배너"]
@@ -365,17 +365,17 @@ flowchart LR
     a4["A4 명령 처리"]
     a8["A8 문구 규칙"]
   end
-  subgraph auto["자동화 (예정)"]
-    l1["stylelint · custom_lint"]
-    l2["GitHub Actions"]
-    l3["ESLint no-restricted-imports"]
+  subgraph auto["자동화"]
+    l1["stylelint · custom_lint (예정)"]
+    l2["GitHub Actions ✓"]
+    l3["ESLint import-x · check_imports.dart ✓"]
   end
   f1 --> a6 --> l1
   f2 --> a5 --> l2
   f2 --> a7
   f3 --> a4 --> l2
   f4 --> a8
-  a6 --> l3
+  a3["A3 의존성 방향"] --> l3
 ```
 
 운영 규칙: 같은 지적이 PR에서 **2번** 나오면 체크 항목으로 올리고, **3번** 나오면 린트·테스트·공통 위젯으로 옮긴다. 체크리스트는 길어지지 않고 자동화만 늘어난다.
@@ -384,9 +384,9 @@ flowchart LR
 
 | 영역 | 없는 것 | 언제 |
 | --- | --- | --- |
-| 앱 | 네이티브 flavor(앱 ID·이름 분리), `shared/widgets`(Loading·Error·Empty), `core/error`, 토큰 갱신·세션 복원 | 첫 기능(로그인) 만들 때 |
+| 앱 | `shared/widgets`(Loading·Error·Empty), `core/error`, 토큰 갱신·세션 복원 | 첫 기능(로그인) 만들 때 |
 | 웹 | `shared/ui`, `shared/bridge`, 서버 데이터 라이브러리 결정, 호스팅 | 첫 API 연동 때 |
-| 배포 | Shorebird, Fastlane, GitHub Actions | CI 세팅 작업 |
+| 배포 | Shorebird, Fastlane, 스토어 서명 (CI 검사는 있음) | 첫 내부 테스트 배포 전 |
 | 팀 합의 | `develop` 브랜치, 문구 톤·용어집, 공통 위젯 1차 목록, 캡처 기준 기기 | 첫 PR 전 |
 
 ## 9. 문서 지도

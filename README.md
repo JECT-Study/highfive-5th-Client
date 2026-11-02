@@ -16,14 +16,15 @@ docs/         작업 흐름·구조·디자인 토큰 규칙
 cd apps/mobile
 fvm install                                # .fvmrc 버전 설치
 fvm flutter pub get
-fvm flutter run --dart-define=FLAVOR=dev   # FLAVOR 생략 시 dev
+fvm flutter run --flavor dev               # dev / prod 두 앱이 나란히 설치된다
 ```
 
-PR 전 검증:
+PR 전 검증 (CI도 같은 명령):
 
 ```bash
-fvm dart format --set-exit-if-changed lib test
+fvm dart format --set-exit-if-changed lib test tool
 fvm flutter analyze
+fvm dart run tool/check_imports.dart
 fvm flutter test
 ```
 
@@ -36,7 +37,7 @@ pnpm install
 pnpm dev
 ```
 
-PR 전 검증:
+PR 전 검증 (CI도 같은 명령):
 
 ```bash
 pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build

@@ -60,6 +60,8 @@ main.tsx ─► app ─► features ─► shared
 
 기능 안에서는 `pages → components, hooks → api`. `api`가 `hooks`나 컴포넌트를 모른다.
 
+표의 X는 ESLint `import-x/no-restricted-paths`(`eslint.config.js`)가 막는다. 기능 폴더 목록은 설정이 `src/features/`를 읽어 자동으로 만드므로 새 기능을 추가해도 설정을 고칠 필요가 없다.
+
 `features → app/routes.ts`만 허용하는 이유: 링크를 만들려면 경로 상수가 필요한데, 경로를 기능마다 복사하면 바뀔 때 깨진다. `routes.ts`는 상수만 있고 아무것도 import하지 않으므로 순환이 생기지 않는다.
 
 ## 3. 상태

@@ -96,6 +96,8 @@ data/services ──► data/dto, core/network
 models ──► 패키지만 (flutter 포함 안 함)
 ```
 
+이 규칙은 `fvm dart run tool/check_imports.dart`가 검사한다(CI에서도 돌아감). 위반이면 파일·줄·이유를 출력하고 종료 코드 1로 끝난다.
+
 왜: 아래층이 위층을 모르면 아래층만 따로 테스트하고 교체할 수 있다. `features → app`을 막는 이유는 순환(app이 features를 import하므로)과, 기능이 앱 전체 설정에 기대는 것을 막기 위해서다. 기능이 환경값이 필요하면 Service·Repository가 생성자로 받는다.
 
 ## 3. 계층 책임

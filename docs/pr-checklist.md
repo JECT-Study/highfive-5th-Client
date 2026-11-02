@@ -45,7 +45,7 @@ PR 템플릿(`.github/PULL_REQUEST_TEMPLATE.md`)의 체크박스는 이 문서�
 
 ### A2. 자동 검증
 
-- 본다: 앱 `fvm dart format --set-exit-if-changed lib test` / `fvm flutter analyze` / `fvm flutter test`, 웹 `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build`. 전부 종료 코드 0.
+- 본다: 앱 `fvm dart format --set-exit-if-changed lib test tool` / `fvm flutter analyze` / `fvm dart run tool/check_imports.dart` / `fvm flutter test`, 웹 `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build`. 전부 종료 코드 0. CI가 PR마다 같은 것을 돌린다.
 - 왜: 가장 싸게 얻는 일관성. 사람이 보기 전에 기계가 거를 수 있는 것은 전부 기계에 맡긴다.
 - 확인: 마지막 커밋 뒤에 다시 돌린다. 경고를 `// ignore:`·`eslint-disable`·`any`로 지웠으면 그 자체가 실패다.
 
@@ -57,7 +57,7 @@ PR 템플릿(`.github/PULL_REQUEST_TEMPLATE.md`)의 체크박스는 이 문서�
   - `features`가 `app/`을 import하지 않는다(웹은 `app/routes.ts`만 예외). 다른 기능의 `presentation/`(웹: `components/ hooks/ pages/`)을 import하지 않는다.
   - 빈 폴더, "나중에 쓸" 인터페이스·UseCase·추상 클래스가 없다.
 - 왜: 구조가 같아야 상대가 내 기능을 고칠 때 찾는 시간이 0에 가깝다. 의존성 방향이 지켜져야 아래층을 따로 테스트하고 바꿀 수 있다.
-- 확인:
+- 확인: 웹은 `pnpm lint`(ESLint `import-x/no-restricted-paths`), 앱은 `fvm dart run tool/check_imports.dart`가 방향 위반을 잡는다. 아래 grep은 린트가 못 보는 것(도메인 단어가 core/shared에 들어갔는지 등)을 눈으로 볼 때 쓴다.
   ```bash
   # 앱: features가 app을 import하는가
   grep -rn "import '.*\/app\/" apps/mobile/lib/features
@@ -187,12 +187,12 @@ PR 템플릿(`.github/PULL_REQUEST_TEMPLATE.md`)의 체크박스는 이 문서�
 
 | 항목 | 지금 | 옮길 곳 |
 | --- | --- | --- |
-| A2 자동 검증 | 각자 로컬 | GitHub Actions PR 검사 (앱 Linux runner, 웹 Linux runner) |
-| A3 의존성 방향 (웹) | grep | ESLint `no-restricted-imports`로 `features → app`, 기능 간 내부 import 차단 |
-| A3 의존성 방향 (앱) | grep | `custom_lint` 규칙 또는 `import_lint` 패키지 |
+| A2 자동 검증 | **된 것**: `.github/workflows/mobile.yml`, `web.yml` | - |
+| A3 의존성 방향 (웹) | **된 것**: ESLint `import-x/no-restricted-paths` | - |
+| A3 의존성 방향 (앱) | **된 것**: `tool/check_imports.dart` (CI 포함) | 규칙이 늘면 `custom_lint`로 옮기는 것을 검토 |
 | A6 토큰 (웹) | grep | stylelint `declaration-property-value-disallowed-list`로 hex·px 차단(예외 목록 포함) |
 | A6 토큰 (앱) | grep | `custom_lint` 규칙 (`Color(0x`, `Colors.` 금지 in features) |
-| A11 생성 파일 | 손으로 재실행 | CI에서 `build_runner` 돌린 뒤 `git diff --exit-code` |
+| A11 생성 파일 | **된 것**: `mobile.yml`이 `build_runner` 후 `git diff --exit-code` | - |
 | A1 형식 | 눈 | commitlint / PR 제목 정규식 검사 |
 
 ## E. 팀이 아직 정해야 하는 것

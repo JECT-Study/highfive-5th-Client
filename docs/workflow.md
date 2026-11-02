@@ -65,8 +65,9 @@ Service를 인터페이스 없이 만들되 생성자 주입으로 받아 테스
 앱 (`apps/mobile`):
 
 ```bash
-fvm dart format --set-exit-if-changed lib test
+fvm dart format --set-exit-if-changed lib test tool
 fvm flutter analyze
+fvm dart run tool/check_imports.dart   # import 방향 규칙
 fvm flutter test
 ```
 
@@ -76,7 +77,7 @@ fvm flutter test
 pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build
 ```
 
-- 하나라도 실패한 채로 PR을 올리지 않는다. CI가 생기면 같은 명령을 돌린다.
+- 하나라도 실패한 채로 PR을 올리지 않는다. CI(`.github/workflows/mobile.yml`, `web.yml`)가 PR마다 같은 명령을 돌리고, 바뀝 쪽 앱·웹만 실행한다.
 - 명령 통과는 시작일 뿐이다. 구조·명령 처리·화면 상태·토큰·문구·데이터·테스트는 [pr-checklist.md A절](./pr-checklist.md#a-작성자-체크-pr-올리기-전)로 한 번 더 본다.
 - 화면을 바꿨으면 캡처(앱: 바꾼 플랫폼, 웹: 모바일 폭)를 PR에 넣는다.
 - 경로에 한글이 있으면 `flutter analyze`가 크래시한다(analysis server 버그). 영문 경로에 복사해서 돌린다.
