@@ -1,0 +1,70 @@
+# GitHub Secrets의 인증서·프로비저닝 프로파일을 임시 keychain에 설치하고 ExportOptions.plist를 만든다.
+name: iOS signing
+description: Install signing certificate and provisioning profile, write ExportOptions.plist
+
+inputs:
+  certificate-base64:
+    required: true
+  certificate-password:
+    required: true
+  profile-base64:
+    required: true
+  bundle-id:
+    required: true
+  team-id:
+    required: true
+
+outputs:
+  export-options:
+    description: Path to the generated ExportOptions.plist
+    value: ${{ steps.sign.outputs.export-options }}
+
+runs:
+  using: composite
+  steps:
+    - id: sign
+      shell: bash
+      env:
+        CERT: ${{ inputs.certificate-base64 }}
+        CERT_PASSWORD: ${{ inputs.certificate-password }}
+        PROFILE: ${{ inputs.profile-base64 }}
+        BUNDLE_ID: ${{ inputs.bundle-id }}
+        TEAM_ID: ${{ inputs.team-id }}
+      run: |
+        set -euo pipefail
+        KEYCHAIN="$RUNNER_TEMP/app-signing.keychain-db"
+        KEYCHAIN_PASSWORD="$(openssl rand -base64 24)"
+
+        echo -n "$CERT" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+        echo -n "$PROFILE" | base64 --decode > "$RUNNER_TEMP/profile.mobileprovision"
+
+        security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+        security set-keychain-settings -lut 21600 "$KEYCHAIN"
+        security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+        security import "$RUNNER_TEMP/cert.p12" -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+        security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN"
+        security list-keychain -d user -s "$KEYCHAIN"
+
+        security cms -D -i "$RUNNER_TEMP/profile.mobileprovision" > "$RUNNER_TEMP/profile.plist"
+        UUID="$(/usr/libexec/PlistBuddy -c 'Print UUID' "$RUNNER_TEMP/profile.plist")"
+        NAME="$(/usr/libexec/PlistBuddy -c 'Print Name' "$RUNNER_TEMP/profile.plist")"
+        mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+        cp "$RUNNER_TEMP/profile.mobileprovision" "$HOME/Library/MobileDevice/Provisioning Profiles/$UUID.mobileprovision"
+
+        EXPORT_OPTIONS="$RUNNER_TEMP/ExportOptions.plist"
+        cat > "$EXPORT_OPTIONS" <<EOF
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+          <key>method</key><string>app-store-connect</string>
+          <key>teamID</key><string>$TEAM_ID</string>
+          <key>signingStyle</key><string>manual</string>
+          <key>provisioningProfiles</key>
+          <dict>
+            <key>$BUNDLE_ID</key><string>$NAME</string>
+          </dict>
+        </dict>
+        </plist>
+        EOF
+        echo "export-options=$EXPORT_OPTIONS" >> "$GITHUB_OUTPUT"
