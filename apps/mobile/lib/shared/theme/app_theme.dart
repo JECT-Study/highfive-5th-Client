@@ -12,6 +12,8 @@ abstract final class AppTheme {
       primary: AppColors.light.primary,
       onPrimary: AppColors.light.onPrimary,
       surface: AppColors.light.surface,
+      // Material 3의 기본 글자색은 onSurface다. 토큰의 본문 색으로 맞춘다.
+      onSurface: AppColors.light.textPrimary,
       error: AppColors.light.danger,
     ),
     scaffoldBackgroundColor: AppColors.light.background,
