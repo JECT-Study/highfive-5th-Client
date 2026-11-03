@@ -79,25 +79,66 @@ String? _violation(String from, String to) {
   };
 }
 
+/// 같은 기능 안에서 각 층이 import할 수 있는 층 (mobile-architecture 2절의 화살표).
+const _allowedInFeature = <String, Set<String>>{
+  'presentation/views': {
+    'presentation/views',
+    'presentation/widgets',
+    'presentation/view_models',
+    'presentation/providers',
+    'models',
+  },
+  'presentation/widgets': {
+    'presentation/widgets',
+    'presentation/view_models',
+    'presentation/providers',
+    'models',
+  },
+  'presentation/view_models': {
+    'presentation/view_models',
+    'presentation/providers',
+    'data/repositories',
+    'models',
+  },
+  'presentation/providers': {
+    'presentation/providers',
+    'presentation/view_models',
+    'data/repositories',
+    'data/services',
+    'models',
+  },
+  'data/repositories': {
+    'data/repositories',
+    'data/services',
+    'data/dto',
+    'models',
+  },
+  'data/services': {'data/services', 'data/dto'},
+  'data/dto': {'data/dto', 'models'},
+  'models': {'models'},
+};
+
+/// 다른 기능에서 가져다 쓸 수 있는 계약.
+const _crossFeatureContracts = {'data/repositories', 'models'};
+
 String? _featureViolation(_Layer f, _Layer t) {
   if (t.name == 'app') {
     return 'features는 app을 import하지 않는다 (연결 Provider는 presentation/providers 에)';
   }
-  if (t.name != 'features') return null;
-  if (f.feature != t.feature) {
-    if (t.sub == 'presentation') {
-      return '다른 기능의 presentation을 import하지 않는다 (data/repositories·models 계약만)';
-    }
-    return null;
-  }
-  if (f.sub.startsWith('data') && t.sub == 'presentation') {
-    return 'data는 presentation을 모른다';
-  }
-  if (f.sub == 'models' && t.sub != 'models') {
+  if (f.sub == 'models' && t.name != 'features') {
     return 'models는 패키지만 import한다';
   }
-  if (f.sub == 'data/services' && t.sub == 'data/repositories') {
-    return 'services는 repositories를 import하지 않는다';
+  if (t.name != 'features') return null;
+  if (f.feature != t.feature) {
+    if (_crossFeatureContracts.contains(t.sub)) return null;
+    return '다른 기능은 data/repositories·models만 import한다 (${t.sub} 금지)';
+  }
+  final allowed = _allowedInFeature[f.sub];
+  if (allowed != null) {
+    return allowed.contains(t.sub) ? null : '${f.sub}는 ${t.sub}를 import하지 않는다';
+  }
+  if (f.sub.startsWith('data') && t.sub.startsWith('presentation')) {
+    return 'data는 presentation을 모른다';
   }
   return null;
 }
@@ -118,8 +159,9 @@ class _Layer {
         return _Layer(parts.first);
       case 'features':
         if (parts.length < 3) return null;
-        final sub = parts[2] == 'data' && parts.length > 4
-            ? 'data/${parts[3]}'
+        final layered = parts[2] == 'data' || parts[2] == 'presentation';
+        final sub = layered && parts.length > 4
+            ? '${parts[2]}/${parts[3]}'
             : parts[2];
         return _Layer('features', feature: parts[1], sub: sub);
       default:
