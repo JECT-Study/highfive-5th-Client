@@ -142,4 +142,10 @@ void main() {
 
     expect(found.map((v) => v.line), [3]);
   });
+
+  test('문자열 안의 import 줄은 무시한다', () {
+    const source = "const s = '''\nimport '../../../../app/router.dart';\n''';";
+
+    expect(checker.findViolations(_views, source), isEmpty);
+  });
 }

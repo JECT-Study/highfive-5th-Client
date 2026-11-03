@@ -2,6 +2,9 @@
 // 실행: fvm dart run tool/check_imports.dart   (위반이 있으면 종료 코드 1)
 import 'dart:io';
 
+import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+
 void main() {
   final libDir = Directory('lib');
   if (!libDir.existsSync()) {
@@ -41,20 +44,17 @@ class Violation {
   final String reason;
 }
 
-/// `import`·`export` 지시문 하나 (키워드부터 `;`까지, 여러 줄 가능).
-final _directive = RegExp(r'^[ \t]*(?:import|export)\b[^;]*;', multiLine: true);
-
-/// 지시문 안의 모든 URI. 조건부 import의 `if (...) 'uri'`도 포함한다.
-final _uri = RegExp(r'''(['"])(.*?)\1''');
-
 /// [from](lib 기준 경로) 파일의 [source]에서 방향 규칙 위반을 찾는다.
+/// Dart 파서로 읽으므로 주석·문자열 속 `import`는 지시문으로 보지 않는다.
+/// 조건부 import의 `if (...) 'uri'`도 검사한다.
 List<Violation> findViolations(String from, String source) {
-  final code = _blankComments(source);
+  final unit = parseString(content: source, throwIfDiagnostics: false).unit;
   final found = <Violation>[];
-  for (final d in _directive.allMatches(code)) {
-    final line = '\n'.allMatches(code.substring(0, d.start)).length + 1;
-    for (final u in _uri.allMatches(d.group(0)!)) {
-      final uri = u.group(2)!;
+  for (final d in unit.directives.whereType<NamespaceDirective>()) {
+    final line = unit.lineInfo.getLocation(d.offset).lineNumber;
+    for (final literal in [d.uri, for (final c in d.configurations) c.uri]) {
+      final uri = literal.stringValue;
+      if (uri == null) continue;
       final to = _resolve(from, uri);
       final reason = to == null
           ? _packageViolation(from, uri)
@@ -63,44 +63,6 @@ List<Violation> findViolations(String from, String source) {
     }
   }
   return found;
-}
-
-/// 주석을 같은 길이의 공백으로 바꾼다(줄 번호 유지). 따옴표 안의 `//`·`/*`는 건드리지 않는다.
-String _blankComments(String s) {
-  final b = StringBuffer();
-  String? quote;
-  var i = 0;
-  while (i < s.length) {
-    final c = s[i];
-    if (quote != null) {
-      if (c == r'\' && i + 1 < s.length) {
-        b.write(s.substring(i, i + 2));
-        i += 2;
-        continue;
-      }
-      if (c == quote) quote = null;
-      b.write(c);
-      i++;
-    } else if (c == "'" || c == '"') {
-      quote = c;
-      b.write(c);
-      i++;
-    } else if (s.startsWith('//', i)) {
-      final end = s.indexOf('\n', i);
-      final stop = end == -1 ? s.length : end;
-      b.write(' ' * (stop - i));
-      i = stop;
-    } else if (s.startsWith('/*', i)) {
-      final end = s.indexOf('*/', i + 2);
-      final stop = end == -1 ? s.length : end + 2;
-      b.write(s.substring(i, stop).replaceAll(RegExp(r'[^\n]'), ' '));
-      i = stop;
-    } else {
-      b.write(c);
-      i++;
-    }
-  }
-  return b.toString();
 }
 
 String _libRelative(String path) {
