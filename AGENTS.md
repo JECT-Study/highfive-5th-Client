@@ -17,14 +17,15 @@
 apps/mobile/   Flutter 앱. 명령은 이 폴더에서 `fvm flutter ...`
 apps/web/      React + TypeScript + Vite. 명령은 이 폴더에서 `pnpm ...`
 docs/          규칙 문서. BE API 명세는 docs/api/ 에 둔다
-.github/       PR 템플릿, CI (mobile.yml · web.yml — PR마다 아래 검증을 돌린다)
+.github/       PR 템플릿, CI (mobile.yml · web.yml — 앱·웹 파일이 바뀐 PR마다 아래 검증을 돌린다)
 ```
 
 | | 앱 (`apps/mobile`) | 웹 (`apps/web`) |
 | --- | --- | --- |
 | 설치 | `fvm install && fvm flutter pub get` | `corepack enable && pnpm install` |
 | 실행 | `fvm flutter run --flavor dev` (`prod`) | `pnpm dev` |
-| 포맷 | `fvm dart format lib test tool` | `pnpm format` |
+| 포맷 고치기 | `fvm dart format lib test tool` | `pnpm format` |
+| 포맷 검사 (CI와 같음) | `fvm dart format --set-exit-if-changed --output=none lib test tool` | `pnpm format:check` |
 | 분석·린트 | `fvm flutter analyze && fvm dart run tool/check_imports.dart` | `pnpm lint && pnpm typecheck` |
 | 테스트 | `fvm flutter test` | `pnpm test` |
 | 빌드 | `fvm flutter build apk\|ipa --flavor prod` | `pnpm build` (prod) / `pnpm build:dev` |

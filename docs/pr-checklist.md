@@ -45,7 +45,7 @@ PR 템플릿(`.github/PULL_REQUEST_TEMPLATE.md`)의 체크박스는 이 문서�
 
 ### A2. 자동 검증
 
-- 본다: 앱 `fvm dart format --set-exit-if-changed lib test tool` / `fvm flutter analyze` / `fvm dart run tool/check_imports.dart` / `fvm flutter test`, 웹 `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build`. 전부 종료 코드 0. CI가 PR마다 같은 것을 돌린다.
+- 본다: 앱(`apps/mobile`에서) `fvm dart format --set-exit-if-changed --output=none lib test tool` / `fvm flutter analyze` / `fvm dart run tool/check_imports.dart` / `fvm flutter test`, 웹(`apps/web`에서) `pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm build:dev`. 전부 종료 코드 0. 앱·웹 파일이 바뀐 PR이면 CI가 같은 것을 돌린다(문서만 바뀐 PR은 CI가 돌지 않는다).
 - 왜: 가장 싸게 얻는 일관성. 사람이 보기 전에 기계가 거를 수 있는 것은 전부 기계에 맡긴다.
 - 확인: 마지막 커밋 뒤에 다시 돌린다. 경고를 `// ignore:`·`eslint-disable`·`any`로 지웠으면 그 자체가 실패다.
 
@@ -95,7 +95,7 @@ PR 템플릿(`.github/PULL_REQUEST_TEMPLATE.md`)의 체크박스는 이 문서�
   grep -rnE "Color\(0x|Colors\.|fontSize: [0-9]|EdgeInsets\.(all|symmetric|only|fromLTRB)\([0-9]|Radius\.circular\([0-9]" apps/mobile/lib/features apps/mobile/lib/app
   grep -rnE "#[0-9a-fA-F]{3,8}\b|[0-9]+px" apps/web/src/features apps/web/src/shared/ui --include='*.css'
   ```
-  예외: `1px` 테두리, `max-width`·breakpoint, 진행률 같은 동적 값. 예외는 그 줄에 짧게 이유를 남긴다. 토큰 자체가 없으면 [design-tokens.md 2절](./design-tokens.md#2-바꾸는-절차)대로 추가하고 "한 화면용 값"이면 추가하지 않는다.
+  예외: `1px` 테두리, `max-width`·breakpoint, 진행률 같은 동적 값. 예외는 그 줄에 짧게 이유를 남긴다. 기존 단계로 안 되면 [design-tokens.md 2절](./design-tokens.md#2-바꾸는-절차)대로 디자이너와 범용 단계를 추가한다. 특정 화면 이름이 붙은 토큰은 만들지 않는다.
 
 ### A7. 공통 위젯·컴포넌트 재사용
 

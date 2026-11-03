@@ -26,6 +26,8 @@ fvm dart format --set-exit-if-changed lib test tool
 fvm flutter analyze
 fvm dart run tool/check_imports.dart
 fvm flutter test
+# 생성 파일이 최신인지: 커밋한 뒤 작업 트리가 깨끗할 때 실행해서 diff가 없어야 한다
+fvm dart run build_runner build --delete-conflicting-outputs && git diff --exit-code
 ```
 
 ## 웹 실행
@@ -40,5 +42,5 @@ pnpm dev
 PR 전 검증 (CI도 같은 명령):
 
 ```bash
-pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build
+pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm build:dev
 ```
