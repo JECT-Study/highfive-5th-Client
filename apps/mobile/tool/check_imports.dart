@@ -1,8 +1,6 @@
-// lib/ 안 import가 docs/mobile-architecture.md 2절의 방향 규칙을 지키는지 검사한다.
+// lib/ 안 import·export가 docs/mobile-architecture.md 2절의 방향 규칙을 지키는지 검사한다.
 // 실행: fvm dart run tool/check_imports.dart   (위반이 있으면 종료 코드 1)
 import 'dart:io';
-
-final _importPattern = RegExp(r'''^\s*(?:import|export)\s+['"]([^'"]+)['"]''');
 
 void main() {
   final libDir = Directory('lib');
@@ -19,15 +17,8 @@ void main() {
   final violations = <String>[];
   for (final file in files) {
     final from = _libRelative(file.path);
-    for (final (lineNo, line) in file.readAsLinesSync().indexed) {
-      final match = _importPattern.firstMatch(line);
-      if (match == null) continue;
-      final to = _resolve(from, match.group(1)!);
-      if (to == null) continue;
-      final reason = _violation(from, to);
-      if (reason != null) {
-        violations.add('${file.path}:${lineNo + 1}  → $to\n    $reason');
-      }
+    for (final v in findViolations(from, file.readAsStringSync())) {
+      violations.add('${file.path}:${v.line}  → ${v.target}\n    ${v.reason}');
     }
   }
 
@@ -42,12 +33,82 @@ void main() {
   exit(1);
 }
 
+class Violation {
+  const Violation(this.line, this.target, this.reason);
+
+  final int line;
+  final String target;
+  final String reason;
+}
+
+/// `import`·`export` 지시문 하나 (키워드부터 `;`까지, 여러 줄 가능).
+final _directive = RegExp(r'^[ \t]*(?:import|export)\b[^;]*;', multiLine: true);
+
+/// 지시문 안의 모든 URI. 조건부 import의 `if (...) 'uri'`도 포함한다.
+final _uri = RegExp(r'''(['"])(.*?)\1''');
+
+/// [from](lib 기준 경로) 파일의 [source]에서 방향 규칙 위반을 찾는다.
+List<Violation> findViolations(String from, String source) {
+  final code = _blankComments(source);
+  final found = <Violation>[];
+  for (final d in _directive.allMatches(code)) {
+    final line = '\n'.allMatches(code.substring(0, d.start)).length + 1;
+    for (final u in _uri.allMatches(d.group(0)!)) {
+      final uri = u.group(2)!;
+      final to = _resolve(from, uri);
+      final reason = to == null
+          ? _packageViolation(from, uri)
+          : _violation(from, to);
+      if (reason != null) found.add(Violation(line, to ?? uri, reason));
+    }
+  }
+  return found;
+}
+
+/// 주석을 같은 길이의 공백으로 바꾼다(줄 번호 유지). 따옴표 안의 `//`·`/*`는 건드리지 않는다.
+String _blankComments(String s) {
+  final b = StringBuffer();
+  String? quote;
+  var i = 0;
+  while (i < s.length) {
+    final c = s[i];
+    if (quote != null) {
+      if (c == r'\' && i + 1 < s.length) {
+        b.write(s.substring(i, i + 2));
+        i += 2;
+        continue;
+      }
+      if (c == quote) quote = null;
+      b.write(c);
+      i++;
+    } else if (c == "'" || c == '"') {
+      quote = c;
+      b.write(c);
+      i++;
+    } else if (s.startsWith('//', i)) {
+      final end = s.indexOf('\n', i);
+      final stop = end == -1 ? s.length : end;
+      b.write(' ' * (stop - i));
+      i = stop;
+    } else if (s.startsWith('/*', i)) {
+      final end = s.indexOf('*/', i + 2);
+      final stop = end == -1 ? s.length : end + 2;
+      b.write(s.substring(i, stop).replaceAll(RegExp(r'[^\n]'), ' '));
+      i = stop;
+    } else {
+      b.write(c);
+      i++;
+    }
+  }
+  return b.toString();
+}
+
 String _libRelative(String path) {
   final idx = path.indexOf('lib/');
   return path.substring(idx + 4).replaceAll(r'\', '/');
 }
 
-/// `package:highfive/...` 와 상대 경로만 lib 기준 경로로 바꾼다. 그 외(dart:, 다른 패키지)는 무시.
+/// `package:highfive/...` 와 상대 경로만 lib 기준 경로로 바꾼다. 그 외(dart:, 다른 패키지)는 null.
 String? _resolve(String from, String uri) {
   const pkg = 'package:highfive/';
   if (uri.startsWith(pkg)) return uri.substring(pkg.length);
@@ -62,6 +123,16 @@ String? _resolve(String from, String uri) {
     }
   }
   return parts.join('/');
+}
+
+/// 외부 패키지 규칙: models는 flutter를 모른다.
+String? _packageViolation(String from, String uri) {
+  final f = _Layer.of(from);
+  final isFlutter = uri.startsWith('package:flutter/') || uri == 'dart:ui';
+  if (isFlutter && f != null && f.name == 'features' && f.sub == 'models') {
+    return 'models는 flutter를 import하지 않는다 (패키지만)';
+  }
+  return null;
 }
 
 String? _violation(String from, String to) {
