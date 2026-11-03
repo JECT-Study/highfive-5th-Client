@@ -15,6 +15,11 @@ class AppEnv {
     const name = bool.hasEnvironment('FLUTTER_APP_FLAVOR')
         ? String.fromEnvironment('FLUTTER_APP_FLAVOR')
         : String.fromEnvironment('FLAVOR', defaultValue: 'dev');
+    return AppEnv.forFlavorName(name);
+  }
+
+  /// flavor 이름으로 환경값을 고른다. 모르는 이름이면 [ArgumentError].
+  factory AppEnv.forFlavorName(String name) {
     return switch (Flavor.values.byName(name)) {
       Flavor.dev => const AppEnv(
         flavor: Flavor.dev,
