@@ -244,6 +244,7 @@ flowchart TB
 ```mermaid
 flowchart LR
   slash["/"] -->|"redirect"| notices["/notices<br/>NoticeListPage (자리만)"]
+  other["그 밖의 경로"] --> nf["NotFoundPage<br/>처음으로 가는 링크"]
 ```
 
 | 파일 | 값 | 쓰이는 때 |

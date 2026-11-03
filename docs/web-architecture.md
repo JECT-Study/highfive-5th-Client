@@ -15,7 +15,7 @@ src/
 │   ├── router.tsx                   (있음) appRoutes(RouteObject[]) + createBrowserRouter
 │   ├── router.test.tsx              (있음)
 │   ├── providers.tsx                QueryClientProvider 등 전역 Provider (필요해지면)
-│   └── NotFoundPage.tsx             잘못된 경로 (첫 공개 페이지 만들 때)
+│   └── NotFoundPage.tsx             (있음) 없는 경로 안내 + 처음으로 가는 링크 (`routes.notFound` = `*`)
 │
 ├── shared/                          도메인을 모르는 공통 코드
 │   ├── config/env.ts                (있음) VITE_FLAVOR, VITE_API_BASE_URL 읽기·검증. 아무것도 import하지 않는다
