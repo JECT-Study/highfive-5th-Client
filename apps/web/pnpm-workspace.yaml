@@ -1,0 +1,5 @@
+# pnpm 12는 갓 배포된 패키지 설치를 보류한다(minimumReleaseAge).
+# 2026-11-02 세팅 시점에 @vitejs/plugin-react 6.2.1이 막 나와서 예외로 넣었다.
+# 며칠 지나면 이 파일은 지워도 된다.
+minimumReleaseAgeExclude:
+  - '@vitejs/plugin-react@6.2.1'

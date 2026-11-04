@@ -1,0 +1,46 @@
+name: mobile
+
+on:
+  pull_request:
+    paths:
+      - "apps/mobile/**"
+      - ".github/workflows/mobile.yml"
+  push:
+    branches: [main, develop]
+    paths:
+      - "apps/mobile/**"
+      - ".github/workflows/mobile.yml"
+
+concurrency:
+  group: mobile-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Flutter 버전을 .fvmrc에서 읽기
+        id: fvmrc
+        run: echo "version=$(jq -r .flutter .fvmrc)" >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.fvmrc.outputs.version }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+      - run: dart format --set-exit-if-changed --output=none lib test tool
+      - run: flutter analyze
+      - run: dart run tool/check_imports.dart
+      - run: flutter test
+
+      - name: 생성 파일이 최신인지 (build_runner 후 diff 없어야 함)
+        run: |
+          dart run build_runner build --delete-conflicting-outputs
+          git diff --exit-code

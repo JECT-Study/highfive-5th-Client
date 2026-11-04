@@ -1,0 +1,9 @@
+.page {
+  padding: var(--space-4);
+  max-width: 480px; /* 레이아웃 폭은 토큰이 아니다 (web-architecture.md 4절) */
+  margin: 0 auto;
+}
+
+.link {
+  color: var(--color-primary);
+}
