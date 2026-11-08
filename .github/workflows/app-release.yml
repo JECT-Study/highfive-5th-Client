@@ -1,0 +1,114 @@
+# develop/main merge 시 Shorebird release 빌드 → Fastlane 업로드(재빌드 X) → TestFlight / Play 내부 테스트.
+# develop → dev(com.ject.highfive.dev), main → prod(com.ject.highfive).
+# 스토어 출시(App Store 심사, Google Play 검토)는 prod만, 콘솔에서 수동 승인.
+# PR 검사는 mobile.yml / web.yml이 맡는다.
+name: App Release
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - 'apps/mobile/**'
+  workflow_dispatch:
+
+concurrency:
+  group: app-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  FLAVOR: ${{ github.ref_name == 'main' && 'prod' || 'dev' }}
+  APP_ID: ${{ github.ref_name == 'main' && 'com.ject.highfive' || 'com.ject.highfive.dev' }}
+  BUILD_NUMBER: ${{ github.run_number }}
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+      - name: Android signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo -n "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          cat > android/key.properties <<EOF
+          storeFile=upload-keystore.jks
+          storeType=PKCS12
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+      - name: Shorebird release
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+        run: |
+          shorebird release android \
+            --flavor "$FLAVOR" \
+            --flutter-version "$(jq -r .flutter .fvmrc)" \
+            -- --build-number="$BUILD_NUMBER"
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: apps/mobile
+      - name: Upload to Play internal testing
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          bundle exec fastlane android upload_internal \
+            aab:"build/app/outputs/bundle/${FLAVOR}Release/app-${FLAVOR}-release.aab" \
+            package_name:"$APP_ID"
+
+  ios:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shorebirdtech/setup-shorebird@v1
+        with:
+          cache: true
+      - id: signing
+        uses: ./.github/actions/ios-signing
+        with:
+          certificate-base64: ${{ secrets.IOS_DISTRIBUTION_P12_BASE64 }}
+          certificate-password: ${{ secrets.IOS_P12_PASSWORD }}
+          profile-base64: ${{ env.FLAVOR == 'prod' && secrets.IOS_PROFILE_PROD_BASE64 || secrets.IOS_PROFILE_DEV_BASE64 }}
+          bundle-id: ${{ env.APP_ID }}
+          team-id: Q4E6NKD9VN
+      - name: Shorebird release
+        env:
+          SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+        run: |
+          shorebird release ios \
+            --flavor "$FLAVOR" \
+            --flutter-version "$(jq -r .flutter .fvmrc)" \
+            --export-options-plist "${{ steps.signing.outputs.export-options }}" \
+            -- --build-number="$BUILD_NUMBER"
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: apps/mobile
+      - name: Upload to TestFlight
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          bundle exec fastlane ios upload_testflight \
+            ipa:"$(ls build/ios/ipa/*.ipa | head -1)" \
+            app_identifier:"$APP_ID"
