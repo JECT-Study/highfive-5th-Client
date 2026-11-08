@@ -2,3 +2,13 @@
 .idea/
 *.iml
 .omo/
+
+# 서명 파일 (git에 넣지 않는다)
+*.p12
+*.cer
+*.p8
+*.mobileprovision
+*.jks
+*.keystore
+**/key.properties
+비밀번호.txt

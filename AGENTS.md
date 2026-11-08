@@ -10,6 +10,7 @@
 | 웹 폴더 구조·의존성·bridge·환경 | [docs/web-architecture.md](./docs/web-architecture.md) |
 | 색·간격·글자 크기 값과 바꾸는 절차 | [docs/design-tokens.md](./docs/design-tokens.md) |
 | PR 올리기 전·리뷰할 때 무엇을 왜 보나 | [docs/pr-checklist.md](./docs/pr-checklist.md) |
+| 배포(TestFlight·Play)·Shorebird patch·서명 secret | [docs/ci-cd.md](./docs/ci-cd.md) |
 
 ## 저장소와 명령
 
