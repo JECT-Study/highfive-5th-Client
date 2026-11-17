@@ -385,7 +385,7 @@ flowchart LR
 
 | 영역 | 없는 것 | 언제 |
 | --- | --- | --- |
-| 앱 | `shared/widgets`(Loading·Error·Empty), `core/error`, 토큰 갱신·세션 복원 | 첫 기능(로그인) 만들 때 |
+| 앱 | `shared/widgets`(Loading·Error·Empty), `core/error`, 토큰 갱신 | 첫 기능(로그인) 만들 때 |
 | 웹 | `shared/ui`, `shared/bridge`, 서버 데이터 라이브러리 결정, 호스팅 | 첫 API 연동 때 |
 | 배포 | Shorebird, Fastlane, 스토어 서명 (CI 검사는 있음) | 첫 내부 테스트 배포 전 |
 | 팀 합의 | `develop` 브랜치, 문구 톤·용어집, 공통 위젯 1차 목록, 캡처 기준 기기 | 첫 PR 전 |
