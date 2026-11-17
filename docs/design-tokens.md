@@ -11,7 +11,7 @@
 | 위치 | 파일 |
 | --- | --- |
 | 기준 | `docs/design-tokens.md` (이 문서) |
-| 앱 | `apps/mobile/lib/shared/theme/app_colors.dart`, `app_spacing.dart`, `app_radius.dart`, `app_typography.dart` |
+| 앱 | `apps/mobile/lib/shared/theme/app_colors.dart`, `app_spacing.dart`, `app_radius.dart`, `app_typography.dart`, 글꼴 `assets/fonts/pretendard/` |
 | 웹 | `apps/web/src/shared/styles/tokens.css` |
 
 ## 2. 바꾸는 절차
@@ -28,7 +28,7 @@
 
 ## 3. 토큰 표
 
-색은 Figma 디자인 시스템 v3 기준이다. 간격·모서리·글자 크기는 아직 임시값이다.
+색·글자는 Figma 디자인 시스템 v3 기준이다. 간격·모서리는 Figma에 아직 없어 임시값이다.
 
 ### 색 — 원시 (토큰 파일 안에서만)
 
@@ -129,16 +129,33 @@ Figma에서 둘 다 Primary다. 화면에서 바로 쓴다. Material 기본 위�
 | radius.md | 12 | `AppRadius.md` | `--radius-md` |
 | radius.lg | 16 | `AppRadius.lg` | `--radius-lg` |
 
-### 글자 크기
+### 글자 (Figma 디자인 시스템 v3 타이포그래피)
 
-| 이름 | 값 | 앱 | 웹 |
-| --- | --- | --- | --- |
-| fontSize.sm | 14 | `textTheme.bodySmall` | `--font-size-sm` |
-| fontSize.md | 16 | `textTheme.bodyMedium` | `--font-size-md` |
-| fontSize.lg | 20 | `textTheme.titleLarge` | `--font-size-lg` |
-| fontSize.xl | 24 | `textTheme.headlineSmall` | `--font-size-xl` |
+글꼴은 **Pretendard** (SIL OFL 1.1). Regular·Medium·SemiBold·Bold만 쓴다. 자간 0.
+앱은 `apps/mobile/assets/fonts/pretendard/`에 파일을 두고 `pubspec.yaml` fonts에 등록, 웹은 `pretendard` npm 패키지(글자 범위별로 나눠 필요한 조각만 받는다).
 
-앱은 크기를 `AppFontSize`에 두고 `AppTypography.textTheme`가 Material `TextTheme`에 매핑한다. 위젯은 `Theme.of(context).textTheme.*`만 쓴다.
+| Figma | 굵기 | 크기 | 행간 | 앱 `context.textStyles.*` | 웹 `font: var(...)` |
+| --- | --- | --- | --- | --- | --- |
+| Head(SB) | SemiBold 600 | 24 | 130% | `head` | `--text-head` |
+| Title-1(B) | Bold 700 | 18 | auto | `title1Bold` | `--text-title1-bold` |
+| Title-1(R) | Regular 400 | 18 | auto | `title1Regular` | `--text-title1-regular` |
+| Title-2(B) | Bold 700 | 16 | auto | `title2Bold` | `--text-title2-bold` |
+| Title-2(SB) | SemiBold 600 | 16 | auto | `title2SemiBold` | `--text-title2-semibold` |
+| Title-2(R) | Regular 400 | 16 | auto | `title2Regular` | `--text-title2-regular` |
+| Body-1(B) | Bold 700 | 14 | 140% | `body1Bold` | `--text-body1-bold` |
+| Body-1(SB) | SemiBold 600 | 14 | 140% | `body1SemiBold` | `--text-body1-semibold` |
+| Body-1(M) | Medium 500 | 14 | 140% | `body1Medium` | `--text-body1-medium` |
+| Body-1(R) | Regular 400 | 14 | 140% | `body1Regular` | `--text-body1-regular` |
+| Caption-1(SB) | SemiBold 600 | 12 | auto | `caption1SemiBold` | `--text-caption1-semibold` |
+| Caption-1(M) | Medium 500 | 12 | auto | `caption1Medium` | `--text-caption1-medium` |
+| Caption-1(R) | Regular 400 | 12 | auto | `caption1Regular` | `--text-caption1-regular` |
+| Tag-1 | SemiBold 600 | 10 | auto | `tag1` | `--text-tag1` |
+| Tag-2 | Medium 500 | 10 | auto | `tag2` | `--text-tag2` |
+
+- auto는 글꼴 기본 행간 (앱은 `height` 지정 안 함, 웹은 `normal`).
+- 스타일에는 색이 없다. 기본 글자색 `label.normal`을 물려받고, 다른 색은 앱 `.copyWith(color: context.colors.*)`, 웹 `color: var(--color-*)`로 따로 준다.
+- Material 기본 위젯용으로 `TextTheme`에도 매핑해 둔다 (`bodyMedium` = Body-1(R), `titleLarge` = Title-1(B) 등, `AppTextStyles.toTextTheme`). 화면 코드는 `TextTheme` 이름을 쓰지 않는다.
+- Figma 표기와 스타일이 어긋난 곳: Head 표기는 32px지만 스타일은 24px → 24. Caption-1(SB) 표기는 Regular → SemiBold. Title-1(B)·Caption-1(R)·Tag-2는 Figma 스타일이 없어 이름대로 정했다. 디자인 확인 필요.
 
 ## 4. 쓰는 법
 
@@ -152,7 +169,7 @@ Container(
     border: Border.all(color: context.colors.lineNormal),
     borderRadius: BorderRadius.circular(AppRadius.md),
   ),
-  child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+  child: Text(title, style: context.textStyles.title1Bold),
 )
 ```
 
@@ -164,7 +181,7 @@ Container(
   background: var(--color-background-normal);
   border: 1px solid var(--color-line-normal);
   border-radius: var(--radius-md);
-  font-size: var(--font-size-md);
+  font: var(--text-body1-regular);
 }
 ```
 
@@ -179,6 +196,5 @@ Container(
 ## 6. 아직 없는 것 (필요해질 때 같은 절차로 추가)
 
 - 다크 모드 (`AppColors.dark`, `@media (prefers-color-scheme: dark)`)
-- 폰트 패밀리·행간·자간
 - 그림자, 애니메이션 시간
 - 컴포넌트 토큰 (버튼 높이, 입력창 높이 등)

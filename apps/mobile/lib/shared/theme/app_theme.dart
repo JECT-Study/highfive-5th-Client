@@ -20,7 +20,8 @@ abstract final class AppTheme {
       error: AppColors.light.statusDestructive,
     ),
     scaffoldBackgroundColor: AppColors.light.backgroundNormal,
-    textTheme: AppTypography.textTheme,
-    extensions: const [AppColors.light],
+    fontFamily: AppFontFamily.pretendard,
+    textTheme: AppTextStyles.standard.toTextTheme(),
+    extensions: [AppColors.light, AppTextStyles.standard],
   );
 }

@@ -264,7 +264,7 @@ flowchart LR
   doc --> dart["앱 토큰 파일<br/>lib/shared/theme/app_*.dart"]
   doc --> css["웹 토큰 파일<br/>src/shared/styles/tokens.css"]
   dart --> theme["app_theme.dart<br/>ThemeData로 묶기"]
-  theme --> w["위젯<br/>context.colors · AppSpacing · textTheme"]
+  theme --> w["위젯<br/>context.colors · AppSpacing · context.textStyles"]
   css --> comp["컴포넌트 CSS<br/>var(--color-*) · var(--space-*)"]
 ```
 

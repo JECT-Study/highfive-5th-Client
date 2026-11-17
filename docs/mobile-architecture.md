@@ -241,7 +241,7 @@ Service(DioException) ─► core/network/api_error_mapper ─► AppException
 - ViewModel을 get_it에 등록
 - Provider `build()`에서 신청·예매·결제 같은 쓰기 요청
 - 다른 기능의 `presentation/` import (View·ViewModel·widgets·providers)
-- `Colors.*`, hex, 숫자 패딩·폰트 크기 직접 사용 — 토큰만 (`context.colors`, `AppSpacing`, `textTheme`)
+- `Colors.*`, hex, 숫자 패딩·폰트 크기 직접 사용 — 토큰만 (`context.colors`, `AppSpacing`, `context.textStyles`)
 - `*.g.dart`·`*.freezed.dart` 수정
 - 토큰·개인정보를 SharedPreferences·로그·URL·분석 이벤트에 넣기
 - 문구를 고정하는 테스트, 생성 파일 테스트

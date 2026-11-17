@@ -1,3 +1,8 @@
+/* Pretendard (SIL OFL 1.1). 디자인에 쓰는 굵기만 (앱 pubspec.yaml fonts와 같다) */
+@import 'pretendard/dist/web/static/Pretendard-Regular.css';
+@import 'pretendard/dist/web/static/Pretendard-Medium.css';
+@import 'pretendard/dist/web/static/Pretendard-SemiBold.css';
+@import 'pretendard/dist/web/static/Pretendard-Bold.css';
 @import './tokens.css';
 
 *,
@@ -11,13 +16,7 @@
 }
 
 body {
-  font-family:
-    system-ui,
-    -apple-system,
-    'Apple SD Gothic Neo',
-    'Noto Sans KR',
-    sans-serif;
-  font-size: var(--font-size-md);
+  font: var(--text-body1-regular);
   color: var(--color-label-normal);
   background: var(--color-background-normal);
 }
