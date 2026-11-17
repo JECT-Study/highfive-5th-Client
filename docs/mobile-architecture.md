@@ -16,7 +16,8 @@ lib/
 │   ├── di.dart                      (있음) setupDi: get_it 등록. Service·Repository는 여기에 추가
 │   ├── env.dart                     (있음) Flavor, AppEnv(apiBaseUrl 등 환경값)
 │   ├── providers.dart               (있음) 앱 전역 연결 Provider (appEnvProvider)
-│   └── router.dart                  (있음) AppRoutes 경로 상수 + routerProvider. 인증 redirect는 여기
+│   ├── routes.dart                  (있음) AppRoutes 경로 상수만 (11절 지도)
+│   └── router.dart                  (있음) routerProvider, GoRoute 등록. 인증 redirect는 여기
 │
 ├── core/                            기술 기반. 도메인(공연·예매)을 모른다
 │   ├── di/locator.dart              (있음) getIt 인스턴스
@@ -268,7 +269,7 @@ Service(DioException) ─► core/network/api_error_mapper ─► AppException
 | 파일 | snake_case + 역할 접미사 | `login_view.dart`, `login_view_model.dart`, `auth_repository.dart`, `auth_service.dart`, `login_request_dto.dart` |
 | 클래스 | 파일명의 PascalCase | `LoginViewModel` |
 | Provider | `xxxProvider` | `sessionProvider`, `performanceDetailProvider` |
-| 라우트 경로 | `AppRoutes`에만 | `AppRoutes.performanceDetail` |
+| 라우트 경로 | `AppRoutes`에만 | `AppRoutes.show`, `AppRoutes.showOf(id)` |
 | 테스트 | `<파일>_test.dart`, 테스트명은 한국어 문장 | `'중복 탭은 한 번만 요청한다'` |
 
 ## 10. 환경(flavor)
@@ -289,3 +290,77 @@ dev와 prod는 네이티브 flavor로 나눈다. 앱 ID가 달라서 두 앱이 
 - **명령에는 항상 `--flavor`를 붙인다.** Android는 flavor 없이 빌드하면 `Gradle build failed to produce an .apk file` 오류로 실패한다. iOS는 원래 `Runner` 스킴이 남아 있어 flavor 없이도 빌드되지만, 결과는 prod 앱 ID에 dev 환경(DEV 배너·dev API)이 섞인 앱이다. 이 빌드는 배포에 쓰지 않는다.
 - Xcode에서 직접 빌드할 때 Dart 쪽 flavor는 빌드 구성 이름에서 정해진다. `Debug-dev`처럼 `-` 뒤 이름이 스킴 이름과 같으면 그 flavor를 쓴다(flutter_tools `parseFlavorFromConfiguration`). 그래서 `dev`·`prod` 스킴을 고르면 맞게 들어간다. `Runner` 스킴(구성 `Debug`)은 구성 이름에 flavor가 없어서 마지막 `fvm flutter` 명령이 `ios/Flutter/Generated.xcconfig`에 남긴 `FLAVOR` 값을 쓴다. 그러니 Xcode에서는 `Runner` 스킴으로 빌드하지 않는다.
 - CocoaPods를 쓰게 되면 `ios/Podfile`의 `project 'Runner', {...}`에 새 구성 6개를 매핑해야 한다(`Debug-dev`는 `:debug`, `Release-dev`·`Profile-dev`는 `:release`, prod도 같게). 각 구성의 Pods xcconfig도 include해야 한다. 지금은 SwiftPM을 써서 Podfile이 없다.
+
+## 11. 화면 이동 경로
+
+Figma `와이어프레임 New` → `11/8 pm 확정 영역: 티켓 신청 전까지` 기준으로 정한 지도다. 경로 상수는 `app/routes.dart`의 `AppRoutes`에 미리 두고, `GoRoute`는 그 화면을 만드는 PR에서 `app/router.dart`에 등록한다(빈 화면을 미리 만들지 않는다). 바꿀 때는 이 표와 `AppRoutes`를 같은 PR에서 고친다.
+
+- 하단 탭 4개: 홈 · 팀 모집 · 채팅 · 마이. 탭 전환은 각 탭 상태를 유지한다(`StatefulShellRoute`, 탭 화면을 만들 때 도입).
+- 화면 안의 탭(공연 페이지의 정보·피드·일정·티켓 관리, 메시지함의 전체·받은 문의·보낸 문의·공연 채팅, 마이의 내 공연·찜한 공연)은 경로를 나누지 않고 화면 상태로 둔다.
+- 팝업·바텀시트·토스트·확인창은 경로가 아니다. 띄운 화면의 ViewModel이 연다.
+- 고정 하위 경로(`/recruit/new`, `/recruit/search`, `/shows/new`)는 `:id` 경로보다 먼저 등록한다. 아니면 `new`가 id로 잡힌다.
+- 로그인 전 화면 외에는 전부 로그인 필요. 인증 redirect는 `routerProvider`에 붙인다(로그인 → 온보딩 미완료면 온보딩 → 홈).
+
+### 로그인 전
+
+| 경로 | 화면 | Figma 프레임 |
+| --- | --- | --- |
+| `/login` | 로그인 (소셜 로그인 버튼) | 약관 동의 (1117:7761) |
+| `/terms` | 약관 동의 | 약관 동의 카카오 |
+| `/signup` | 회원가입 | 계정-회원가입 |
+| `/onboarding/profile` | 프로필 정보 입력 | 온보딩-프로필정보 입력1 |
+| `/onboarding/band/new` | 새 밴드 만들기 (밴드 정보 입력 1·2단계) | 온보딩-계정생성-새밴드만들기, 온보딩-밴드정보 입력1·2 |
+| `/onboarding/band/join` | 코드로 밴드 합류 | 온보딩-계정생성-코드로합류, 온보딩-코드합류-밴드확인 |
+
+### 하단 탭
+
+| 경로 | 화면 | Figma 프레임 |
+| --- | --- | --- |
+| `/home` | 홈 (공연 없음·판매 전·판매 중·공연 당일 상태) | 홈 화면, 합동공연을 만들기 전, 티켓판매 전, 티켓 판매중인 공연이 있음, 공연 당일 |
+| `/recruit` | 팀 모집 공고 목록 | 팀 모집 탭-공고목록 |
+| `/chat` | 메시지함 | 메세지함-공통 |
+| `/my` | 마이페이지 | 마이페이지, 마이페이지-찜한공연탭 |
+
+### 팀 모집 · 채팅 · 마이
+
+| 경로 | 화면 | Figma 프레임 |
+| --- | --- | --- |
+| `/recruit/search` | 공고 검색·필터 | 팀 모집 검색_결과, 필터 |
+| `/recruit/new` | 모집 공고 작성 | 모집 공고작성 |
+| `/recruit/:postId` | 모집 공고 상세 (내 공고·타 팀 공고·마감) | 모집공고-상세_내가 보는 내 밴드 공고, 모집공고-타 팀이 보는 내 밴드 공고 |
+| `/chat/:roomId` | 채팅방 (문의 채팅·합동공연 대표자 채팅) | 문의채팅-*, 캐주얼 문의, 합동공연 대표자 채팅 |
+| `/chat/:roomId/members` | 채팅 참여자 목록 | 합동공연 대표자 채팅-참여자 목록 |
+| `/my/profile/edit` | 내 프로필 수정 | 내 프로필 수정 |
+| `/settings` | 설정 (계정·탈퇴·고객지원) | 설정 |
+| `/notifications` | 알림 목록 | 알림-목록, 알림-비어있음 |
+
+### 합동공연
+
+| 경로 | 화면 | Figma 프레임 |
+| --- | --- | --- |
+| `/shows/new` | 공연 열고 팀 모집하기 (공연 정보 불러오기 포함) | 공연 열고 팀 모집하기, 공연 정보 불러오기 |
+| `/shows/new/place` | 장소 검색·위치 확인 | 합동공연생성-장소검색, 합동공연생성-위치확인 |
+| `/shows/:showId` | 공연 페이지 (정보·피드·일정·티켓 관리 탭) | 정보탭_*, 공고상세_피드, 공고상세_일정, N팀 모집 상태 |
+| `/shows/:showId/edit` | 공연 정보 수정 | 공연정보수정 |
+| `/shows/:showId/feed/new` | 피드 글쓰기 | 피드-글쓰기_대표자용·팀원용, 글쓰기v2 |
+| `/shows/:showId/feed/:postId` | 게시글 상세·댓글 | 피드-게시글상세_댓글 |
+| `/shows/:showId/schedule/new` | 일정 등록 | 일정-등록v2, 일정-날짜선택 v2 |
+| `/shows/:showId/schedule/:scheduleId` | 일정 상세·수정 | 일정 상세-* |
+| `/shows/:showId/setlist/:bandId` | 밴드별 셋리스트 (곡 추가·편집) | 라인업-각 밴드 셋리스트 페이지, 셋리스트-편집, 라인업-곡추가 |
+| `/shows/:showId/roles` | 역할 관리 (현장 담당자) | 역할관리-페이지, 역할관리-현장담당자추가 |
+| `/shows/:showId/account-owner` | 계좌 주인 지정·변경 | 계좌주인_지정화면, 계좌주인 변경-* |
+| `/shows/:showId/entry` | 현장 입장 QR 스캔 | 공연당일-현장 입장 시작, 현장입장_* |
+| `/shows/:showId/entry/search` | 이름으로 찾아 입장 처리 | 이름으로 찾기, 이름찾기_* |
+
+### 밴드
+
+| 경로 | 화면 | Figma 프레임 |
+| --- | --- | --- |
+| `/bands/:bandId` | 밴드 프로필 (내 밴드·타 팀) | 밴드프로필, 밴드프로필-타 팀 프로필 열람 |
+| `/bands/:bandId/edit` | 밴드 프로필 수정 | 밴드프로필-수정 |
+| `/bands/:bandId/members` | 팀원 관리 (대표자 위임·내보내기) | 팀원관리-페이지 |
+
+### 아직 안 정한 것
+
+- 관객 쪽(공유 링크로 공연 보기·예매·현장 신청·내 티켓·환불)은 확정 영역 밖이다. 앱인지 웹(`apps/web`)인지부터 정한다.
+- 공유 링크·푸시 알림이 여는 딥링크 형식.

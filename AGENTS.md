@@ -6,7 +6,7 @@
 | --- | --- |
 | 전체를 그림으로 한 번에 (처음 읽을 때) | [docs/overview.md](./docs/overview.md) |
 | 일을 어떤 순서로 하나 (Jira → 브랜치 → 구현 순서 → 검증 → PR → 리뷰 → 릴리스) | [docs/workflow.md](./docs/workflow.md) |
-| 앱 폴더에 어떤 파일이 들어가고 누가 누구를 import하나, dev/prod flavor | [docs/mobile-architecture.md](./docs/mobile-architecture.md) |
+| 앱 폴더에 어떤 파일이 들어가고 누가 누구를 import하나, dev/prod flavor, 화면 이동 경로 | [docs/mobile-architecture.md](./docs/mobile-architecture.md) |
 | 웹 폴더 구조·의존성·bridge·환경 | [docs/web-architecture.md](./docs/web-architecture.md) |
 | 색·간격·글자 크기 값과 바꾸는 절차 | [docs/design-tokens.md](./docs/design-tokens.md) |
 | PR 올리기 전·리뷰할 때 무엇을 왜 보나 | [docs/pr-checklist.md](./docs/pr-checklist.md) |
