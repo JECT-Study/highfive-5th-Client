@@ -303,6 +303,7 @@ Figma `와이어프레임 New` → `11/8 pm 확정 영역: 티켓 신청 전까�
 - 팝업·바텀시트·토스트·확인창은 경로가 아니다. 띄운 화면의 ViewModel이 연다.
 - 고정 하위 경로(`/recruit/new`, `/recruit/search`, `/shows/new`)는 `:id` 경로보다 먼저 등록한다. 아니면 `new`가 id로 잡힌다.
 - 로그인 전 화면 외에는 전부 로그인 필요. 인증 redirect는 `routerProvider`의 `sessionRedirect`: 앱 시작 → `/splash`에서 저장된 세션(`sessionProvider`, secure storage) 복원 → 세션 있으면 `/home`, 없거나 복원 실패면 `/login`. 로그아웃하면 `/login`. 온보딩 미완료 → 온보딩 분기는 온보딩 정보를 받을 때 추가한다.
+- 지금 로그인은 임시다: 로그인 화면의 "임시 로그인" 버튼이 `AuthService`의 고정 토큰으로 세션을 만든다. 로그인 API가 나오면 `features/auth/data/services/auth_service.dart`만 실제 호출로 바꾸고 버튼을 소셜 로그인으로 교체한다. 로그아웃은 마이페이지 버튼 → 라우터가 넘긴 `onSignOut` → `sessionProvider.signOut()` (설정 화면이 생기면 그쪽으로 옮긴다).
 
 ### 로그인 전
 

@@ -90,7 +90,9 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.my,
-                builder: (context, state) => const MyPageView(),
+                builder: (context, state) => MyPageView(
+                  onSignOut: () => ref.read(sessionProvider.notifier).signOut(),
+                ),
               ),
             ],
           ),

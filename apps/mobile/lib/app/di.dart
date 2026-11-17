@@ -5,7 +5,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/di/locator.dart';
 import '../core/network/dio_client.dart';
 import '../core/storage/secure_store.dart';
+import '../features/auth/data/repositories/auth_repository.dart';
 import '../features/auth/data/repositories/session_repository.dart';
+import '../features/auth/data/services/auth_service.dart';
 import 'env.dart';
 
 /// 앱 공통 객체를 생성·연결한다. 앱 시작 시 한 번만 호출한다.
@@ -21,5 +23,7 @@ void setupDi(AppEnv env) {
     ..registerSingleton<SharedPreferencesAsync>(SharedPreferencesAsync());
   getIt
     ..registerLazySingleton(() => SecureStore(getIt<FlutterSecureStorage>()))
-    ..registerLazySingleton(() => SessionRepository(getIt<SecureStore>()));
+    ..registerLazySingleton(() => SessionRepository(getIt<SecureStore>()))
+    ..registerLazySingleton(AuthService.new)
+    ..registerLazySingleton(() => AuthRepository(getIt<AuthService>()));
 }
