@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// 원시(primitive) 팔레트. Figma 디자인 시스템 v3의 Primitive와 같은 이름·값.
-/// 이 파일 밖에서 쓰지 않는다. 아직 안 쓰는 원시 값(gray.*)은 docs 표에만 있고, 쓸 때 여기에 추가한다.
+/// 이 파일 밖에서 쓰지 않는다. 아직 안 쓰는 원시 값(gray.800 외 gray.*)은 docs 표에만 있고, 쓸 때 여기에 추가한다.
 ///
 /// 값의 기준은 `docs/design-tokens.md`이고,
 /// `apps/web/src/shared/styles/tokens.css`와 같은 값을 유지한다.
@@ -15,6 +15,7 @@ abstract final class _Palette {
   static const blue500 = Color(0xFF2F97FF);
   static const blue600 = Color(0xFF2887E6);
   static const blue700 = Color(0xFF1A6EC2);
+  static const gray800 = Color(0xFF0B0B0C);
   static const white = Color(0xFFFFFFFF);
   static const black = Color(0xFF000000);
 }
@@ -61,6 +62,7 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.blue500,
     required this.blue600,
     required this.blue700,
+    required this.gray800,
   });
 
   static const light = AppColors(
@@ -100,6 +102,7 @@ class AppColors extends ThemeExtension<AppColors> {
     blue500: _Palette.blue500, // Primary-Blue/500
     blue600: _Palette.blue600, // Primary-Blue/600
     blue700: _Palette.blue700, // Primary-Blue/700
+    gray800: _Palette.gray800, // Neutral/Gray-800 (아이콘 기본색)
   );
 
   final Color labelNormal;
@@ -138,6 +141,7 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color blue500;
   final Color blue600;
   final Color blue700;
+  final Color gray800;
 
   @override
   AppColors copyWith({
@@ -177,6 +181,7 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? blue500,
     Color? blue600,
     Color? blue700,
+    Color? gray800,
   }) {
     return AppColors(
       labelNormal: labelNormal ?? this.labelNormal,
@@ -216,6 +221,7 @@ class AppColors extends ThemeExtension<AppColors> {
       blue500: blue500 ?? this.blue500,
       blue600: blue600 ?? this.blue600,
       blue700: blue700 ?? this.blue700,
+      gray800: gray800 ?? this.gray800,
     );
   }
 
@@ -295,6 +301,7 @@ class AppColors extends ThemeExtension<AppColors> {
       blue500: Color.lerp(blue500, other.blue500, t)!,
       blue600: Color.lerp(blue600, other.blue600, t)!,
       blue700: Color.lerp(blue700, other.blue700, t)!,
+      gray800: Color.lerp(gray800, other.gray800, t)!,
     );
   }
 }
