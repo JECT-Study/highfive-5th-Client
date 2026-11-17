@@ -18,8 +18,8 @@ body {
     'Noto Sans KR',
     sans-serif;
   font-size: var(--font-size-md);
-  color: var(--color-text-primary);
-  background: var(--color-background);
+  color: var(--color-label-normal);
+  background: var(--color-background-normal);
 }
 
 #root {

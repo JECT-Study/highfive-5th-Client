@@ -5,7 +5,7 @@
 ## 1. 원칙
 
 - **기준은 이 문서의 표**다. Figma 변수가 생기면 그 이름을 그대로 따라 표를 고친다.
-- **두 단계**: 원시(primitive) 토큰(`brand.500`, `gray.200`)은 팔레트, 의미(semantic) 토큰(`color.primary`, `color.border`)은 쓰임새. 화면 코드는 **의미 토큰만** 쓴다. 원시 토큰은 토큰 파일 안에서만 참조한다. 디자인이 바뀌면 의미 토큰이 가리키는 원시 값만 바꾸면 되고 화면 코드는 그대로다.
+- **두 단계**: 원시(primitive) 토큰(`pink.500`, `gray.200`)은 팔레트, 의미(semantic) 토큰(`label.normal`, `line.normal`)은 쓰임새. 화면 코드는 **의미 토큰만** 쓴다. 원시 토큰은 토큰 파일 안에서만 참조한다. 디자인이 바뀌면 의미 토큰이 가리키는 원시 값만 바꾸면 되고 화면 코드는 그대로다.
 - **앱과 웹은 각자 파일에 손으로 같은 값을 둔다.** 토큰이 수십 개 수준이라 생성 도구(Style Dictionary 등)보다 손 동기화가 단순하다. 토큰이 100개를 넘거나 다크 모드가 들어오면 그때 생성 도구를 검토한다.
 
 | 위치 | 파일 |
@@ -28,34 +28,87 @@
 
 ## 3. 토큰 표
 
-현재 값은 **디자인 확정 전 임시값**이다. 이름과 구조만 믿고, 값은 디자인이 나오면 바뀐다.
+색은 Figma 디자인 시스템 v3 기준이다. 간격·모서리·글자 크기는 아직 임시값이다.
 
 ### 색 — 원시 (토큰 파일 안에서만)
 
+Figma 디자인 시스템 v3 Primitive (Neutral → `gray`, Primary-Pink → `pink`, Primary-Blue → `blue`).
+(미사용)은 아직 어떤 의미 토큰도 가리키지 않아 토큰 파일에 없다. 처음 쓸 때 앱·웹 토큰 파일에 같이 추가한다.
+
 | 이름 | 값 |
 | --- | --- |
-| brand.500 | `#4F46E5` |
-| brand.600 | `#4338CA` |
-| gray.50 | `#F9FAFB` |
-| gray.200 | `#E5E7EB` |
-| gray.600 | `#4B5563` |
-| gray.900 | `#111827` |
-| red.500 | `#EF4444` |
+| gray.50 | `#F7F7F7` (미사용) |
+| gray.100 | `#EBEBEC` (미사용) |
+| gray.200 | `#E2E2E2` (미사용) |
+| gray.300 | `#D3D3D3` (미사용) |
+| gray.400 | `#B1B1B2` (미사용) |
+| gray.500 | `#858586` (미사용) |
+| gray.700 | `#545456` (미사용) |
+| gray.800 | `#0B0B0C` (미사용) |
+| pink.50 | `#FFEAF4` |
+| pink.300 | `#FF5FA6` |
+| pink.500 | `#FF2F8C` |
+| pink.600 | `#E62A7E` |
+| pink.700 | `#C7256D` |
+| blue.50 | `#E9F4FF` |
+| blue.500 | `#2F97FF` |
+| blue.600 | `#2887E6` |
+| blue.700 | `#1A6EC2` |
 | white | `#FFFFFF` |
+| black | `#000000` |
 
 ### 색 — 의미 (화면 코드가 쓰는 것)
 
-| 이름 | 가리킴 | 앱 | 웹 | 쓰임 |
+Figma Semantic 이름 그대로. 앱은 `context.colors.<앱 이름>`, 웹은 `var(<웹 이름>)`.
+Figma Semantic 값이 원시 팔레트에 없으면 토큰 파일의 의미 토큰에 값을 그대로 둔다. %는 불투명도.
+
+| 이름 | 값 | 앱 | 웹 | 쓰임 |
 | --- | --- | --- | --- | --- |
-| color.primary | brand.500 | `context.colors.primary` | `var(--color-primary)` | 주 버튼, 강조 |
-| color.primaryPressed | brand.600 | `.primaryPressed` | `--color-primary-pressed` | 눌림 상태 |
-| color.onPrimary | white | `.onPrimary` | `--color-on-primary` | primary 위 글자 |
-| color.background | gray.50 | `.background` | `--color-background` | 화면 바탕 |
-| color.surface | white | `.surface` | `--color-surface` | 카드·시트 |
-| color.textPrimary | gray.900 | `.textPrimary` | `--color-text-primary` | 본문 |
-| color.textSecondary | gray.600 | `.textSecondary` | `--color-text-secondary` | 보조 설명 |
-| color.border | gray.200 | `.border` | `--color-border` | 구분선·테두리 |
-| color.danger | red.500 | `.danger` | `--color-danger` | 오류·삭제 |
+| label.normal | `#171719` | `labelNormal` | `--color-label-normal` | 본문 글자 |
+| label.strong | black | `labelStrong` | `--color-label-strong` | 가장 진한 글자 |
+| label.neutral | `#2E2F33` 88% | `labelNeutral` | `--color-label-neutral` | 보조 본문 |
+| label.alternative | `#6E6E73` | `labelAlternative` | `--color-label-alternative` | 보조 설명 |
+| label.assistive | `#B9B9B9` | `labelAssistive` | `--color-label-assistive` | placeholder·힌트 |
+| label.disable | `#37383C` 16% | `labelDisable` | `--color-label-disable` | 비활성 글자 |
+| background.normal | white | `backgroundNormal` | `--color-background-normal` | 화면 바탕 |
+| background.alternative | `#F7F7F8` | `backgroundAlternative` | `--color-background-alternative` | 구역 구분 바탕 |
+| background.warning | `#F1E1E1` | `backgroundWarning` | `--color-background-warning` | 경고 바탕 |
+| interaction.inactive | `#989BA2` | `interactionInactive` | `--color-interaction-inactive` | 선택 안 된 상태 |
+| interaction.disable | `#F4F4F5` | `interactionDisable` | `--color-interaction-disable` | 비활성 요소 바탕 |
+| line.normal | `#70737C` 22% | `lineNormal` | `--color-line-normal` | 기본 테두리 |
+| line.neutral | `#70737C` 16% | `lineNeutral` | `--color-line-neutral` | 구분선 |
+| line.alternative | `#70737C` 8% | `lineAlternative` | `--color-line-alternative` | 옅은 구분선 |
+| line.strong | `#B6B6B6` | `lineStrong` | `--color-line-strong` | 진한 테두리 |
+| status.positive | `#00BF40` | `statusPositive` | `--color-status-positive` | 성공 |
+| status.cautionary | `#FF9200` | `statusCautionary` | `--color-status-cautionary` | 주의 |
+| status.destructive | `#EF2E2E` | `statusDestructive` | `--color-status-destructive` | 오류·삭제 |
+| inverse.primary | `#3385FF` | `inversePrimary` | `--color-inverse-primary` | 어두운 바탕 위 강조 |
+| inverse.background | `#1B1C1E` | `inverseBackground` | `--color-inverse-background` | 어두운 바탕 (토스트 등) |
+| inverse.label | `#F7F7F8` | `inverseLabel` | `--color-inverse-label` | 어두운 바탕 위 글자 |
+| static.white | white | `staticWhite` | `--color-static-white` | 모드와 상관없이 흰색 |
+| static.black | black | `staticBlack` | `--color-static-black` | 모드와 상관없이 검정 |
+| fill.normal | `#70737C` 8% | `fillNormal` | `--color-fill-normal` | 채움 바탕 |
+| fill.strong | `#70737C` 16% | `fillStrong` | `--color-fill-strong` | 진한 채움 |
+| fill.alternative | `#70737C` 5% | `fillAlternative` | `--color-fill-alternative` | 옅은 채움 |
+| material.dimmer | `#171719` 52% | `materialDimmer` | `--color-material-dimmer` | 모달 뒤 어둡게 |
+
+### 색 — 브랜드 (Primary-Pink · Primary-Blue)
+
+Figma에서 둘 다 Primary다. 화면에서 바로 쓴다. Material 기본 위젯의 primary는 `pink.500`, secondary는 `blue.500`.
+
+| 이름 | 앱 | 웹 |
+| --- | --- | --- |
+| pink.50 | `pink50` | `--color-pink-50` |
+| pink.300 | `pink300` | `--color-pink-300` |
+| pink.500 | `pink500` | `--color-pink-500` |
+| pink.600 | `pink600` | `--color-pink-600` |
+| pink.700 | `pink700` | `--color-pink-700` |
+| blue.50 | `blue50` | `--color-blue-50` |
+| blue.500 | `blue500` | `--color-blue-500` |
+| blue.600 | `blue600` | `--color-blue-600` |
+| blue.700 | `blue700` | `--color-blue-700` |
+
+다크 모드 전용 값(Figma Background/Elevated, Transparent)은 다크 모드를 넣을 때 추가한다.
 
 ### 간격 (4 배수)
 
@@ -95,8 +148,8 @@
 Container(
   padding: const EdgeInsets.all(AppSpacing.x4),
   decoration: BoxDecoration(
-    color: context.colors.surface,
-    border: Border.all(color: context.colors.border),
+    color: context.colors.backgroundNormal,
+    border: Border.all(color: context.colors.lineNormal),
     borderRadius: BorderRadius.circular(AppRadius.md),
   ),
   child: Text(title, style: Theme.of(context).textTheme.titleLarge),
@@ -108,8 +161,8 @@ Container(
 ```css
 .card {
   padding: var(--space-4);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: var(--color-background-normal);
+  border: 1px solid var(--color-line-normal);
   border-radius: var(--radius-md);
   font-size: var(--font-size-md);
 }

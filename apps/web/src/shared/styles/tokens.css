@@ -1,24 +1,55 @@
 :root {
-  /* primitive — use only inside this file */
-  --brand-500: #4f46e5;
-  --brand-600: #4338ca;
-  --gray-50: #f9fafb;
-  --gray-200: #e5e7eb;
-  --gray-600: #4b5563;
-  --gray-900: #111827;
-  --red-500: #ef4444;
+  /* primitive — Figma 디자인 시스템 v3 Primitive. use only inside this file */
+  --pink-50: #ffeaf4;
+  --pink-300: #ff5fa6;
+  --pink-500: #ff2f8c;
+  --pink-600: #e62a7e;
+  --pink-700: #c7256d;
+  --blue-50: #e9f4ff;
+  --blue-500: #2f97ff;
+  --blue-600: #2887e6;
+  --blue-700: #1a6ec2;
   --white: #ffffff;
+  --black: #000000;
 
-  /* semantic — components use only these */
-  --color-primary: var(--brand-500);
-  --color-primary-pressed: var(--brand-600);
-  --color-on-primary: var(--white);
-  --color-background: var(--gray-50);
-  --color-surface: var(--white);
-  --color-text-primary: var(--gray-900);
-  --color-text-secondary: var(--gray-600);
-  --color-border: var(--gray-200);
-  --color-danger: var(--red-500);
+  /* semantic — Figma Semantic 이름. components use only these */
+  --color-label-normal: #171719;
+  --color-label-strong: var(--black);
+  --color-label-neutral: rgb(46 47 51 / 0.88);
+  --color-label-alternative: #6e6e73;
+  --color-label-assistive: #b9b9b9;
+  --color-label-disable: rgb(55 56 60 / 0.16);
+  --color-background-normal: var(--white);
+  --color-background-alternative: #f7f7f8;
+  --color-background-warning: #f1e1e1;
+  --color-interaction-inactive: #989ba2;
+  --color-interaction-disable: #f4f4f5;
+  --color-line-normal: rgb(112 115 124 / 0.22);
+  --color-line-neutral: rgb(112 115 124 / 0.16);
+  --color-line-alternative: rgb(112 115 124 / 0.08);
+  --color-line-strong: #b6b6b6;
+  --color-status-positive: #00bf40;
+  --color-status-cautionary: #ff9200;
+  --color-status-destructive: #ef2e2e;
+  --color-inverse-primary: #3385ff;
+  --color-inverse-background: #1b1c1e;
+  --color-inverse-label: #f7f7f8;
+  --color-static-white: var(--white);
+  --color-static-black: var(--black);
+  --color-fill-normal: rgb(112 115 124 / 0.08);
+  --color-fill-strong: rgb(112 115 124 / 0.16);
+  --color-fill-alternative: rgb(112 115 124 / 0.05);
+  --color-material-dimmer: rgb(23 23 25 / 0.52);
+  --color-pink-50: var(--pink-50);
+  --color-pink-300: var(--pink-300);
+  --color-pink-500: var(--pink-500);
+  --color-pink-600: var(--pink-600);
+  --color-pink-700: var(--pink-700);
+  --color-blue-50: var(--blue-50);
+  --color-blue-500: var(--blue-500);
+  --color-blue-600: var(--blue-600);
+  --color-blue-700: var(--blue-700);
+
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
