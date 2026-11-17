@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:highfive/app/app.dart';
 import 'package:highfive/app/env.dart';
@@ -7,19 +8,28 @@ import 'package:highfive/app/main_shell.dart';
 import 'package:highfive/app/providers.dart';
 import 'package:highfive/app/router.dart';
 import 'package:highfive/app/routes.dart';
+import 'package:highfive/core/storage/secure_store.dart';
+import 'package:highfive/features/auth/data/repositories/session_repository.dart';
+import 'package:highfive/features/auth/presentation/providers/session_providers.dart';
 import 'package:highfive/features/chat/presentation/views/chat_list_view.dart';
 import 'package:highfive/features/home/presentation/views/home_view.dart';
 import 'package:highfive/features/my_page/presentation/views/my_page_view.dart';
 import 'package:highfive/features/recruitments/presentation/views/recruitment_list_view.dart';
 import 'package:highfive/shared/theme/app_colors.dart';
 
-/// 앱을 띄우고 [location]으로 이동한다. 로그인 연결 전이라 탭은 직접 연다.
+/// 로그인된 상태(저장된 토큰 있음)로 앱을 띄우고 [location]으로 이동한다.
 Future<void> _open(WidgetTester tester, String location) async {
+  FlutterSecureStorage.setMockInitialValues({
+    SecureStore.accessTokenKey: 'test-token',
+  });
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         appEnvProvider.overrideWithValue(
           const AppEnv(flavor: Flavor.prod, apiBaseUrl: 'http://localhost'),
+        ),
+        sessionRepositoryProvider.overrideWithValue(
+          SessionRepository(SecureStore(const FlutterSecureStorage())),
         ),
       ],
       child: const HighfiveApp(),
@@ -84,8 +94,22 @@ void main() {
   });
 
   testWidgets('로그인 화면에는 하단 탭이 없다', (tester) async {
-    await _open(tester, AppRoutes.login);
+    FlutterSecureStorage.setMockInitialValues({});
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appEnvProvider.overrideWithValue(
+            const AppEnv(flavor: Flavor.prod, apiBaseUrl: 'http://localhost'),
+          ),
+          sessionRepositoryProvider.overrideWithValue(
+            SessionRepository(SecureStore(const FlutterSecureStorage())),
+          ),
+        ],
+        child: const HighfiveApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
 
-    expect(_tab('홈'), findsNothing);
+    expect(find.byType(MainTabBar), findsNothing);
   });
 }

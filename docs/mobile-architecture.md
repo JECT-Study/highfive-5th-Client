@@ -28,7 +28,7 @@ lib/
 │   │   └── api_error_mapper.dart    DioException → AppException 변환
 │   ├── error/app_exception.dart     sealed class: network / unauthorized / notFound / conflict / server / unknown
 │   ├── storage/
-│   │   ├── secure_store.dart        FlutterSecureStorage 래퍼 + 키 상수 (토큰)
+│   │   ├── secure_store.dart        (있음) FlutterSecureStorage 래퍼 + 키 상수 (토큰)
 │   │   └── prefs_store.dart         SharedPreferencesAsync 래퍼 + 키 상수 (설정)
 │   ├── sdk/                         소셜 로그인·지도·푸시·QR 스캔 SDK 래퍼 (각 1파일)
 │   └── webview/app_bridge.dart      웹 → 앱 명령 수신·검증 (출처·명령·버전)
@@ -302,12 +302,13 @@ Figma `와이어프레임 New` → `11/8 pm 확정 영역: 티켓 신청 전까�
 - 화면 안의 탭(공연 페이지의 정보·피드·일정·티켓 관리, 메시지함의 전체·받은 문의·보낸 문의·공연 채팅, 마이의 내 공연·찜한 공연)은 경로를 나누지 않고 화면 상태로 둔다.
 - 팝업·바텀시트·토스트·확인창은 경로가 아니다. 띄운 화면의 ViewModel이 연다.
 - 고정 하위 경로(`/recruit/new`, `/recruit/search`, `/shows/new`)는 `:id` 경로보다 먼저 등록한다. 아니면 `new`가 id로 잡힌다.
-- 로그인 전 화면 외에는 전부 로그인 필요. 인증 redirect는 `routerProvider`에 붙인다(로그인 → 온보딩 미완료면 온보딩 → 홈).
+- 로그인 전 화면 외에는 전부 로그인 필요. 인증 redirect는 `routerProvider`의 `sessionRedirect`: 앱 시작 → `/splash`에서 저장된 세션(`sessionProvider`, secure storage) 복원 → 세션 있으면 `/home`, 없거나 복원 실패면 `/login`. 로그아웃하면 `/login`. 온보딩 미완료 → 온보딩 분기는 온보딩 정보를 받을 때 추가한다.
 
 ### 로그인 전
 
 | 경로 | 화면 | Figma 프레임 |
 | --- | --- | --- |
+| `/splash` | 저장된 세션을 읽는 동안 잠깐 (빈 화면) | - |
 | `/login` | 로그인 (소셜 로그인 버튼) | 약관 동의 (1117:7761) |
 | `/terms` | 약관 동의 | 약관 동의 카카오 |
 | `/signup` | 회원가입 | 계정-회원가입 |
