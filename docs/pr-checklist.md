@@ -88,7 +88,7 @@ PR 템플릿(`.github/PULL_REQUEST_TEMPLATE.md`)의 체크박스는 이 문서�
 
 ### A6. 디자인 토큰
 
-- 본다: 위젯·컴포넌트 코드에 hex, `Colors.*`, 숫자 패딩·폰트 크기·모서리가 없다. 전부 `context.colors.*` / `AppSpacing` / `AppRadius` / `textTheme`, 웹은 `var(--color-*)` 등. 토큰 값을 바꿨으면 앱·웹·`design-tokens.md` 셋 다 같은 PR에 있고 캡처가 있다.
+- 본다: 위젯·컴포넌트 코드에 hex, `Colors.*`, 숫자 패딩·폰트 크기·모서리가 없다. 전부 `context.colors.*` / `AppSpacing` / `AppRadius` / `context.textStyles`, 웹은 `var(--color-*)` 등. 토큰 값을 바꿨으면 앱·웹·`design-tokens.md` 셋 다 같은 PR에 있고 캡처가 있다.
 - 왜: 화면 리듬(여백·모서리·글자 크기)이 같으면 디자인이 달라도 "같은 앱"으로 느낀다. 반대로 한 화면만 14px 대신 15px이면 이유 없이 어색하다.
 - 확인:
   ```bash
