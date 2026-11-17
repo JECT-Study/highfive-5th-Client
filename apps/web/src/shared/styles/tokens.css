@@ -1,5 +1,6 @@
 :root {
   /* primitive — Figma 디자인 시스템 v3 Primitive. use only inside this file */
+  --gray-800: #0b0b0c;
   --pink-50: #ffeaf4;
   --pink-300: #ff5fa6;
   --pink-500: #ff2f8c;
@@ -49,6 +50,7 @@
   --color-blue-500: var(--blue-500);
   --color-blue-600: var(--blue-600);
   --color-blue-700: var(--blue-700);
+  --color-gray-800: var(--gray-800);
 
   --space-1: 4px;
   --space-2: 8px;

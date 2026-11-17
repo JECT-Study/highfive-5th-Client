@@ -44,7 +44,7 @@ Figma 디자인 시스템 v3 Primitive (Neutral → `gray`, Primary-Pink → `pi
 | gray.400 | `#B1B1B2` (미사용) |
 | gray.500 | `#858586` (미사용) |
 | gray.700 | `#545456` (미사용) |
-| gray.800 | `#0B0B0C` (미사용) |
+| gray.800 | `#0B0B0C` |
 | pink.50 | `#FFEAF4` |
 | pink.300 | `#FF5FA6` |
 | pink.500 | `#FF2F8C` |
@@ -92,9 +92,9 @@ Figma Semantic 값이 원시 팔레트에 없으면 토큰 파일의 의미 토�
 | fill.alternative | `#70737C` 5% | `fillAlternative` | `--color-fill-alternative` | 옅은 채움 |
 | material.dimmer | `#171719` 52% | `materialDimmer` | `--color-material-dimmer` | 모달 뒤 어둡게 |
 
-### 색 — 브랜드 (Primary-Pink · Primary-Blue)
+### 색 — 화면에서 바로 쓰는 원시 색 (Primary-Pink · Primary-Blue · Gray-800)
 
-Figma에서 둘 다 Primary다. 화면에서 바로 쓴다. Material 기본 위젯의 primary는 `pink.500`, secondary는 `blue.500`.
+Pink·Blue는 Figma에서 둘 다 Primary다. Gray-800은 Figma Icon 컴포넌트 기본색(선택된 하단 탭 등). 화면에서 바로 쓴다. Material 기본 위젯의 primary는 `pink.500`, secondary는 `blue.500`.
 
 | 이름 | 앱 | 웹 |
 | --- | --- | --- |
@@ -107,6 +107,7 @@ Figma에서 둘 다 Primary다. 화면에서 바로 쓴다. Material 기본 위�
 | blue.500 | `blue500` | `--color-blue-500` |
 | blue.600 | `blue600` | `--color-blue-600` |
 | blue.700 | `blue700` | `--color-blue-700` |
+| gray.800 | `gray800` | `--color-gray-800` |
 
 다크 모드 전용 값(Figma Background/Elevated, Transparent)은 다크 모드를 넣을 때 추가한다.
 
