@@ -3,18 +3,27 @@ import 'package:go_router/go_router.dart';
 
 import '../features/auth/presentation/views/login_view.dart';
 import '../features/chat/presentation/views/chat_list_view.dart';
+import '../features/dev_gallery/presentation/views/widget_gallery_view.dart';
 import '../features/home/presentation/views/home_view.dart';
 import '../features/my_page/presentation/views/my_page_view.dart';
 import '../features/recruitments/presentation/views/recruitment_list_view.dart';
 import 'main_shell.dart';
+import 'providers.dart';
 import 'routes.dart';
 
 /// 인증 redirect를 붙일 때는 세션 상태를 `ref.listen`으로 구독해 `refreshListenable`에 연결한다.
 /// `ref.watch`로 GoRouter를 다시 만들면 내비게이션 스택이 초기화되므로 쓰지 않는다.
 final routerProvider = Provider<GoRouter>((ref) {
+  // flavor는 앱 실행 중 바뀌지 않으므로 read로 한 번만 읽는다.
+  final isDev = ref.read(appEnvProvider).isDev;
   final router = GoRouter(
     initialLocation: AppRoutes.login,
     routes: [
+      if (isDev)
+        GoRoute(
+          path: AppRoutes.devWidgets,
+          builder: (context, state) => const WidgetGalleryView(),
+        ),
       GoRoute(
         path: AppRoutes.login,
         builder: (context, state) => const LoginView(),
