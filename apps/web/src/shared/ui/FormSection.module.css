@@ -1,0 +1,22 @@
+/* Figma `FormSection` */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--form-section-gap);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--form-section-gap);
+}
+
+.title {
+  font: var(--text-title2-semibold);
+  color: var(--color-label-normal);
+}
+
+.hint {
+  font: var(--text-caption1-regular);
+  color: var(--color-label-alternative);
+}

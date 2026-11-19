@@ -38,4 +38,20 @@ void main() {
     await tester.pumpAndSettle();
     expect(_devBanner, findsNothing);
   });
+
+  testWidgets('기기 글자 크기를 2배로 해도 앱 글자는 커지지 않는다', (tester) async {
+    tester.platformDispatcher.textScaleFactorTestValue = 2;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    for (final flavor in Flavor.values) {
+      await tester.pumpWidget(_app(flavor));
+      await tester.pumpAndSettle();
+      final context = tester.element(find.byType(LoginView));
+      expect(
+        MediaQuery.textScalerOf(context),
+        TextScaler.noScaling,
+        reason: '$flavor',
+      );
+    }
+  });
 }

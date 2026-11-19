@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:highfive/app/app.dart';
 import 'package:highfive/app/env.dart';
-import 'package:highfive/app/main_shell.dart';
 import 'package:highfive/app/providers.dart';
 import 'package:highfive/app/router.dart';
 import 'package:highfive/app/routes.dart';
@@ -12,6 +11,7 @@ import 'package:highfive/features/home/presentation/views/home_view.dart';
 import 'package:highfive/features/my_page/presentation/views/my_page_view.dart';
 import 'package:highfive/features/recruitments/presentation/views/recruitment_list_view.dart';
 import 'package:highfive/shared/theme/app_colors.dart';
+import 'package:highfive/shared/widgets/app_bottom_nav_bar.dart';
 
 /// 앱을 띄우고 [location]으로 이동한다. 로그인 연결 전이라 탭은 직접 연다.
 Future<void> _open(WidgetTester tester, String location) async {
@@ -32,8 +32,10 @@ Future<void> _open(WidgetTester tester, String location) async {
 }
 
 /// 하단 탭 라벨. 화면 제목과 겹치므로 탭 바 안에서만 찾는다.
-Finder _tab(String label) =>
-    find.descendant(of: find.byType(MainTabBar), matching: find.text(label));
+Finder _tab(String label) => find.descendant(
+  of: find.byType(AppBottomNavBar),
+  matching: find.text(label),
+);
 
 void main() {
   testWidgets('탭 화면에는 하단 탭 4개가 보인다', (tester) async {

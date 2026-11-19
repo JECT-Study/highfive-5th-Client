@@ -1,0 +1,31 @@
+/* Figma `Notice` */
+.notice {
+  display: flex;
+  align-items: center;
+  gap: var(--notice-gap);
+  padding: var(--notice-padding);
+  border-radius: var(--notice-radius);
+}
+
+.message {
+  flex: 1;
+}
+
+.icon {
+  display: inline-flex;
+  flex: none;
+  width: var(--notice-icon-size);
+  height: var(--notice-icon-size);
+}
+
+.info {
+  background: var(--color-background-alternative);
+  color: var(--color-gray-800);
+  font: var(--text-body1-regular);
+}
+
+.warning {
+  background: var(--color-background-warning);
+  color: var(--color-status-destructive);
+  font: var(--text-title2-semibold);
+}
