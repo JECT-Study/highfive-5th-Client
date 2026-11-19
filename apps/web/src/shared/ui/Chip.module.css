@@ -1,0 +1,19 @@
+/* Figma `Chip`, `SocialLinkChip` */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--chip-padding);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--chip-radius);
+  background: var(--color-background-normal);
+  color: var(--color-label-normal);
+  font: var(--text-body1-regular);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.selected {
+  background: var(--color-label-normal);
+  border-color: var(--color-label-normal);
+  color: var(--color-static-white);
+}

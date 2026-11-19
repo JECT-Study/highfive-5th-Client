@@ -1,0 +1,161 @@
+/* Figma `Btn`. 값은 tokens.css의 --button-* 컴포넌트 토큰과 의미 색 토큰만 쓴다 */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  border: 1px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.button:disabled {
+  cursor: default;
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.icon {
+  display: inline-flex;
+  flex: none;
+  width: var(--button-icon-size);
+  height: var(--button-icon-size);
+}
+
+.large {
+  height: var(--button-large-height);
+  padding: 0 var(--button-large-padding-x);
+  gap: var(--button-large-gap);
+  border-radius: var(--button-large-radius);
+}
+
+.medium {
+  height: var(--button-medium-height);
+  padding: 0 var(--button-medium-padding-x);
+  gap: var(--button-medium-gap);
+  border-radius: var(--button-medium-radius);
+}
+
+.small {
+  height: var(--button-small-height);
+  padding: 0 var(--button-small-padding-x);
+  gap: var(--button-small-gap);
+  border-radius: var(--button-small-radius);
+}
+
+.small .icon {
+  width: var(--button-small-icon-size);
+  height: var(--button-small-icon-size);
+}
+
+.floating {
+  padding: var(--button-floating-padding);
+  gap: var(--button-floating-gap);
+  border-radius: var(--button-floating-radius);
+}
+
+/* 글자: 바탕이 칠해진 버튼은 굵게, Weak·테두리 버튼은 얇게 (Figma) */
+.large.fill,
+.large.danger,
+.floating.fill,
+.floating.danger {
+  font: var(--text-title2-bold);
+}
+
+.large.weak,
+.floating.weak {
+  font: var(--text-title2-regular);
+}
+
+.medium.fill {
+  font: var(--text-body1-bold);
+}
+
+.small.fill {
+  font: var(--text-body1-semibold);
+}
+
+.medium.weak,
+.medium.danger,
+.small.weak,
+.small.danger {
+  font: var(--text-body1-medium);
+}
+
+.fill {
+  background: var(--color-label-strong);
+  color: var(--color-static-white);
+}
+
+.weak {
+  background: var(--color-background-normal);
+  border-color: var(--color-line-neutral);
+  color: var(--color-label-neutral);
+}
+
+/* Figma: 떠 있는 Weak만 본문색 */
+.floating.weak {
+  color: var(--color-label-normal);
+}
+
+.danger {
+  background: var(--color-status-destructive);
+  color: var(--color-static-white);
+}
+
+/* Figma: danger는 XL만 빨간 바탕, XS·Mini는 빨간 테두리 + 빨간 글자 */
+.medium.danger,
+.small.danger {
+  background: var(--color-background-normal);
+  border-color: var(--color-status-destructive);
+  color: var(--color-status-destructive);
+}
+
+/* 비활성. 로딩 중(aria-busy)은 비활성이어도 원래 색을 유지한다 */
+.fill:disabled:not([aria-busy]),
+.large.danger:disabled:not([aria-busy]),
+.floating.danger:disabled:not([aria-busy]) {
+  background: var(--color-interaction-inactive);
+  color: var(--color-static-white);
+}
+
+.weak:disabled:not([aria-busy]),
+.medium.danger:disabled:not([aria-busy]),
+.small.danger:disabled:not([aria-busy]) {
+  background: var(--color-interaction-disable);
+  border-color: var(--color-line-neutral);
+  color: var(--color-label-alternative);
+}
+
+/* 로딩 점 3개 (Figma loader) */
+.loader {
+  display: inline-flex;
+  gap: var(--button-loader-dot-gap);
+}
+
+.dot {
+  width: var(--button-loader-dot-size);
+  height: var(--button-loader-dot-size);
+  border-radius: var(--radius-full);
+  background: currentColor;
+}
+
+.dot:nth-child(2) {
+  opacity: 0.7;
+}
+
+.dot:nth-child(3) {
+  opacity: 0.4;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
