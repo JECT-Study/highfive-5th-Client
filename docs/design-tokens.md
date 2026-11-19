@@ -11,7 +11,7 @@
 | 위치 | 파일 |
 | --- | --- |
 | 기준 | `docs/design-tokens.md` (이 문서) |
-| 앱 | `apps/mobile/lib/shared/theme/app_colors.dart`, `app_spacing.dart`, `app_radius.dart`, `app_typography.dart`, 글꼴 `assets/fonts/pretendard/` |
+| 앱 | `apps/mobile/lib/shared/theme/app_colors.dart`, `app_spacing.dart`, `app_radius.dart`, `app_typography.dart`, `app_shadows.dart`, `app_component_tokens.dart`, 글꼴 `assets/fonts/pretendard/` |
 | 웹 | `apps/web/src/shared/styles/tokens.css` |
 
 ## 2. 바꾸는 절차
@@ -28,7 +28,7 @@
 
 ## 3. 토큰 표
 
-색·글자는 Figma 디자인 시스템 v3 기준이다. 간격·모서리는 Figma에 아직 없어 임시값이다.
+색·글자·그림자는 Figma 디자인 시스템 v3 기준이다. 모서리는 v3 공통 컴포넌트(Button·Input·Chip·Tag)에서 쓰는 값이다. 간격은 Figma에 아직 없어 임시값이다.
 
 ### 색 — 원시 (토큰 파일 안에서만)
 
@@ -111,14 +111,21 @@ Pink·Blue는 Figma에서 둘 다 Primary다. Gray-800은 Figma Icon 컴포넌�
 
 다크 모드 전용 값(Figma Background/Elevated, Transparent)은 다크 모드를 넣을 때 추가한다.
 
-### 간격 (4 배수)
+### 간격 (이름의 숫자 × 4 = 값)
+
+반 단계(0.5, 1.5, 2.5, 3.5)와 5는 Figma 컴포넌트가 실제로 쓰는 2·6·10·14·20 때문에 둔다. Figma에 간격 변수가 없어 컴포넌트에서 읽은 값이고, 디자이너 확정이 필요하다.
 
 | 이름 | 값 | 앱 | 웹 |
 | --- | --- | --- | --- |
+| space.0.5 | 2 | `AppSpacing.x0_5` | `--space-0-5` |
 | space.1 | 4 | `AppSpacing.x1` | `--space-1` |
+| space.1.5 | 6 | `AppSpacing.x1_5` | `--space-1-5` |
 | space.2 | 8 | `AppSpacing.x2` | `--space-2` |
+| space.2.5 | 10 | `AppSpacing.x2_5` | `--space-2-5` |
 | space.3 | 12 | `AppSpacing.x3` | `--space-3` |
+| space.3.5 | 14 | `AppSpacing.x3_5` | `--space-3-5` |
 | space.4 | 16 | `AppSpacing.x4` | `--space-4` |
+| space.5 | 20 | `AppSpacing.x5` | `--space-5` |
 | space.6 | 24 | `AppSpacing.x6` | `--space-6` |
 | space.8 | 32 | `AppSpacing.x8` | `--space-8` |
 
@@ -126,9 +133,27 @@ Pink·Blue는 Figma에서 둘 다 Primary다. Gray-800은 Figma Icon 컴포넌�
 
 | 이름 | 값 | 앱 | 웹 |
 | --- | --- | --- | --- |
+| radius.xs | 6 | `AppRadius.xs` | `--radius-xs` |
 | radius.sm | 8 | `AppRadius.sm` | `--radius-sm` |
-| radius.md | 12 | `AppRadius.md` | `--radius-md` |
-| radius.lg | 16 | `AppRadius.lg` | `--radius-lg` |
+| radius.md | 10 | `AppRadius.md` | `--radius-md` |
+| radius.lg | 12 | `AppRadius.lg` | `--radius-lg` |
+| radius.xl | 16 | `AppRadius.xl` | `--radius-xl` |
+| radius.xxl | 20 | `AppRadius.xxl` | `--radius-xxl` |
+| radius.full | 999 (양끝 둥글게) | `AppRadius.full` | `--radius-full` |
+
+### 그림자 (Figma 디자인 시스템 v3 Elevation)
+
+그림자 색은 모두 `#171717`이고 %는 불투명도. 값은 `x y blur spread`. 앱은 `BoxDecoration(boxShadow: AppShadows.small)`, 웹은 `box-shadow: var(--shadow-small)`.
+
+| 이름 | 값 | 앱 | 웹 |
+| --- | --- | --- | --- |
+| shadow.xsmall | `0 1 2 -1` 10% | `AppShadows.xsmall` | `--shadow-xsmall` |
+| shadow.small | `0 4 6 -1` 6% + `0 2 4 -2` 6% | `AppShadows.small` | `--shadow-small` |
+| shadow.medium | `0 10 15 -3` 7% + `0 4 6 -2` 7% | `AppShadows.medium` | `--shadow-medium` |
+| shadow.large | `0 16 24 -6` 8% + `0 6 10 -4` 8% | `AppShadows.large` | `--shadow-large` |
+| shadow.xlarge | `0 24 38 -10` 12% + `0 10 15 -5` 10% | `AppShadows.xlarge` | `--shadow-xlarge` |
+| shadow.spread.small | `0 0 60 0` 10% | `AppShadows.spreadSmall` | `--shadow-spread-small` |
+| shadow.spread.medium | `0 15 75 0` 16% | `AppShadows.spreadMedium` | `--shadow-spread-medium` |
 
 ### 글자 (Figma 디자인 시스템 v3 타이포그래피)
 
@@ -153,10 +178,145 @@ Pink·Blue는 Figma에서 둘 다 Primary다. Gray-800은 Figma Icon 컴포넌�
 | Tag-1 | SemiBold 600 | 10 | auto | `tag1` | `--text-tag1` |
 | Tag-2 | Medium 500 | 10 | auto | `tag2` | `--text-tag2` |
 
+- 앱은 기기의 글자 크기 설정(iOS Dynamic Type, Android 글꼴 크기)을 따르지 않는다. `app/app.dart`에서 `MediaQuery.withNoTextScaling`으로 막아 글자는 항상 이 표의 크기다. 웹은 px 단위라 브라우저 기본 글자 크기 설정의 영향을 받지 않는다(화면 확대는 브라우저가 처리).
 - auto는 글꼴 기본 행간 (앱은 `height` 지정 안 함, 웹은 `normal`).
 - 스타일에는 색이 없다. 기본 글자색 `label.normal`을 물려받고, 다른 색은 앱 `.copyWith(color: context.colors.*)`, 웹 `color: var(--color-*)`로 따로 준다.
 - Material 기본 위젯용으로 `TextTheme`에도 매핑해 둔다 (`bodyMedium` = Body-1(R), `titleLarge` = Title-1(B) 등, `AppTextStyles.toTextTheme`). 화면 코드는 `TextTheme` 이름을 쓰지 않는다.
 - Figma 표기와 스타일이 어긋난 곳: Head 표기는 32px지만 스타일은 24px → 24. Caption-1(SB) 표기는 Regular → SemiBold. Title-1(B)·Caption-1(R)·Tag-2는 Figma 스타일이 없어 이름대로 정했다. 디자인 확인 필요.
+
+### 컴포넌트 (Figma 디자인 시스템 v3 공통 컴포넌트)
+
+세 번째 단계. 크기·여백·모서리만 두고, **색은 위의 의미 토큰을 고른다**. 컴포넌트 토큰은 그 컴포넌트 안에서만 쓴다 (앱 `shared/widgets/`, 웹 `shared/ui/`). 화면 코드는 컴포넌트를 쓰고 이 값을 직접 쓰지 않는다.
+앱은 `app_component_tokens.dart`의 `AppButtonTokens`·`AppInputTokens`·`AppChipTokens`·`AppTagTokens`, 웹은 `tokens.css`의 `--button-*`·`--input-*`·`--chip-*`·`--tag-*`.
+4 배수가 아닌 값(예: 30, 14, 5)도 Figma 값 그대로 둔다. 간격 단계(`space.*`)에 없는 값이라 컴포넌트 토큰에만 둔다.
+
+| 컴포넌트 | 앱 위젯 / 웹 컴포넌트 | Figma |
+| --- | --- | --- |
+| 버튼 | `AppButton` / `Button` | `Btn` (와이어프레임 New/컴포넌트 → Button) |
+| 입력창 | `AppTextField` / `TextField` | `Input` |
+| 칩 | `AppChip` / `Chip` | `Chip`, `SocialLinkChip` |
+| 태그 | `AppTag`·`AppRoundTag` / `Tag`·`RoundTag` | `TagSquare`, `TagRound` |
+| 여러 줄 입력 | `AppTextArea` / `TextArea` | `TextArea` |
+| 드롭다운 | `AppDropdown` / - | `Dropdown` |
+| 체크박스·라디오 | `AppCheckbox`·`AppRadio` / `Checkbox`·`Radio` | `Checkbox`, `Radio Button` |
+| 토글 | `AppToggle` / - | `Toggle` |
+| 필터 | `AppFilterChip` / - | `Filter` |
+| 안내 띠 | `AppNotice` / `Notice` | `Notice` |
+| 다이얼로그 | `AppDialog`·`showAppDialog` / `Dialog` | `Dialog` |
+| 바텀시트 | `AppBottomSheet`·`showAppBottomSheet`·`AppModalHeader` / - | `BottomSheet`, `ModalHeader` |
+| 목록 한 줄 | `AppListRow` / - | `ListRow` |
+| 하단 탭 | `AppBottomNavBar` / - | `NavEX` |
+| 화면 안 탭 | `AppTabList` / - | `TabList` |
+| 상단 바 | `AppTopBar`·`AppIconButton` / - | `Top`(Default), `IconButton` |
+| 숫자 배지 | `AppBadge` / - | `Badge` |
+| 구역 구분 띠 | `AppSectionDivider` / `SectionDivider` | `Divider` |
+| 단계 막대 | `AppStepProgress` / - | `ProgressBar` |
+| 숫자 올리기 | `AppStepper` / - | `InputCount` |
+| 폼 항목 | `AppFormSection` / `FormSection` | `FormSection` |
+| 아이콘 | `AppIcon` / - | `Icon` (IconList24 등) |
+
+dev 빌드의 컴포넌트 모음 화면(`/dev/widgets`, DEV 띠 길게 누르기)에서 위 컴포넌트를 코드 이름·Figma 이름과 함께 볼 수 있다. 값은 디자인 확정 전 Figma 기준이라 바뀔 수 있다.
+
+웹은 관객 신청 화면에 쓸 것만 만들었다(`-`는 앱만).
+
+**영역별 컴포넌트** — 말풍선·공연 카드처럼 특정 화면 영역의 Figma 컴포넌트(메시지, 공연페이지, 홈, 온보딩, 목록, QR 섹션)는 아직 develop에 없다. 디자인 확정 전이라 `feat/JECT-239-area-widgets-archive` 브랜치에 보관해 두었고, 그 화면을 만드는 PR에서 필요한 폴더만 꺼내 넣는다. 넣는 위치와 규칙은 [mobile-architecture 1절](./mobile-architecture.md#1-폴더와-들어가는-파일).
+
+**버튼** — 크기: large = XL, medium = XS, small = Mini, floating = FloatingButton. 너비는 정하지 않는다(부모 레이아웃이 정한다).
+
+| 항목 | large | medium | small | floating |
+| --- | --- | --- | --- | --- |
+| 높이 | 52 | 42 | 32 | 여백으로 (48) |
+| 좌우 여백 | 30 | 20 | 8 | 왼 14 · 오른 16 · 위아래 12 |
+| 아이콘↔글자 | 2 | 4 | 6 | 4 |
+| 모서리 | radius.md (10) | radius.lg (12) | radius.sm (8) | radius.full |
+| 아이콘 | 24 | 24 | 16 | 24 |
+| 글자 (fill·danger / weak) | Title-2(B) / Title-2(R) | Body-1(B) / Body-1(M) | Body-1(SB) / Body-1(M) | Title-2(B) / Title-2(R) |
+
+| 중요도 | 바탕 | 글자 | 테두리 | 비활성 |
+| --- | --- | --- | --- | --- |
+| fill | label.strong | static.white | 없음 | 바탕 interaction.inactive, 글자 static.white |
+| weak | background.normal | label.neutral (floating은 label.normal) | line.neutral | 바탕 interaction.disable, 글자 label.alternative |
+| danger (large·floating) | status.destructive | static.white | 없음 | fill과 같음 |
+| danger (medium·small) | background.normal | status.destructive | status.destructive | weak와 같음 |
+
+로딩(Figma Loaing)은 글자 대신 점 3개(지름 6, 간격 8, 불투명도 100·70·40%)를 글자색으로 그리고 눌리지 않는다.
+
+**입력창** — 높이 47, 좌우 여백 14, 아이콘·단위와 간격 10, radius.md (10). 바탕 background.normal, 테두리 line.strong, 글자 Body-1(R) label.normal, 안내 문구 label.alternative. 비활성: 바탕 interaction.disable, 글자 label.alternative. 오류: 테두리 status.destructive. 포커스: 웹은 테두리를 label.normal로 바꾼다(키보드로 이동할 때 어느 칸인지 보여야 해서. Figma에 모양이 없어 임시값이고 오류 색이 우선), 앱은 커서로 알리고 테두리는 그대로 둔다. TextArea도 같다.
+
+**칩** — 여백 좌우 12 · 위아래 8, radius.full, 글자 Body-1(R). 선택 전: 바탕 background.normal, 테두리 line.strong, 글자 label.normal. 선택 후: 바탕·테두리 label.normal, 글자 static.white.
+
+**상태 속성 이름** — 같은 뜻은 앱·웹·모든 컴포넌트에서 같은 이름을 쓴다. 상태 값은 화면(ViewModel)이 갖고 컴포넌트는 받은 값을 그린다.
+
+| 뜻 | 이름 | 쓰는 컴포넌트 |
+| --- | --- | --- |
+| 여럿 중에서 골라짐 | `selected` (탭은 `selectedIndex`) | Chip, Filter, Radio, TabList |
+| 켜짐·체크됨 | `checked` | Checkbox, Toggle |
+| 오류 | `invalid` | Input |
+| 요청 중 | `loading` | Button |
+| 비활성 | 누르는 것은 콜백을 `null`로(웹은 `disabled`), 입력창은 `enabled: false`(웹은 `disabled`) | Button, Checkbox, Toggle, InputCount / Input, TextArea |
+
+**범용 UI** — 치수는 `app_component_tokens.dart` / `tokens.css`에 있다. 색만 여기 적는다.
+
+| 컴포넌트 | 치수 | 색 |
+| --- | --- | --- |
+| TextArea | 높이 100, 여백 14, radius.md | Input과 같음. 글자 수 Caption-1(R) label.alternative. 비활성: 바탕·테두리 interaction.disable |
+| Dropdown | Input과 같음, 화살표 18 | 테두리 line.strong. 값 있음: 글자·화살표 label.normal, 없음: 글자 label.alternative·화살표 label.assistive |
+| Checkbox | 상자 14, 모서리 2, 누르는 영역 44 | 테두리 label.neutral, 체크: 바탕 label.neutral + 흰 체크 |
+| Radio | 원 22, 안쪽 점 10, 누르는 영역 44 | 안 고름: 테두리 interaction.inactive, 고름: 바탕 label.normal + 흰 점 |
+| Toggle | 50 × 26, 원 16 | 켬: label.strong, 꺼짐: label.assistive, 원 static.white |
+| Filter | 여백 12 · 8, 간격 2, radius.full | 테두리 line.neutral, 글자 Body-1(M) label.normal, 걸림: 바탕 fill.strong |
+| Notice | 여백 12 · 10, 간격 4, 아이콘 24, radius.md | info: background.alternative + Body-1(R) gray.800, warning: background.warning + Title-2(SB) status.destructive |
+| Dialog | 폭 323, 여백 위 30 · 옆·아래 10, 간격 20, radius.xxl | 제목 Title-1(B) label.normal, 설명 Body-1(M) label.neutral, 뒤 material.dimmer, 버튼은 weak + fill(또는 danger) large |
+| BottomSheet | 여백 위 12 · 옆 20 · 아래 34, 간격 16, 위쪽 radius.xxl, 손잡이 40 × 4 | 바탕 background.normal, 손잡이 line.strong. ModalHeader: 제목 Title-1(B) label.normal, 보조 Body-1(R) label.neutral, 간격 8 |
+| ListRow | 높이 44, 여백 6, 간격 10, 뒤 요소 폭 52 | 글자 Title-2(SB) label.normal |
+| TabList | 탭 높이 44, 여백 12, 밑줄 2 | 아래 선 line.strong. 고름: Body-1(B) label.strong + 밑줄, 안 고름: Body-1(R) interaction.inactive |
+| Top · IconButton | 높이 56, 여백 6, 버튼 44, 아이콘 24 | 제목 Title-2(B) label.normal |
+| Badge | 지름 20 원 (길어지지 않음, `99+`는 원 안에 맞게 줄임) | 바탕 label.strong, 글자 Tag-1 static.white |
+| Divider | 두께 10 | background.alternative |
+| ProgressBar | 여백 8, 막대 높이 4 · 간격 4 · 모서리 2 | 제목 Body-1(SB) label.normal, 단계 Caption-1(SB) label.alternative, 끝남 칸 label.normal, 남은 칸 fill.strong |
+| InputCount | 버튼 44, radius.md | 테두리 line.strong, 값 Title-2(B) label.normal, 끌 버튼 label.assistive |
+| FormSection | 간격 8 | 제목 Title-2(SB) label.normal, 힌트 Caption-1(R) label.alternative |
+
+**태그** — 누를 수 없는 상태 라벨.
+
+| | 여백 | 모서리 | 글자 | 색 |
+| --- | --- | --- | --- | --- |
+| 네모 (small·medium·large = XS·S·XL) | 좌우 8 · 위아래 5 | radius.xs (6) | Tag-2 / Tag-1 / Caption-1(R) | neutral: fill.strong + label.normal, filled: label.normal + static.white, outlined: 테두리 label.normal |
+| 둥근 small (M) | 8 | radius.full | Tag-2 | fill.strong + label.neutral |
+| 둥근 medium (L) | 좌우 10 · 위아래 6 | radius.full | Caption-1(SB) | fill.strong + label.strong |
+| 둥근 large (XL) | 좌우 10 · 위아래 4 | radius.full | Body-1(M) | fill.strong + label.normal |
+
+#### Figma 컴포넌트와 어긋난 값 (디자이너 확인 필요)
+
+마스터 컴포넌트에 칠해진 색이 v3 의미 토큰 값과 다르다. **v3 의미 토큰을 기준으로 두고** 컴포넌트는 같은 이름의 의미 토큰을 쓴다. 디자이너가 컴포넌트 값이 맞다고 하면 의미 토큰 값을 바꾸면 된다 (2절 절차).
+
+| 컴포넌트 자리 | Figma 컴포넌트 값 | 쓰는 토큰 (값) |
+| --- | --- | --- |
+| danger 버튼 | `#DB1F25` (Status/Destructive) | status.destructive (`#EF2E2E`) |
+| weak 버튼 테두리 | `#E8E8EA` (Line/Neutral) | line.neutral (`#70737C` 16%) |
+| weak 버튼 글자 | `#47484C` (Lable/Neutral) | label.neutral (`#2E2F33` 88%) |
+| 입력창 테두리 | `#D9D9D9` (Line/Strong) | line.strong (`#B6B6B6`) |
+| 칩 테두리 | `#CFCFCF` (스타일 없음) | line.strong (`#B6B6B6`) |
+| 태그 바탕 | `#E8E8EA` (Fill/Strong) | fill.strong (`#70737C` 16%) |
+| 입력창·칩 글자 | `#1A1A1A` (스타일 없음) | label.normal (`#171719`) |
+| 둥근 태그 L 글자 | `#030303` (스타일 없음) | label.strong (black) |
+| 힌트·단계 글자 | `#606060` (스타일 없음) | label.alternative (`#6E6E73`) |
+| TextArea 글자 수 | `#878787` (스타일 없음) | label.alternative |
+| Dropdown·InputCount·TextArea(Fill) 테두리, 바텀시트 손잡이 | `#CFCFCF` | line.strong |
+| Filter 테두리·걸림 바탕 | `#EBEBEB` | line.neutral / fill.strong |
+| ProgressBar 남은 칸 | `#E4E4E4` | fill.strong |
+| Divider | `#F2F2F2` | background.alternative (`#F7F7F8`) |
+| Badge 바탕 | `#030303` | label.strong |
+| Checkbox | `#47484C` (Lable/Neutral) | label.neutral |
+
+모양이 한 컴포넌트 안에서 어긋난 곳도 하나로 맞췄다:
+
+- 버튼 XL 모서리: Fill·Danger 10, Weak 12 → 10. 나란히 놓는 버튼이라 같아야 한다.
+- 버튼 XS 모서리: 대부분 12, Fill Disabled 10·Danger 8 → 12.
+- 버튼 Mini 좌우 여백: Default 8, Disabled 10 → 8.
+- Toggle은 Figma가 그림(SVG)이라 치수를 읽어 맞춘 바탕 채운 모양이다. 켜짐/꺼짐 색만 Figma(label.strong / label.assistive)와 같다.
+- BottomSheet 그림자(`0 4 10` 8%)는 v3 Elevation에 없어 넣지 않았다. 뒷 배경을 material.dimmer로 어둡게 해 구분된다.
+- 입력창 Error variant는 Figma에 아직 색이 없다 (‘인풋에 오류상태 추가’ 메모). 테두리를 status.destructive로 임시 지정했다.
 
 ## 4. 쓰는 법
 
@@ -189,6 +349,7 @@ Container(
 ## 5. 하면 안 되는 것
 
 - 위젯·컴포넌트에서 hex, `Colors.*`, 숫자 px·dp 직접 사용
+- 화면 코드에서 컴포넌트 토큰(`AppButtonTokens`, `--button-*` 등) 사용. 버튼이 필요하면 `AppButton`/`Button`을 쓴다
 - 원시 토큰(`_Palette.*`, `--gray-200`)을 토큰 파일 밖에서 참조
 - 앱·웹 중 한쪽만 바꾸기
 - 특정 화면 전용 토큰 만들기 (새 값이 필요하면 범용 단계로 추가)
@@ -197,5 +358,6 @@ Container(
 ## 6. 아직 없는 것 (필요해질 때 같은 절차로 추가)
 
 - 다크 모드 (`AppColors.dark`, `@media (prefers-color-scheme: dark)`)
-- 그림자, 애니메이션 시간
-- 컴포넌트 토큰 (버튼 높이, 입력창 높이 등)
+- 애니메이션 시간
+- 여러 조각으로 그려진 Figma 아이콘(menu, bell, bookmark, lock, camera 등). 쓸 때 Figma에서 SVG로 내보내 `assets/icons/`와 `AppIcons`에 추가
+- 영역별 컴포넌트 (BandCard, ProgressCard, 채팅 말풍선, 캘린더 등). 보관 브랜치에서 화면 PR로 꺼내 넣는다
