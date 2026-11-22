@@ -48,7 +48,12 @@ lib/
 │   │                                app_bottom_sheet, app_list_row, app_tab_list, app_top_bar, app_badge(+Divider),
 │   │                                app_progress_bar, app_stepper, app_form_section:
 │   │                                Figma 공통 컴포넌트 (docs/design-tokens.md 컴포넌트 표)
-│   │   └── <영역>/                  message, show, home … Figma 섹션별 표시용 위젯. 그 화면을 만드는 PR에서 추가
+│   │   ├── message/                 (있음) Figma '메시지' 섹션: 말풍선, 채팅 목록 항목, 입력 바 등
+│   │   ├── show/                    (있음) Figma '공연페이지' 섹션: 라인업, 진행 카드, 피드, 일정, 입금확인, 팝업 등
+│   │   ├── home/                    (있음) Figma '홈' 섹션: 공연 카드, 홈 목록 등
+│   │   ├── onboarding/              (있음) Figma '온보딩' 섹션
+│   │   ├── list/                    (있음) Figma '목록' 섹션: 목록 카드, 알림 줄
+│   │   └── qr/                      (있음) Figma 'QR' 섹션
 │   │                                loading_view.dart, error_view.dart, empty_view.dart
 │   ├── utils/                       date_format.dart, money_format.dart 같은 순수 함수
 │   └── extensions/                  context_extensions.dart 등
@@ -82,7 +87,7 @@ lib/
 - `shared/widgets`에는 Figma 컴포넌트를 **값만 받아 그리는 표시용 위젯**으로 둔다. 버튼·입력창 같은 범용 위젯은 바로 아래에(`app_*.dart`), 특정 화면 영역의 위젯(말풍선, 공연 카드 등)은 Figma 섹션 이름의 하위 폴더(`message/`, `show/`, `home/` …)에 둔다. 여러 화면·기능이 같이 쓴다.
   - 생성자는 글자·숫자·bool·enum·`ImageProvider`·`Widget` 슬롯·콜백만 받는다. 모델을 받지 않고, Provider를 읽지 않고, 화면 이동·요청을 하지 않는다.
   - 모델을 위젯 값으로 풀어 넣고, 누르면 무엇을 할지 정하는 일은 기능의 View·ViewModel이 한다.
-  - 영역 폴더는 아직 없다. 미리 만든 위젯은 `feat/JECT-239-area-widgets-archive` 브랜치에 보관해 두었고, 화면을 만들 때 필요한 폴더만 꺼내 그 화면과 함께 리뷰한다.
+  - 영역 폴더는 화면보다 먼저 만들어 둔 Figma 섹션별 위젯이다(AGENTS.md 1번의 예외, 이유는 design-tokens "영역별 컴포넌트"). 값만 받아 그리고 어느 기능에서든 쓴다. 화면을 만들 때 Figma와 다시 맞춘다. dev 빌드의 `/dev/widgets`에서 폴더별로 볼 수 있다.
 - 데이터·상태·규칙이 들어간 코드는 여러 기능에서 쓴다는 이유만으로 core/shared로 옮기지 않는다. 다른 기능이 필요하면 그 기능의 Repository·모델을 import한다. 한 기능의 데이터에 묶인 조각 위젯은 그 기능의 `presentation/widgets`에 둔다.
 
 ## 2. 의존성 방향
@@ -313,7 +318,7 @@ Figma `와이어프레임 New` → `11/8 pm 확정 영역: 티켓 신청 전까�
 - 화면 안의 탭(공연 페이지의 정보·피드·일정·티켓 관리, 메시지함의 전체·받은 문의·보낸 문의·공연 채팅, 마이의 내 공연·찜한 공연)은 경로를 나누지 않고 화면 상태로 둔다.
 - 팝업·바텀시트·토스트·확인창은 경로가 아니다. 띄운 화면의 ViewModel이 연다.
 - 고정 하위 경로(`/recruit/new`, `/recruit/search`, `/shows/new`)는 `:id` 경로보다 먼저 등록한다. 아니면 `new`가 id로 잡힌다.
-- `/dev/widgets`(공통 위젯 모음)는 dev flavor 라우터에만 등록한다. 왼쪽 위 DEV 띠를 길게 누르거나 `fvm flutter run --flavor dev --route /dev/widgets`로 연다. 위쪽 칩으로 폴더(범용 · message · show · qr · home · onboarding · list)를 고르고, `--route "/dev/widgets?folder=message"`처럼 폴더를 바로 열 수도 있다(보관 브랜치). 화면은 `features/dev_gallery/`. 로그인 redirect(`sessionRedirect`)에서 제외해 로그아웃 상태에서도 열린다.
+- `/dev/widgets`(공통 위젯 모음)는 dev flavor 라우터에만 등록한다. 왼쪽 위 DEV 띠를 길게 누르거나 `fvm flutter run --flavor dev --route /dev/widgets`로 연다. 위쪽 칩으로 폴더(범용 · message · show · qr · home · onboarding · list)를 고르고, `--route "/dev/widgets?folder=message"`처럼 폴더를 바로 열 수도 있다. 화면은 `features/dev_gallery/`. 로그인 redirect(`sessionRedirect`)에서 제외해 로그아웃 상태에서도 열린다.
 - 로그인 전 화면 외에는 전부 로그인 필요. 인증 redirect는 `routerProvider`의 `sessionRedirect`: 앱 시작 → `/splash`에서 저장된 세션(`sessionProvider`, secure storage) 복원 → 세션 있으면 `/home`, 없거나 복원 실패면 `/login`. 로그아웃하면 `/login`. 온보딩 미완료 → 온보딩 분기는 온보딩 정보를 받을 때 추가한다.
 - 지금 로그인은 임시다: 로그인 화면의 "임시 로그인" 버튼이 `AuthService`의 고정 토큰으로 세션을 만든다. 로그인 API가 나오면 `features/auth/data/services/auth_service.dart`만 실제 호출로 바꾸고 버튼을 소셜 로그인으로 교체한다. 로그아웃은 마이페이지 버튼 → 라우터가 넘긴 `onSignOut` → `sessionProvider.signOut()` (설정 화면이 생기면 그쪽으로 옮긴다).
 

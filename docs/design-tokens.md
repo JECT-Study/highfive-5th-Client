@@ -219,9 +219,9 @@ dev 빌드의 컴포넌트 모음 화면(`/dev/widgets`, DEV 띠 길게 누르�
 
 웹은 관객 신청 화면에 쓸 것만 만들었다(`-`는 앱만).
 
-**영역별 컴포넌트** — 말풍선·공연 카드처럼 특정 화면 영역의 Figma 컴포넌트(메시지, 공연페이지, 홈, 온보딩, 목록, QR 섹션)는 아직 develop에 없다. 디자인 확정 전이라 `feat/JECT-239-area-widgets-archive` 브랜치에 보관해 두었고, 그 화면을 만드는 PR에서 필요한 폴더만 꺼내 넣는다. 넣는 위치와 규칙은 [mobile-architecture 1절](./mobile-architecture.md#1-폴더와-들어가는-파일).
+**영역별 컴포넌트** — 말풍선·공연 카드처럼 특정 화면 영역의 Figma 컴포넌트(메시지, 공연페이지, 홈, 온보딩, 목록, QR 섹션)는 화면보다 먼저 만들어 develop에 둔다. 두 사람이 같은 영역 위젯을 따로 만들거나 고치지 않게 하려는 것으로, "쓰는 곳 없는 코드는 미리 만들지 않는다"(AGENTS.md 1번)의 예외다. 디자인 확정 전 Figma 기준이라, 화면을 만들 때 Figma와 다시 맞추고 다르면 그 화면 PR에서 고친다.
 
-> 이 브랜치(보관용)에만 있는 영역 위젯 목록이다. 화면 PR로 꺼낼 때 이 표에서 찾는다. 범용 폴더(`shared/widgets/`)에 둔 `AppBandCard`(Figma `BandCard`)·`AppMemberHeader`(`MemberHeader`)·`AppChipGroup`(`Chipwarp`)도 영역 위젯과 같이 보관한다.
+범용 폴더(`shared/widgets/`)의 `AppBandCard`(Figma `BandCard`)·`AppMemberHeader`(`MemberHeader`)·`AppChipGroup`(`Chipwarp`)도 같은 경우다.
 
 **영역 폴더의 컴포넌트** — 말풍선·공연 카드처럼 특정 화면 영역의 Figma 컴포넌트는 앱 `shared/widgets/<폴더>/`에 둔다(폴더 이름 = Figma 섹션: `message`, `show`, `home`, `onboarding`, `list`, `qr`). 값만 받아 그리는 위젯이라 어느 기능에서든 쓴다 (규칙은 [mobile-architecture 1절](./mobile-architecture.md#1-폴더와-들어가는-파일)).
 
@@ -413,4 +413,4 @@ Container(
 - 다크 모드 (`AppColors.dark`, `@media (prefers-color-scheme: dark)`)
 - 애니메이션 시간
 - 여러 조각으로 그려진 Figma 아이콘(menu, bell, bookmark, lock, camera 등). 쓸 때 Figma에서 SVG로 내보내 `assets/icons/`와 `AppIcons`에 추가
-- 영역별 컴포넌트 (BandCard, ProgressCard, 채팅 말풍선, 캘린더 등). 보관 브랜치에서 화면 PR로 꺼내 넣는다
+- 영역별 컴포넌트는 들어가 있다. 화면을 만들 때 Figma와 다시 맞춘다
