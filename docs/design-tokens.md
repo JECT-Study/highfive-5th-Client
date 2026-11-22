@@ -261,14 +261,14 @@ dev 빌드의 컴포넌트 모음 화면(`/dev/widgets`, DEV 띠 길게 누르�
 | --- | --- | --- |
 | TextArea | 높이 100, 여백 14, radius.md | Input과 같음. 글자 수 Caption-1(R) label.alternative. 비활성: 바탕·테두리 interaction.disable |
 | Dropdown | Input과 같음, 화살표 18 | 테두리 line.strong. 값 있음: 글자·화살표 label.normal, 없음: 글자 label.alternative·화살표 label.assistive |
-| Checkbox | 상자 14, 모서리 2, 누르는 영역 44 | 테두리 label.neutral, 체크: 바탕 label.neutral + 흰 체크 |
+| Checkbox | 상자 14, 모서리 2, 누르는 영역 44 | 테두리 label.neutral, 체크: 바탕 label.neutral + 흰 체크. 비활성: 바탕 interaction.disable + 테두리 label.disable (체크된 비활성은 Figma에 없어 바탕도 label.disable) |
 | Radio | 원 22, 안쪽 점 10, 누르는 영역 44 | 안 고름: 테두리 interaction.inactive, 고름: 바탕 label.normal + 흰 점 |
 | Toggle | 50 × 26, 원 16 | 켬: label.strong, 꺼짐: label.assistive, 원 static.white |
 | Filter | 여백 12 · 8, 간격 2, radius.full | 테두리 line.neutral, 글자 Body-1(M) label.normal, 걸림: 바탕 fill.strong |
 | Notice | 여백 12 · 10, 간격 4, 아이콘 24, radius.md | info: background.alternative + Body-1(R) gray.800, warning: background.warning + Title-2(SB) status.destructive |
 | Dialog | 폭 323, 여백 위 30 · 옆·아래 10, 간격 20, radius.xxl | 제목 Title-1(B) label.normal, 설명 Body-1(M) label.neutral, 뒤 material.dimmer, 버튼은 weak + fill(또는 danger) large |
 | BottomSheet | 여백 위 12 · 옆 20 · 아래 34, 간격 16, 위쪽 radius.xxl, 손잡이 40 × 4 | 바탕 background.normal, 손잡이 line.strong. ModalHeader: 제목 Title-1(B) label.normal, 보조 Body-1(R) label.neutral, 간격 8 |
-| ListRow | 높이 44, 여백 6, 간격 10, 뒤 요소 폭 52 | 글자 Title-2(SB) label.normal |
+| ListRow | 높이 44, 여백 10, 간격 10, 뒤 요소 폭 52 | 글자 Title-2(SB) label.normal |
 | TabList | 탭 높이 44, 여백 12, 밑줄 2 | 아래 선 line.strong. 고름: Body-1(B) label.strong + 밑줄, 안 고름: Body-1(R) interaction.inactive |
 | Top · IconButton | 높이 56, 여백 6, 버튼 44, 아이콘 24 | 제목 Title-2(B) label.normal |
 | Badge | 지름 20 원 (길어지지 않음, `99+`는 원 안에 맞게 줄임) | 바탕 label.strong, 글자 Tag-1(SB) static.white |

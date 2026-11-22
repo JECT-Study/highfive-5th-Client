@@ -69,7 +69,7 @@ void main() {
         tester.widget<Text>(_tab(label)).style?.color;
 
     final colors = AppColors.light;
-    expect(colorOf('메시지'), colors.gray800);
+    expect(colorOf('메시지'), colors.labelStrong);
     expect(colorOf('홈'), colors.interactionInactive);
     expect(colorOf('팀 모집'), colors.interactionInactive);
     expect(colorOf('마이페이지'), colors.interactionInactive);

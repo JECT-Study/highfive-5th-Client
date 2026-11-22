@@ -309,7 +309,7 @@ dev와 prod는 네이티브 flavor로 나눈다. 앱 ID가 달라서 두 앱이 
 Figma `와이어프레임 New` → `11/8 pm 확정 영역: 티켓 신청 전까지` 기준으로 정한 지도다. 경로 상수는 `app/routes.dart`의 `AppRoutes`에 미리 두고, `GoRoute`는 그 화면을 만드는 PR에서 `app/router.dart`에 등록한다(빈 화면을 미리 만들지 않는다). 바꿀 때는 이 표와 `AppRoutes`를 같은 PR에서 고친다.
 
 - 하단 탭 4개: 홈 · 팀 모집 · 메시지 · 마이페이지 (`app/main_shell.dart`). `StatefulShellRoute.indexedStack`이라 탭을 바꿔도 각 탭의 스택·스크롤이 남는다. 지금 탭을 다시 누르면 그 탭 첫 화면으로 간다. 탭 안에서 이어지는 화면은 해당 branch 아래에 등록한다.
-- 하단 탭 라벨·아이콘: Figma 화면마다 라벨이 달라(채팅/메세지/티켓 관리, 내 프로필/마이페이지) 기능명세(기능 53) 기준으로 정했다. 아이콘은 Figma Icon 컴포넌트(Icon: home, search, message, Icon:my). 크기·간격·색은 Figma NavEX 그대로(라벨 11px 선택 Bold/아니면 Regular, 아이콘-라벨 간격 2, 눌림 효과 없음). 크기·간격은 컴포넌트 토큰 `AppBottomNavTokens`, 그리는 위젯은 `AppBottomNavBar`(shared), 탭 목록은 `MainShell.tabs`. 색은 토큰: 선택 `gray800`(Figma 아이콘 기본색), 선택 안 됨 `interactionInactive`, 구분선 `lineNeutral`. 글꼴은 Pretendard.
+- 하단 탭 라벨·아이콘: Figma 화면마다 라벨이 달라(채팅/메세지/티켓 관리, 내 프로필/마이페이지) 기능명세(기능 53) 기준으로 정했다. 아이콘은 Figma Icon 컴포넌트(Icon: home, search, message, Icon:my). 크기·간격·색은 Figma NavEX 그대로(아이콘 24, 라벨 선택 Caption-1(SB)/아니면 Caption-1(R), 아이콘-라벨 간격 2, 눌림 효과 없음). 크기·간격은 컴포넌트 토큰 `AppBottomNavTokens`, 그리는 위젯은 `AppBottomNavBar`(shared), 탭 목록은 `MainShell.tabs`. 색은 토큰: 선택 아이콘 `gray800`(Figma 아이콘 기본색)·라벨 `labelStrong`, 선택 안 됨 `interactionInactive`, 구분선 `lineNeutral`. 글꼴은 Pretendard.
 - 화면 안의 탭(공연 페이지의 정보·피드·일정·티켓 관리, 메시지함의 전체·받은 문의·보낸 문의·공연 채팅, 마이의 내 공연·찜한 공연)은 경로를 나누지 않고 화면 상태로 둔다.
 - 팝업·바텀시트·토스트·확인창은 경로가 아니다. 띄운 화면의 ViewModel이 연다.
 - 고정 하위 경로(`/recruit/new`, `/recruit/search`, `/shows/new`)는 `:id` 경로보다 먼저 등록한다. 아니면 `new`가 id로 잡힌다.

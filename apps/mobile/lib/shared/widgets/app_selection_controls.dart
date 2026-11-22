@@ -20,16 +20,23 @@ class AppCheckbox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final enabled = onChanged != null;
+    // 비활성: Figma check=Disabled (바탕 Interaction/Disabled, 테두리 Label/Disabled).
+    // 체크된 비활성은 Figma에 없어 같은 테두리색을 바탕으로 채운다.
+    final borderColor = enabled ? colors.labelNeutral : colors.labelDisable;
+    final fillColor = checked
+        ? borderColor
+        : (enabled ? null : colors.interactionDisable);
     return _SelectionTarget(
       label: semanticLabel,
       checked: checked,
-      onTap: onChanged == null ? null : () => onChanged!(!checked),
+      onTap: enabled ? () => onChanged!(!checked) : null,
       child: Container(
         width: AppSelectionTokens.checkboxSize,
         height: AppSelectionTokens.checkboxSize,
         decoration: BoxDecoration(
-          color: checked ? colors.labelNeutral : null,
-          border: Border.all(color: colors.labelNeutral),
+          color: fillColor,
+          border: Border.all(color: borderColor),
           borderRadius: BorderRadius.circular(
             AppSelectionTokens.checkboxRadius,
           ),
