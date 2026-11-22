@@ -4,6 +4,9 @@
 /// 상수는 미리 합의해 두고, `GoRoute`는 그 화면을 만들 때 `router.dart`에 등록한다.
 /// `:id`가 있는 경로는 상수(GoRoute용)와 함수(이동용)를 같이 둔다.
 abstract final class AppRoutes {
+  // 앱 시작: 저장된 세션을 읽는 동안만 보인다
+  static const splash = '/splash';
+
   // 인증·온보딩 (로그인 전)
   static const login = '/login';
   static const terms = '/terms';
