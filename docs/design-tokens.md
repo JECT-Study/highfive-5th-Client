@@ -28,7 +28,7 @@
 
 ## 3. 토큰 표
 
-색·글자·그림자는 Figma 디자인 시스템 v3 기준이다. 모서리는 v3 공통 컴포넌트(Button·Input·Chip·Tag)에서 쓰는 값이다. 간격은 Figma에 아직 없어 임시값이다.
+색·글자·그림자는 Figma 디자인 시스템 v3 기준이다. 2026-11 디자이너가 "너무 연해서" 반투명 회색(Label·Line·Fill)을 불투명 색으로 바꾸고 Status/Destructive·Line/Strong을 바꾼 변수 값을 따른다 (Figma `디자인` 파일 변수). 모서리는 v3 공통 컴포넌트(Button·Input·Chip·Tag)에서 쓰는 값이다. 간격은 Figma에 아직 없어 임시값이다.
 
 ### 색 — 원시 (토큰 파일 안에서만)
 
@@ -66,30 +66,30 @@ Figma Semantic 값이 원시 팔레트에 없으면 토큰 파일의 의미 토�
 | --- | --- | --- | --- | --- |
 | label.normal | `#171719` | `labelNormal` | `--color-label-normal` | 본문 글자 |
 | label.strong | black | `labelStrong` | `--color-label-strong` | 가장 진한 글자 |
-| label.neutral | `#2E2F33` 88% | `labelNeutral` | `--color-label-neutral` | 보조 본문 |
+| label.neutral | `#47484C` | `labelNeutral` | `--color-label-neutral` | 보조 본문 |
 | label.alternative | `#6E6E73` | `labelAlternative` | `--color-label-alternative` | 보조 설명 |
 | label.assistive | `#B9B9B9` | `labelAssistive` | `--color-label-assistive` | placeholder·힌트 |
-| label.disable | `#37383C` 16% | `labelDisable` | `--color-label-disable` | 비활성 글자 |
+| label.disable | `#DFDFE0` | `labelDisable` | `--color-label-disable` | 비활성 글자 |
 | background.normal | white | `backgroundNormal` | `--color-background-normal` | 화면 바탕 |
 | background.alternative | `#F7F7F8` | `backgroundAlternative` | `--color-background-alternative` | 구역 구분 바탕 |
 | background.warning | `#F1E1E1` | `backgroundWarning` | `--color-background-warning` | 경고 바탕 |
 | interaction.inactive | `#989BA2` | `interactionInactive` | `--color-interaction-inactive` | 선택 안 된 상태 |
 | interaction.disable | `#F4F4F5` | `interactionDisable` | `--color-interaction-disable` | 비활성 요소 바탕 |
-| line.normal | `#70737C` 22% | `lineNormal` | `--color-line-normal` | 기본 테두리 |
-| line.neutral | `#70737C` 16% | `lineNeutral` | `--color-line-neutral` | 구분선 |
-| line.alternative | `#70737C` 8% | `lineAlternative` | `--color-line-alternative` | 옅은 구분선 |
-| line.strong | `#B6B6B6` | `lineStrong` | `--color-line-strong` | 진한 테두리 |
+| line.normal | `#E0E0E2` | `lineNormal` | `--color-line-normal` | 기본 테두리 |
+| line.neutral | `#E8E8EA` | `lineNeutral` | `--color-line-neutral` | 구분선 |
+| line.alternative | `#F4F4F5` | `lineAlternative` | `--color-line-alternative` | 옅은 구분선 |
+| line.strong | `#D9D9D9` | `lineStrong` | `--color-line-strong` | 진한 테두리 |
 | status.positive | `#00BF40` | `statusPositive` | `--color-status-positive` | 성공 |
 | status.cautionary | `#FF9200` | `statusCautionary` | `--color-status-cautionary` | 주의 |
-| status.destructive | `#EF2E2E` | `statusDestructive` | `--color-status-destructive` | 오류·삭제 |
+| status.destructive | `#DB1F25` | `statusDestructive` | `--color-status-destructive` | 오류·삭제 |
 | inverse.primary | `#3385FF` | `inversePrimary` | `--color-inverse-primary` | 어두운 바탕 위 강조 |
 | inverse.background | `#1B1C1E` | `inverseBackground` | `--color-inverse-background` | 어두운 바탕 (토스트 등) |
 | inverse.label | `#F7F7F8` | `inverseLabel` | `--color-inverse-label` | 어두운 바탕 위 글자 |
 | static.white | white | `staticWhite` | `--color-static-white` | 모드와 상관없이 흰색 |
 | static.black | black | `staticBlack` | `--color-static-black` | 모드와 상관없이 검정 |
-| fill.normal | `#70737C` 8% | `fillNormal` | `--color-fill-normal` | 채움 바탕 |
-| fill.strong | `#70737C` 16% | `fillStrong` | `--color-fill-strong` | 진한 채움 |
-| fill.alternative | `#70737C` 5% | `fillAlternative` | `--color-fill-alternative` | 옅은 채움 |
+| fill.normal | `#F4F4F5` | `fillNormal` | `--color-fill-normal` | 채움 바탕 |
+| fill.strong | `#E8E8EA` | `fillStrong` | `--color-fill-strong` | 진한 채움 |
+| fill.alternative | `#70737C` 5% (Figma 변경 확인 필요) | `fillAlternative` | `--color-fill-alternative` | 옅은 채움 |
 | material.dimmer | `#171719` 52% | `materialDimmer` | `--color-material-dimmer` | 모달 뒤 어둡게 |
 
 ### 색 — 화면에서 바로 쓰는 원시 색 (Primary-Pink · Primary-Blue · Gray-800)
@@ -172,17 +172,17 @@ Pink·Blue는 Figma에서 둘 다 Primary다. Gray-800은 Figma Icon 컴포넌�
 | Body-1(SB) | SemiBold 600 | 14 | 140% | `body1SemiBold` | `--text-body1-semibold` |
 | Body-1(M) | Medium 500 | 14 | 140% | `body1Medium` | `--text-body1-medium` |
 | Body-1(R) | Regular 400 | 14 | 140% | `body1Regular` | `--text-body1-regular` |
-| Caption-1(SB) | SemiBold 600 | 12 | auto | `caption1SemiBold` | `--text-caption1-semibold` |
-| Caption-1(M) | Medium 500 | 12 | auto | `caption1Medium` | `--text-caption1-medium` |
-| Caption-1(R) | Regular 400 | 12 | auto | `caption1Regular` | `--text-caption1-regular` |
-| Tag-1 | SemiBold 600 | 10 | auto | `tag1` | `--text-tag1` |
-| Tag-2 | Medium 500 | 10 | auto | `tag2` | `--text-tag2` |
+| Caption-1(SB) | SemiBold 600 | 12 | 140% | `caption1SemiBold` | `--text-caption1-semibold` |
+| Caption-1(M) | Medium 500 | 12 | 140% | `caption1Medium` | `--text-caption1-medium` |
+| Caption-1(R) | Regular 400 | 12 | 140% | `caption1Regular` | `--text-caption1-regular` |
+| Tag-1(SB) | SemiBold 600 | 10 | auto | `tag1` | `--text-tag1` |
+| Tag-1(M) | Medium 500 | 10 | auto | `tag2` | `--text-tag2` |
 
 - 앱은 기기의 글자 크기 설정(iOS Dynamic Type, Android 글꼴 크기)을 따르지 않는다. `app/app.dart`에서 `MediaQuery.withNoTextScaling`으로 막아 글자는 항상 이 표의 크기다. 웹은 px 단위라 브라우저 기본 글자 크기 설정의 영향을 받지 않는다(화면 확대는 브라우저가 처리).
 - auto는 글꼴 기본 행간 (앱은 `height` 지정 안 함, 웹은 `normal`).
 - 스타일에는 색이 없다. 기본 글자색 `label.normal`을 물려받고, 다른 색은 앱 `.copyWith(color: context.colors.*)`, 웹 `color: var(--color-*)`로 따로 준다.
 - Material 기본 위젯용으로 `TextTheme`에도 매핑해 둔다 (`bodyMedium` = Body-1(R), `titleLarge` = Title-1(B) 등, `AppTextStyles.toTextTheme`). 화면 코드는 `TextTheme` 이름을 쓰지 않는다.
-- Figma 표기와 스타일이 어긋난 곳: Head 표기는 32px지만 스타일은 24px → 24. Caption-1(SB) 표기는 Regular → SemiBold. Title-1(B)·Caption-1(R)·Tag-2는 Figma 스타일이 없어 이름대로 정했다. 디자인 확인 필요.
+- 2026-11 디자이너가 스타일을 추가해 표의 15개가 모두 Figma 텍스트 스타일과 같다. 코드 이름 `tag1`·`tag2`는 Figma Tag-1(SB)·Tag-1(M)이다.
 
 ### 컴포넌트 (Figma 디자인 시스템 v3 공통 컴포넌트)
 
@@ -271,7 +271,7 @@ dev 빌드의 컴포넌트 모음 화면(`/dev/widgets`, DEV 띠 길게 누르�
 | ListRow | 높이 44, 여백 6, 간격 10, 뒤 요소 폭 52 | 글자 Title-2(SB) label.normal |
 | TabList | 탭 높이 44, 여백 12, 밑줄 2 | 아래 선 line.strong. 고름: Body-1(B) label.strong + 밑줄, 안 고름: Body-1(R) interaction.inactive |
 | Top · IconButton | 높이 56, 여백 6, 버튼 44, 아이콘 24 | 제목 Title-2(B) label.normal |
-| Badge | 지름 20 원 (길어지지 않음, `99+`는 원 안에 맞게 줄임) | 바탕 label.strong, 글자 Tag-1 static.white |
+| Badge | 지름 20 원 (길어지지 않음, `99+`는 원 안에 맞게 줄임) | 바탕 label.strong, 글자 Tag-1(SB) static.white |
 | Divider | 두께 10 | background.alternative |
 | ProgressBar | 여백 8, 막대 높이 4 · 간격 4 · 모서리 2 | 제목 Body-1(SB) label.normal, 단계 Caption-1(SB) label.alternative, 끝남 칸 label.normal, 남은 칸 fill.strong |
 | InputCount | 버튼 44, radius.md | 테두리 line.strong, 값 Title-2(B) label.normal, 끌 버튼 label.assistive |
@@ -281,23 +281,18 @@ dev 빌드의 컴포넌트 모음 화면(`/dev/widgets`, DEV 띠 길게 누르�
 
 | | 여백 | 모서리 | 글자 | 색 |
 | --- | --- | --- | --- | --- |
-| 네모 (small·medium·large = XS·S·XL) | 좌우 8 · 위아래 5 | radius.xs (6) | Tag-2 / Tag-1 / Caption-1(R) | neutral: fill.strong + label.normal, filled: label.normal + static.white, outlined: 테두리 label.normal |
-| 둥근 small (M) | 8 | radius.full | Tag-2 | fill.strong + label.neutral |
+| 네모 (small·medium·large = XS·S·XL) | 좌우 8 · 위아래 5 | radius.xs (6) | Tag-1(M) / Tag-1(SB) / Caption-1(R) | neutral: fill.strong + label.normal, filled: label.normal + static.white, outlined: 테두리 label.normal |
+| 둥근 small (M) | 8 | radius.full | Tag-1(M) | fill.strong + label.neutral |
 | 둥근 medium (L) | 좌우 10 · 위아래 6 | radius.full | Caption-1(SB) | fill.strong + label.strong |
 | 둥근 large (XL) | 좌우 10 · 위아래 4 | radius.full | Body-1(M) | fill.strong + label.normal |
 
 #### Figma 컴포넌트와 어긋난 값 (디자이너 확인 필요)
 
-마스터 컴포넌트에 칠해진 색이 v3 의미 토큰 값과 다르다. **v3 의미 토큰을 기준으로 두고** 컴포넌트는 같은 이름의 의미 토큰을 쓴다. 디자이너가 컴포넌트 값이 맞다고 하면 의미 토큰 값을 바꾸면 된다 (2절 절차).
+마스터 컴포넌트에 변수 없이 칠해진 색이다. 컴포넌트는 가장 가까운 의미 토큰을 쓴다. 디자이너가 컴포넌트 값이 맞다고 하면 토큰을 추가하거나 값을 바꾼다 (2절 절차). 변수를 쓰는 자리(danger 버튼, weak 버튼, 입력창 테두리, 태그 바탕, Checkbox)는 2026-11 변수 변경으로 의미 토큰과 값이 같아졌다.
 
 | 컴포넌트 자리 | Figma 컴포넌트 값 | 쓰는 토큰 (값) |
 | --- | --- | --- |
-| danger 버튼 | `#DB1F25` (Status/Destructive) | status.destructive (`#EF2E2E`) |
-| weak 버튼 테두리 | `#E8E8EA` (Line/Neutral) | line.neutral (`#70737C` 16%) |
-| weak 버튼 글자 | `#47484C` (Lable/Neutral) | label.neutral (`#2E2F33` 88%) |
-| 입력창 테두리 | `#D9D9D9` (Line/Strong) | line.strong (`#B6B6B6`) |
-| 칩 테두리 | `#CFCFCF` (스타일 없음) | line.strong (`#B6B6B6`) |
-| 태그 바탕 | `#E8E8EA` (Fill/Strong) | fill.strong (`#70737C` 16%) |
+| 칩 테두리 | `#CFCFCF` (스타일 없음) | line.strong (`#D9D9D9`) |
 | 입력창·칩 글자 | `#1A1A1A` (스타일 없음) | label.normal (`#171719`) |
 | 둥근 태그 L 글자 | `#030303` (스타일 없음) | label.strong (black) |
 | 힌트·단계 글자 | `#606060` (스타일 없음) | label.alternative (`#6E6E73`) |
@@ -307,7 +302,6 @@ dev 빌드의 컴포넌트 모음 화면(`/dev/widgets`, DEV 띠 길게 누르�
 | ProgressBar 남은 칸 | `#E4E4E4` | fill.strong |
 | Divider | `#F2F2F2` | background.alternative (`#F7F7F8`) |
 | Badge 바탕 | `#030303` | label.strong |
-| Checkbox | `#47484C` (Lable/Neutral) | label.neutral |
 
 모양이 한 컴포넌트 안에서 어긋난 곳도 하나로 맞췄다:
 
