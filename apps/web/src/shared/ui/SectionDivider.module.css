@@ -1,0 +1,5 @@
+.divider {
+  height: var(--section-divider-thickness);
+  border: none;
+  background: var(--color-background-alternative);
+}

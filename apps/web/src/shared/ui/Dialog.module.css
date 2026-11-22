@@ -1,0 +1,43 @@
+/* Figma `Dialog` */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-material-dimmer);
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--dialog-gap);
+  width: var(--dialog-width);
+  max-width: calc(100% - 2 * var(--space-6));
+  padding: var(--dialog-padding);
+  border-radius: var(--dialog-radius);
+  background: var(--color-background-normal);
+}
+
+.title {
+  font: var(--text-title1-bold);
+  color: var(--color-label-normal);
+  text-align: center;
+}
+
+.message {
+  font: var(--text-body1-medium);
+  color: var(--color-label-neutral);
+  text-align: center;
+}
+
+.actions {
+  display: flex;
+  gap: var(--dialog-button-gap);
+  width: 100%;
+}
+
+.actions > * {
+  flex: 1;
+}

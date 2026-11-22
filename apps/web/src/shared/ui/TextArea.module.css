@@ -1,0 +1,46 @@
+/* Figma `TextArea`. 테두리·모서리는 Input과 같다 */
+.field {
+  display: flex;
+  flex-direction: column;
+  height: var(--text-area-height);
+  padding: var(--text-area-padding);
+  background: var(--color-background-normal);
+  border: 1px solid var(--color-line-strong);
+  border-radius: var(--text-area-radius);
+}
+
+/* 입력칸의 기본 outline 대신 상자 테두리로 포커스를 알린다 (TextField와 같다) */
+.field:focus-within {
+  border-color: var(--color-label-normal);
+}
+
+.input {
+  flex: 1;
+  min-height: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  font: var(--text-body1-regular);
+  color: var(--color-label-normal);
+}
+
+.input::placeholder {
+  color: var(--color-label-alternative);
+}
+
+.counter {
+  align-self: flex-end;
+  font: var(--text-caption1-regular);
+  color: var(--color-label-alternative);
+}
+
+.disabled {
+  background: var(--color-interaction-disable);
+  border-color: var(--color-interaction-disable);
+}
+
+.disabled .input {
+  color: var(--color-label-alternative);
+}

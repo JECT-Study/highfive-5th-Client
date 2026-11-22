@@ -77,4 +77,7 @@ abstract final class AppRoutes {
   static String bandEditOf(String bandId) => '/bands/$bandId/edit';
   static const bandMembers = '/bands/:bandId/members';
   static String bandMembersOf(String bandId) => '/bands/$bandId/members';
+
+  // dev 빌드 전용 (prod 라우터에는 등록하지 않는다)
+  static const devWidgets = '/dev/widgets';
 }

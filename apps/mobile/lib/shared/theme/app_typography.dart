@@ -19,6 +19,7 @@ abstract final class AppFontSize {
 abstract final class AppLineHeight {
   static const head = 1.3;
   static const body1 = 1.4;
+  static const caption1 = 1.4;
 }
 
 TextStyle _style(double size, FontWeight weight, [double? height]) => TextStyle(
@@ -75,9 +76,21 @@ class AppTextStyles extends ThemeExtension<AppTextStyles> {
       FontWeight.w400,
       AppLineHeight.body1,
     ),
-    caption1SemiBold: _style(AppFontSize.caption1, FontWeight.w600),
-    caption1Medium: _style(AppFontSize.caption1, FontWeight.w500),
-    caption1Regular: _style(AppFontSize.caption1, FontWeight.w400),
+    caption1SemiBold: _style(
+      AppFontSize.caption1,
+      FontWeight.w600,
+      AppLineHeight.caption1,
+    ),
+    caption1Medium: _style(
+      AppFontSize.caption1,
+      FontWeight.w500,
+      AppLineHeight.caption1,
+    ),
+    caption1Regular: _style(
+      AppFontSize.caption1,
+      FontWeight.w400,
+      AppLineHeight.caption1,
+    ),
     tag1: _style(AppFontSize.tag, FontWeight.w600),
     tag2: _style(AppFontSize.tag, FontWeight.w500),
   );

@@ -1,0 +1,63 @@
+/* Figma `TagSquare`, `TagRound` */
+.square {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--tag-square-padding);
+  border: 1px solid transparent;
+  border-radius: var(--tag-square-radius);
+  white-space: nowrap;
+}
+
+.neutral {
+  background: var(--color-fill-strong);
+  color: var(--color-label-normal);
+}
+
+.filled {
+  background: var(--color-label-normal);
+  color: var(--color-static-white);
+}
+
+.outlined {
+  background: var(--color-background-normal);
+  border-color: var(--color-label-normal);
+  color: var(--color-label-normal);
+}
+
+.small {
+  font: var(--text-tag2);
+}
+
+.medium {
+  font: var(--text-tag1);
+}
+
+.large {
+  font: var(--text-caption1-regular);
+}
+
+.round {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--tag-round-radius);
+  background: var(--color-fill-strong);
+  white-space: nowrap;
+}
+
+.roundSmall {
+  padding: var(--tag-round-small-padding);
+  font: var(--text-tag2);
+  color: var(--color-label-neutral);
+}
+
+.roundMedium {
+  padding: var(--tag-round-medium-padding);
+  font: var(--text-caption1-semibold);
+  color: var(--color-label-strong);
+}
+
+.roundLarge {
+  padding: var(--tag-round-large-padding);
+  font: var(--text-body1-medium);
+  color: var(--color-label-normal);
+}

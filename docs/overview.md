@@ -52,7 +52,7 @@ lib/
 ├── main.dart          앱 시작: 환경 결정 → DI 등록 → 화면
 ├── app/               앱 전체를 묶는 것. app.dart · di.dart · env.dart · providers.dart · router.dart
 ├── core/              기술 기반 (통신·저장·DI 컨테이너). 공연·예매 같은 단어를 모른다
-├── shared/            공통 UI (디자인 토큰·공통 위젯). 역시 도메인을 모른다
+├── shared/            공통 UI (디자인 토큰·값만 받아 그리는 공통 위젯). 도메인 모델·데이터를 모른다
 └── features/<기능>/   한 기능의 모델·데이터·화면이 전부 여기
     ├── models/        도메인 모델 (freezed)
     ├── data/          dto · services · repositories

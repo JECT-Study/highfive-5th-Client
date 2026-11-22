@@ -22,7 +22,9 @@ src/
 │   ├── styles/
 │   │   ├── tokens.css               (있음) 디자인 토큰 (CSS 변수)
 │   │   └── global.css               (있음) 리셋, body 기본
-│   ├── ui/                          Button.tsx + Button.module.css, TextField, Spinner, ErrorMessage
+│   ├── ui/                          (있음) Button, TextField, TextArea, Chip, Tag, SelectionControl(Checkbox·Radio),
+│   │                                Notice, Dialog, FormSection, SectionDivider (+ .module.css): Figma 공통 컴포넌트
+│   │                                Spinner, ErrorMessage (필요해지면)
 │   ├── api/
 │   │   ├── http.ts                  (있음) fetch 래퍼, HttpError
 │   │   └── errors.ts                HttpError → 화면용 오류 변환 (필요해지면)
@@ -78,7 +80,7 @@ main.tsx ─► app ─► features ─► shared
 ## 4. 스타일
 
 - CSS Modules(`*.module.css`) + `tokens.css` 변수. 전역 클래스는 `global.css`의 리셋뿐.
-- 컴포넌트 CSS에서는 `var(--color-*)`, `var(--space-*)`, `var(--radius-*)`, `var(--font-size-*)`만 쓴다. hex·px 직접 사용 금지(토큰 파일 제외).
+- 컴포넌트 CSS에서는 `var(--color-*)`, `var(--space-*)`, `var(--radius-*)`, `var(--shadow-*)`, `var(--text-*)`만 쓴다. hex·px 직접 사용 금지(토큰 파일 제외). `--button-*`·`--input-*` 같은 컴포넌트 토큰은 `shared/ui` 안에서만 쓴다.
 - 모바일 우선. 본문 최대 폭 480px 가운데 정렬. 데스크톱 전용 레이아웃은 만들지 않는다.
 - 레이아웃 폭(`max-width`, breakpoint)과 `1px` 테두리 두께는 토큰이 아니다. 숫자를 그대로 쓴다.
 - 인라인 `style={{ }}`는 동적 값(진행률 등)에만.

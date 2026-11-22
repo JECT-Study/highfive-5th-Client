@@ -57,6 +57,17 @@ void main() {
       expect(sessionRedirect(signedOut, AppRoutes.signup), isNull);
     });
 
+    test('dev 위젯 모음은 세션 상태와 상관없이 그대로 둔다', () {
+      const states = <AsyncValue<Session?>>[
+        AsyncLoading(),
+        AsyncData(null),
+        AsyncData(_session),
+      ];
+      for (final state in states) {
+        expect(sessionRedirect(state, AppRoutes.devWidgets), isNull);
+      }
+    });
+
     test('세션 복원에 실패하면 로그인 안 된 것으로 본다', () {
       final failed = AsyncError<Session?>(Exception('read'), StackTrace.empty);
       expect(sessionRedirect(failed, AppRoutes.splash), AppRoutes.login);

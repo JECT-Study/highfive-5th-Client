@@ -4,7 +4,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:highfive/app/app.dart';
 import 'package:highfive/app/env.dart';
-import 'package:highfive/app/main_shell.dart';
 import 'package:highfive/app/providers.dart';
 import 'package:highfive/app/router.dart';
 import 'package:highfive/app/routes.dart';
@@ -16,6 +15,7 @@ import 'package:highfive/features/home/presentation/views/home_view.dart';
 import 'package:highfive/features/my_page/presentation/views/my_page_view.dart';
 import 'package:highfive/features/recruitments/presentation/views/recruitment_list_view.dart';
 import 'package:highfive/shared/theme/app_colors.dart';
+import 'package:highfive/shared/widgets/app_bottom_nav_bar.dart';
 
 /// 로그인된 상태(저장된 토큰 있음)로 앱을 띄우고 [location]으로 이동한다.
 Future<void> _open(WidgetTester tester, String location) async {
@@ -42,8 +42,10 @@ Future<void> _open(WidgetTester tester, String location) async {
 }
 
 /// 하단 탭 라벨. 화면 제목과 겹치므로 탭 바 안에서만 찾는다.
-Finder _tab(String label) =>
-    find.descendant(of: find.byType(MainTabBar), matching: find.text(label));
+Finder _tab(String label) => find.descendant(
+  of: find.byType(AppBottomNavBar),
+  matching: find.text(label),
+);
 
 void main() {
   testWidgets('탭 화면에는 하단 탭 4개가 보인다', (tester) async {
@@ -77,7 +79,7 @@ void main() {
         tester.widget<Text>(_tab(label)).style?.color;
 
     final colors = AppColors.light;
-    expect(colorOf('메시지'), colors.gray800);
+    expect(colorOf('메시지'), colors.labelStrong);
     expect(colorOf('홈'), colors.interactionInactive);
     expect(colorOf('팀 모집'), colors.interactionInactive);
     expect(colorOf('마이페이지'), colors.interactionInactive);
@@ -110,6 +112,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byType(MainTabBar), findsNothing);
+    expect(find.byType(AppBottomNavBar), findsNothing);
   });
 }

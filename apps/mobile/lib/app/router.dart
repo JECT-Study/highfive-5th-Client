@@ -7,10 +7,12 @@ import '../features/auth/presentation/view_models/session_view_model.dart';
 import '../features/auth/presentation/views/login_view.dart';
 import '../features/auth/presentation/views/splash_view.dart';
 import '../features/chat/presentation/views/chat_list_view.dart';
+import '../features/dev_gallery/presentation/views/widget_gallery_view.dart';
 import '../features/home/presentation/views/home_view.dart';
 import '../features/my_page/presentation/views/my_page_view.dart';
 import '../features/recruitments/presentation/views/recruitment_list_view.dart';
 import 'main_shell.dart';
+import 'providers.dart';
 import 'routes.dart';
 
 /// 로그인 전에만 머무는 화면. 로그인 상태면 홈으로 보낸다.
@@ -23,6 +25,8 @@ const _signedOutRoutes = {AppRoutes.login, AppRoutes.terms, AppRoutes.signup};
 /// - 로그인 됨 → 스플래시·로그인 전 화면에 있으면 홈으로
 /// 온보딩 미완료 → 온보딩 분기는 온보딩 정보를 받을 때 추가한다.
 String? sessionRedirect(AsyncValue<Session?> session, String location) {
+  // dev 위젯 모음은 로그인과 상관없이 연다 (dev flavor 라우터에만 등록된다).
+  if (location == AppRoutes.devWidgets) return null;
   if (session.isLoading && !session.hasValue && !session.hasError) {
     return location == AppRoutes.splash ? null : AppRoutes.splash;
   }
@@ -39,6 +43,8 @@ String? sessionRedirect(AsyncValue<Session?> session, String location) {
 /// 세션 상태는 `ref.listen`으로 구독해 `refreshListenable`에 연결한다.
 /// `ref.watch`로 GoRouter를 다시 만들면 내비게이션 스택이 초기화되므로 쓰지 않는다.
 final routerProvider = Provider<GoRouter>((ref) {
+  // flavor는 앱 실행 중 바뀌지 않으므로 read로 한 번만 읽는다.
+  final isDev = ref.read(appEnvProvider).isDev;
   final session = ValueNotifier(ref.read(sessionProvider));
   ref.listen(sessionProvider, (_, next) => session.value = next);
 
@@ -48,6 +54,11 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) =>
         sessionRedirect(session.value, state.matchedLocation),
     routes: [
+      if (isDev)
+        GoRoute(
+          path: AppRoutes.devWidgets,
+          builder: (context, state) => const WidgetGalleryView(),
+        ),
       GoRoute(
         path: AppRoutes.splash,
         builder: (context, state) => const SplashView(),

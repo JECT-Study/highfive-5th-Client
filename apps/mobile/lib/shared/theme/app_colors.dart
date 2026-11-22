@@ -68,29 +68,29 @@ class AppColors extends ThemeExtension<AppColors> {
   static const light = AppColors(
     labelNormal: Color(0xFF171719), // Label/Normal
     labelStrong: _Palette.black, // Label/Strong
-    labelNeutral: Color(0xE02E2F33), // Label/Neutral (88%)
+    labelNeutral: Color(0xFF47484C), // Label/Neutral
     labelAlternative: Color(0xFF6E6E73), // Label/Alternative
     labelAssistive: Color(0xFFB9B9B9), // Label/Assistive
-    labelDisable: Color(0x2937383C), // Label/Disable (16%)
+    labelDisable: Color(0xFFDFDFE0), // Label/Disable
     backgroundNormal: _Palette.white, // Background/Normal/Normal
     backgroundAlternative: Color(0xFFF7F7F8), // Background/Normal/Alternative
     backgroundWarning: Color(0xFFF1E1E1), // Background/Normal/Warning
     interactionInactive: Color(0xFF989BA2), // Interaction/Inactive
     interactionDisable: Color(0xFFF4F4F5), // Interaction/Disable
-    lineNormal: Color(0x3870737C), // Line/Normal (22%)
-    lineNeutral: Color(0x2970737C), // Line/Neutral (16%)
-    lineAlternative: Color(0x1470737C), // Line/Alternative (8%)
-    lineStrong: Color(0xFFB6B6B6), // Line/Strong
+    lineNormal: Color(0xFFE0E0E2), // Line/Normal
+    lineNeutral: Color(0xFFE8E8EA), // Line/Neutral
+    lineAlternative: Color(0xFFF4F4F5), // Line/Alternative
+    lineStrong: Color(0xFFD9D9D9), // Line/Strong
     statusPositive: Color(0xFF00BF40), // Status/Positive
     statusCautionary: Color(0xFFFF9200), // Status/Cautionary
-    statusDestructive: Color(0xFFEF2E2E), // Status/Destructive
+    statusDestructive: Color(0xFFDB1F25), // Status/Destructive
     inversePrimary: Color(0xFF3385FF), // Inverse/Primary
     inverseBackground: Color(0xFF1B1C1E), // Inverse/Background
     inverseLabel: Color(0xFFF7F7F8), // Inverse/Label
     staticWhite: _Palette.white, // Static/White
     staticBlack: _Palette.black, // Static/Black
-    fillNormal: Color(0x1470737C), // Fill/Normal (8%)
-    fillStrong: Color(0x2970737C), // Fill/Strong (16%)
+    fillNormal: Color(0xFFF4F4F5), // Fill/Normal
+    fillStrong: Color(0xFFE8E8EA), // Fill/Strong
     fillAlternative: Color(0x0D70737C), // Fill/Alternative (5%)
     materialDimmer: Color(0x85171719), // Material/Dimmer (52%)
     pink50: _Palette.pink50, // Primary-Pink/50
