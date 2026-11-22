@@ -61,15 +61,17 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 선택: Neutral/Gray-800 (Figma 아이콘 기본색), 선택 안 됨: Interaction/Inactive.
-    final color = selected
-        ? context.colors.gray800
-        : context.colors.interactionInactive;
-    final style = context.textStyles.caption1Regular.copyWith(
-      fontSize: AppBottomNavTokens.labelSize,
-      fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-      color: color,
-    );
+    // 선택: 아이콘 Neutral/Gray-800(Figma 아이콘 기본색) + 라벨 Caption-1(SB) Label/Strong.
+    // 선택 안 됨: 아이콘·라벨 Interaction/Inactive + Caption-1(R).
+    final colors = context.colors;
+    final iconColor = selected ? colors.gray800 : colors.interactionInactive;
+    final style = selected
+        ? context.textStyles.caption1SemiBold.copyWith(
+            color: colors.labelStrong,
+          )
+        : context.textStyles.caption1Regular.copyWith(
+            color: colors.interactionInactive,
+          );
 
     // Figma에 눌림 효과가 없어 잉크(ripple) 없이 탭만 받는다.
     return Semantics(
@@ -88,7 +90,7 @@ class _NavItem extends StatelessWidget {
               AppIcon(
                 item.icon,
                 size: AppBottomNavTokens.iconSize,
-                color: color,
+                color: iconColor,
               ),
               const SizedBox(height: AppBottomNavTokens.iconLabelGap),
               Text(item.label, style: style),

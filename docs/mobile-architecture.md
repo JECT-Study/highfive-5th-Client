@@ -28,7 +28,7 @@ lib/
 │   │   └── api_error_mapper.dart    DioException → AppException 변환
 │   ├── error/app_exception.dart     sealed class: network / unauthorized / notFound / conflict / server / unknown
 │   ├── storage/
-│   │   ├── secure_store.dart        FlutterSecureStorage 래퍼 + 키 상수 (토큰)
+│   │   ├── secure_store.dart        (있음) FlutterSecureStorage 래퍼 + 키 상수 (토큰)
 │   │   └── prefs_store.dart         SharedPreferencesAsync 래퍼 + 키 상수 (설정)
 │   ├── sdk/                         소셜 로그인·지도·푸시·QR 스캔 SDK 래퍼 (각 1파일)
 │   └── webview/app_bridge.dart      웹 → 앱 명령 수신·검증 (출처·명령·버전)
@@ -48,12 +48,7 @@ lib/
 │   │                                app_bottom_sheet, app_list_row, app_tab_list, app_top_bar, app_badge(+Divider),
 │   │                                app_progress_bar, app_stepper, app_form_section:
 │   │                                Figma 공통 컴포넌트 (docs/design-tokens.md 컴포넌트 표)
-│   │   ├── message/                 (있음) Figma '메시지' 섹션: 말풍선, 채팅 목록 항목, 입력 바 등
-│   │   ├── show/                    (있음) Figma '공연페이지' 섹션: 라인업, 진행 카드, 피드, 일정, 입금확인 등
-│   │   ├── home/                    (있음) Figma '홈' 섹션: 공연 카드, 홈 목록 등
-│   │   ├── onboarding/              (있음) Figma '온보딩' 섹션
-│   │   ├── list/                    (있음) Figma '목록' 섹션: 목록 카드, 알림 줄
-│   │   └── qr/                      (있음) Figma 'QR' 섹션
+│   │   └── <영역>/                  message, show, home … Figma 섹션별 표시용 위젯. 그 화면을 만드는 PR에서 추가
 │   │                                loading_view.dart, error_view.dart, empty_view.dart
 │   ├── utils/                       date_format.dart, money_format.dart 같은 순수 함수
 │   └── extensions/                  context_extensions.dart 등
@@ -87,7 +82,7 @@ lib/
 - `shared/widgets`에는 Figma 컴포넌트를 **값만 받아 그리는 표시용 위젯**으로 둔다. 버튼·입력창 같은 범용 위젯은 바로 아래에(`app_*.dart`), 특정 화면 영역의 위젯(말풍선, 공연 카드 등)은 Figma 섹션 이름의 하위 폴더(`message/`, `show/`, `home/` …)에 둔다. 여러 화면·기능이 같이 쓴다.
   - 생성자는 글자·숫자·bool·enum·`ImageProvider`·`Widget` 슬롯·콜백만 받는다. 모델을 받지 않고, Provider를 읽지 않고, 화면 이동·요청을 하지 않는다.
   - 모델을 위젯 값으로 풀어 넣고, 누르면 무엇을 할지 정하는 일은 기능의 View·ViewModel이 한다.
-  - dev 빌드의 컴포넌트 모음(`/dev/widgets`)에서 폴더별로 모양과 코드 이름·Figma 이름을 볼 수 있다.
+  - 영역 폴더는 아직 없다. 미리 만든 위젯은 `feat/JECT-239-area-widgets-archive` 브랜치에 보관해 두었고, 화면을 만들 때 필요한 폴더만 꺼내 그 화면과 함께 리뷰한다.
 - 데이터·상태·규칙이 들어간 코드는 여러 기능에서 쓴다는 이유만으로 core/shared로 옮기지 않는다. 다른 기능이 필요하면 그 기능의 Repository·모델을 import한다. 한 기능의 데이터에 묶인 조각 위젯은 그 기능의 `presentation/widgets`에 둔다.
 
 ## 2. 의존성 방향
@@ -314,17 +309,19 @@ dev와 prod는 네이티브 flavor로 나눈다. 앱 ID가 달라서 두 앱이 
 Figma `와이어프레임 New` → `11/8 pm 확정 영역: 티켓 신청 전까지` 기준으로 정한 지도다. 경로 상수는 `app/routes.dart`의 `AppRoutes`에 미리 두고, `GoRoute`는 그 화면을 만드는 PR에서 `app/router.dart`에 등록한다(빈 화면을 미리 만들지 않는다). 바꿀 때는 이 표와 `AppRoutes`를 같은 PR에서 고친다.
 
 - 하단 탭 4개: 홈 · 팀 모집 · 메시지 · 마이페이지 (`app/main_shell.dart`). `StatefulShellRoute.indexedStack`이라 탭을 바꿔도 각 탭의 스택·스크롤이 남는다. 지금 탭을 다시 누르면 그 탭 첫 화면으로 간다. 탭 안에서 이어지는 화면은 해당 branch 아래에 등록한다.
-- 하단 탭 라벨·아이콘: Figma 화면마다 라벨이 달라(채팅/메세지/티켓 관리, 내 프로필/마이페이지) 기능명세(기능 53) 기준으로 정했다. 아이콘은 Figma Icon 컴포넌트(Icon: home, search, message, Icon:my). 크기·간격·색은 Figma NavEX 그대로(라벨 11px 선택 Bold/아니면 Regular, 아이콘-라벨 간격 2, 눌림 효과 없음). 크기·간격은 컴포넌트 토큰 `AppBottomNavTokens`, 그리는 위젯은 `AppBottomNavBar`(shared), 탭 목록은 `MainShell.tabs`. 색은 토큰: 선택 `gray800`(Figma 아이콘 기본색), 선택 안 됨 `interactionInactive`, 구분선 `lineNeutral`. 글꼴은 Pretendard.
+- 하단 탭 라벨·아이콘: Figma 화면마다 라벨이 달라(채팅/메세지/티켓 관리, 내 프로필/마이페이지) 기능명세(기능 53) 기준으로 정했다. 아이콘은 Figma Icon 컴포넌트(Icon: home, search, message, Icon:my). 크기·간격·색은 Figma NavEX 그대로(아이콘 24, 라벨 선택 Caption-1(SB)/아니면 Caption-1(R), 아이콘-라벨 간격 2, 눌림 효과 없음). 크기·간격은 컴포넌트 토큰 `AppBottomNavTokens`, 그리는 위젯은 `AppBottomNavBar`(shared), 탭 목록은 `MainShell.tabs`. 색은 토큰: 선택 아이콘 `gray800`(Figma 아이콘 기본색)·라벨 `labelStrong`, 선택 안 됨 `interactionInactive`, 구분선 `lineNeutral`. 글꼴은 Pretendard.
 - 화면 안의 탭(공연 페이지의 정보·피드·일정·티켓 관리, 메시지함의 전체·받은 문의·보낸 문의·공연 채팅, 마이의 내 공연·찜한 공연)은 경로를 나누지 않고 화면 상태로 둔다.
 - 팝업·바텀시트·토스트·확인창은 경로가 아니다. 띄운 화면의 ViewModel이 연다.
 - 고정 하위 경로(`/recruit/new`, `/recruit/search`, `/shows/new`)는 `:id` 경로보다 먼저 등록한다. 아니면 `new`가 id로 잡힌다.
-- `/dev/widgets`(공통 위젯 모음)는 dev flavor 라우터에만 등록한다. 왼쪽 위 DEV 띠를 길게 누르거나 `fvm flutter run --flavor dev --route /dev/widgets`로 연다. 위쪽 칩으로 폴더(범용 · message · show · qr · home · onboarding · list)를 고르고, `--route "/dev/widgets?folder=message"`처럼 폴더를 바로 열 수도 있다. 화면은 `features/dev_gallery/`.
-- 로그인 전 화면 외에는 전부 로그인 필요. 인증 redirect는 `routerProvider`에 붙인다(로그인 → 온보딩 미완료면 온보딩 → 홈).
+- `/dev/widgets`(공통 위젯 모음)는 dev flavor 라우터에만 등록한다. 왼쪽 위 DEV 띠를 길게 누르거나 `fvm flutter run --flavor dev --route /dev/widgets`로 연다. 위쪽 칩으로 폴더(범용 · message · show · qr · home · onboarding · list)를 고르고, `--route "/dev/widgets?folder=message"`처럼 폴더를 바로 열 수도 있다(보관 브랜치). 화면은 `features/dev_gallery/`. 로그인 redirect(`sessionRedirect`)에서 제외해 로그아웃 상태에서도 열린다.
+- 로그인 전 화면 외에는 전부 로그인 필요. 인증 redirect는 `routerProvider`의 `sessionRedirect`: 앱 시작 → `/splash`에서 저장된 세션(`sessionProvider`, secure storage) 복원 → 세션 있으면 `/home`, 없거나 복원 실패면 `/login`. 로그아웃하면 `/login`. 온보딩 미완료 → 온보딩 분기는 온보딩 정보를 받을 때 추가한다.
+- 지금 로그인은 임시다: 로그인 화면의 "임시 로그인" 버튼이 `AuthService`의 고정 토큰으로 세션을 만든다. 로그인 API가 나오면 `features/auth/data/services/auth_service.dart`만 실제 호출로 바꾸고 버튼을 소셜 로그인으로 교체한다. 로그아웃은 마이페이지 버튼 → 라우터가 넘긴 `onSignOut` → `sessionProvider.signOut()` (설정 화면이 생기면 그쪽으로 옮긴다).
 
 ### 로그인 전
 
 | 경로 | 화면 | Figma 프레임 |
 | --- | --- | --- |
+| `/splash` | 저장된 세션을 읽는 동안 잠깐 (빈 화면) | - |
 | `/login` | 로그인 (소셜 로그인 버튼) | 약관 동의 (1117:7761) |
 | `/terms` | 약관 동의 | 약관 동의 카카오 |
 | `/signup` | 회원가입 | 계정-회원가입 |
@@ -384,3 +381,11 @@ Figma `와이어프레임 New` → `11/8 pm 확정 영역: 티켓 신청 전까�
 
 - 관객 쪽(공유 링크로 공연 보기·예매·현장 신청·내 티켓·환불)은 확정 영역 밖이다. 앱인지 웹(`apps/web`)인지부터 정한다.
 - 공유 링크·푸시 알림이 여는 딥링크 형식.
+
+## 12. 화면 크기·방향
+
+- **폰 세로 전용.** iOS는 iPhone만(`TARGETED_DEVICE_FAMILY = 1`, iPad에서는 iPhone 호환 모드), 방향은 세로만(`Info.plist`). Android는 `MainActivity`에 `screenOrientation="portrait"`.
+- Android 16(API 36) 이상을 대상으로 하면 짧은 변 600dp 이상 화면(펼친 폴더블·태블릿)에서는 방향 고정이 무시된다([Android 16 변경사항](https://developer.android.com/about/versions/16/behavior-changes-16)). 그래서 넓은·가로 화면도 깨지지 않게 아래 규칙을 지킨다.
+- **크기는 고정, 폭은 유연.** 글자·여백·높이는 토큰(dp) 그대로 두고 화면 폭 비율로 키우지 않는다(flutter_screenutil 같은 비율 확대 패키지를 쓰지 않는다). 가로 폭은 `Expanded`·`Flexible`·부모 폭으로 정한다.
+- **넓은 창은 본문 최대 폭 + 가운데 정렬**로 폰 레이아웃을 유지한다. 최대 폭 값과 감싸는 위젯은 처음 필요한 화면 PR에서 만든다(값은 디자이너 확인).
+- 크기 판단은 화면은 `MediaQuery.sizeOf(context)`(키보드가 열려도 다시 그리지 않는다), 컴포넌트는 `LayoutBuilder`. 폭 320에서 넘침이 없어야 한다.

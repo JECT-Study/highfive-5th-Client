@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:highfive/app/app.dart';
 import 'package:highfive/app/env.dart';
 import 'package:highfive/app/providers.dart';
+import 'package:highfive/core/storage/secure_store.dart';
+import 'package:highfive/features/auth/data/repositories/session_repository.dart';
+import 'package:highfive/features/auth/presentation/providers/session_providers.dart';
 import 'package:highfive/features/auth/presentation/views/login_view.dart';
 
+/// 저장된 세션이 없는 상태로 앱을 띄운다.
 Widget _app(Flavor flavor) {
+  FlutterSecureStorage.setMockInitialValues({});
   return ProviderScope(
     overrides: [
       appEnvProvider.overrideWithValue(
         AppEnv(flavor: flavor, apiBaseUrl: 'http://localhost'),
+      ),
+      sessionRepositoryProvider.overrideWithValue(
+        SessionRepository(SecureStore(const FlutterSecureStorage())),
       ),
     ],
     child: const HighfiveApp(),

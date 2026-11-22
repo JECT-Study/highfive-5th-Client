@@ -74,6 +74,21 @@
   border-radius: var(--radius-full);
 }
 
-.native:disabled + .target {
+/* Figma check=Disabled. 체크된 비활성은 Figma에 없어 테두리색으로 채운다 */
+.native:disabled + .target .checkbox {
+  background: var(--color-interaction-disable);
+  border-color: var(--color-label-disable);
+}
+
+.native:disabled:checked + .target .checkbox {
+  background: var(--color-label-disable);
+}
+
+/* 라디오 비활성은 Figma에 모양이 없어 흐리게만 한다 */
+.native:disabled + .target .radio {
   opacity: 0.4;
+}
+
+.native:disabled ~ * {
+  cursor: default;
 }

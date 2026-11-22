@@ -139,7 +139,7 @@ abstract final class AppBottomSheetTokens {
 /// ListRow (Figma `ListRow`). 설정·메뉴 목록 한 줄.
 abstract final class AppListRowTokens {
   static const height = 44.0;
-  static const paddingX = 6.0;
+  static const paddingX = 10.0;
   static const gap = 10.0;
   static const iconSize = 24.0;
   static const trailingWidth = 52.0;
@@ -191,12 +191,11 @@ abstract final class AppStepperTokens {
   static const radius = AppRadius.md;
 }
 
-/// 하단 탭 바 (Figma `NavEX`). 라벨 11은 글자 토큰에 없는 크기라 여기에만 둔다.
+/// 하단 탭 바 (Figma `NavEX`). 라벨은 Caption-1 글자 토큰을 쓴다.
 abstract final class AppBottomNavTokens {
   static const paddingY = 12.0;
-  static const iconSize = 22.0;
+  static const iconSize = 24.0;
   static const iconLabelGap = 2.0;
-  static const labelSize = 11.0;
 }
 
 /// FormSection (Figma `FormSection`). 폼 제목 + 힌트 + 입력물.
