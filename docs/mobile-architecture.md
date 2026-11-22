@@ -379,3 +379,11 @@ Figma `와이어프레임 New` → `11/8 pm 확정 영역: 티켓 신청 전까�
 
 - 관객 쪽(공유 링크로 공연 보기·예매·현장 신청·내 티켓·환불)은 확정 영역 밖이다. 앱인지 웹(`apps/web`)인지부터 정한다.
 - 공유 링크·푸시 알림이 여는 딥링크 형식.
+
+## 12. 화면 크기·방향
+
+- **폰 세로 전용.** iOS는 iPhone만(`TARGETED_DEVICE_FAMILY = 1`, iPad에서는 iPhone 호환 모드), 방향은 세로만(`Info.plist`). Android는 `MainActivity`에 `screenOrientation="portrait"`.
+- Android 16(API 36) 이상을 대상으로 하면 짧은 변 600dp 이상 화면(펼친 폴더블·태블릿)에서는 방향 고정이 무시된다([Android 16 변경사항](https://developer.android.com/about/versions/16/behavior-changes-16)). 그래서 넓은·가로 화면도 깨지지 않게 아래 규칙을 지킨다.
+- **크기는 고정, 폭은 유연.** 글자·여백·높이는 토큰(dp) 그대로 두고 화면 폭 비율로 키우지 않는다(flutter_screenutil 같은 비율 확대 패키지를 쓰지 않는다). 가로 폭은 `Expanded`·`Flexible`·부모 폭으로 정한다.
+- **넓은 창은 본문 최대 폭 + 가운데 정렬**로 폰 레이아웃을 유지한다. 최대 폭 값과 감싸는 위젯은 처음 필요한 화면 PR에서 만든다(값은 디자이너 확인).
+- 크기 판단은 화면은 `MediaQuery.sizeOf(context)`(키보드가 열려도 다시 그리지 않는다), 컴포넌트는 `LayoutBuilder`. 폭 320에서 넘침이 없어야 한다.
