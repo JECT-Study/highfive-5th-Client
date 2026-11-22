@@ -184,6 +184,61 @@ class ShowLineupPlaceholder extends StatelessWidget {
   }
 }
 
+/// Figma `LineUp` (공연페이지). `Property 1 = 팀추가`: 주최자가 라인업에 팀을 직접 더하는 진한 버튼 줄.
+class ShowLineupAddButton extends StatelessWidget {
+  const ShowLineupAddButton({
+    super.key,
+    required this.label,
+    required this.onTap,
+  });
+
+  /// 예: 팀 추가하기.
+  final String label;
+  final VoidCallback? onTap;
+
+  static const _iconSize = 16.0; // Figma: add20 아이콘을 16으로 놓음
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Semantics(
+      button: true,
+      enabled: onTap != null,
+      child: Material(
+        color: colors.gray800,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.x3_5),
+            child: Row(
+              spacing: AppSpacing.x3_5,
+              children: [
+                Expanded(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.textStyles.body1Regular.copyWith(
+                      color: colors.staticWhite,
+                    ),
+                  ),
+                ),
+                AppIcon(
+                  AppIcons.add20,
+                  size: _iconSize,
+                  color: colors.staticWhite,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Figma `border-dashed` 1px 둥근 테두리. Flutter에는 점선 테두리가 없어 직접 그린다.
 class _DashedBorderPainter extends CustomPainter {
   const _DashedBorderPainter({required this.color});

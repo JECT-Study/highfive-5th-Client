@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:highfive/shared/theme/app_theme.dart';
+import 'package:highfive/shared/widgets/app_icon.dart';
 import 'package:highfive/shared/widgets/list/show_list_item.dart';
+
+final _bookmarkIcon = find.byWidgetPredicate(
+  (widget) => widget is AppIcon && widget.icon == AppIcons.bookmark,
+);
 
 Future<void> _pump(WidgetTester tester, Widget child) => tester.pumpWidget(
   MaterialApp(
@@ -37,7 +42,7 @@ void main() {
     );
 
     // 아이콘 위에 누르는 영역(44)이 겹쳐 있으므로 아이콘이 보이는 자리를 누른다.
-    await tester.tapAt(tester.getCenter(find.byIcon(Icons.bookmark)));
+    await tester.tapAt(tester.getCenter(_bookmarkIcon));
 
     expect(changes, [true]);
     expect(taps, 0);
@@ -74,7 +79,7 @@ void main() {
     var taps = 0;
     await _pump(tester, ShowListItem(title: '오합지졸2', onTap: () => taps++));
 
-    await tester.tap(find.byIcon(Icons.bookmark));
+    await tester.tap(_bookmarkIcon);
 
     expect(taps, 1);
     expect(find.byKey(_bookmark), findsNothing);

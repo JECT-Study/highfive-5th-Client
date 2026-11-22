@@ -43,4 +43,26 @@ void main() {
 
     expect(find.byType(AppTag), findsNWidgets(3));
   });
+
+  testWidgets('팀 추가 버튼을 누르면 onTap을 부르고, onTap이 없으면 비활성으로 읽힌다', (tester) async {
+    final semantics = tester.ensureSemantics();
+    var taps = 0;
+    await _pump(
+      tester,
+      ShowLineupAddButton(label: '팀 추가하기', onTap: () => taps++),
+    );
+
+    await tester.tap(find.text('팀 추가하기'));
+    expect(taps, 1);
+
+    await _pump(
+      tester,
+      const ShowLineupAddButton(label: '팀 추가하기', onTap: null),
+    );
+    expect(
+      tester.getSemantics(find.byType(ShowLineupAddButton)),
+      isSemantics(isButton: true, hasEnabledState: true, isEnabled: false),
+    );
+    semantics.dispose();
+  });
 }

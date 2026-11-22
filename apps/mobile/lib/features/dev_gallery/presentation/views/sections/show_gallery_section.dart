@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../../../shared/theme/app_colors.dart';
 import '../../../../../shared/theme/app_spacing.dart';
+import '../../../../../shared/widgets/app_button.dart';
+import '../../../../../shared/widgets/show/entry_attendee_row.dart';
 import '../../../../../shared/widgets/show/show_action_row.dart';
+import '../../../../../shared/widgets/show/show_confirm_popup.dart';
 import '../../../../../shared/widgets/show/show_date_card.dart';
 import '../../../../../shared/widgets/show/show_feed_post.dart';
 import '../../../../../shared/widgets/show/show_lineup_item.dart';
@@ -10,6 +13,7 @@ import '../../../../../shared/widgets/show/show_meta_text.dart';
 import '../../../../../shared/widgets/show/show_pinned_post.dart';
 import '../../../../../shared/widgets/show/show_progress_card.dart';
 import '../../../../../shared/widgets/show/show_stat_summary.dart';
+import '../../../../../shared/widgets/show/show_team_avatar.dart';
 import '../../../../../shared/widgets/show/show_top_bar.dart';
 import 'gallery_item.dart';
 
@@ -51,6 +55,104 @@ class ShowGallerySection extends StatelessWidget {
               ShowLineupPlaceholder(message: '1팀 더 모집 중이에요'),
               GalleryCaption('Property 1 = 합류 준비'),
               ShowLineupPlaceholder(message: '합류한 팀이 순서대로 여기에 쌓여요'),
+            ],
+          ),
+        ),
+        GalleryItem(
+          code: 'ShowLineupAddButton',
+          figma: 'LineUp (Property 1 = 팀추가)',
+          child: ShowLineupAddButton(label: '팀 추가하기', onTap: () {}),
+        ),
+        const GalleryItem(
+          code: 'ShowTeamAvatar',
+          figma: 'Badge (주최 · 모집중) · Profile (Default · 모집중)',
+          child: Wrap(
+            spacing: AppSpacing.x6,
+            runSpacing: AppSpacing.x3,
+            children: [
+              ShowTeamAvatar(hostLabel: '주최'),
+              ShowTeamAvatar(recruiting: true),
+              ShowTeamAvatar(name: '소음공장', hostLabel: '주최'),
+              ShowTeamAvatar(name: '모집 중', recruiting: true),
+            ],
+          ),
+        ),
+        GalleryItem(
+          code: 'EntryAttendeeRow',
+          figma: '이름으로 찾기',
+          child: EntryAttendeeRow(
+            name: '정우성',
+            phone: '010-8888-1234',
+            details: const ['2매', '소음공장'],
+            enterLabel: '2명',
+            onEnter: () {},
+            detailTooltip: '신청 자세히 보기',
+            onDetail: () {},
+          ),
+        ),
+        GalleryItem(
+          code: 'ShowConfirmPopup · showShowConfirmPopup',
+          figma: 'popup (수정 · 수정스탑 · 삭제 · 삭제불가)',
+          child: Wrap(
+            spacing: AppSpacing.x2,
+            runSpacing: AppSpacing.x2,
+            children: [
+              AppButton(
+                label: '수정',
+                size: AppButtonSize.small,
+                variant: AppButtonVariant.weak,
+                onPressed: () => showShowConfirmPopup(
+                  context,
+                  title: '공연 정보를 수정할까요?',
+                  message: '참여 팀 모두에게 변경 알림이 가요.',
+                  details: const [
+                    (label: '공연 날짜', value: '10.12(월) → 10.19(월)'),
+                    (label: '공연 시간', value: '미정 → 19:00 ~21:00'),
+                    (label: '공연 장소', value: '미정 → 홍대 놀이터'),
+                  ],
+                  warning: '티켓 신청 페이지에는 반영되지 않아요.',
+                  cancelLabel: '취소',
+                  confirmLabel: '수정하기',
+                ),
+              ),
+              AppButton(
+                label: '수정스탑',
+                size: AppButtonSize.small,
+                variant: AppButtonVariant.weak,
+                onPressed: () => showShowConfirmPopup(
+                  context,
+                  title: '수정을 그만할까요?',
+                  message: '지금까지 수정한 내용은 저장되지 않아요.',
+                  cancelLabel: '계속 수정',
+                  confirmLabel: '그만하기',
+                ),
+              ),
+              AppButton(
+                label: '삭제',
+                size: AppButtonSize.small,
+                variant: AppButtonVariant.weak,
+                onPressed: () => showShowConfirmPopup(
+                  context,
+                  title: '공연을 삭제할까요?',
+                  message: '삭제하면 되돌릴 수 없어요.',
+                  cancelLabel: '취소',
+                  confirmLabel: '삭제하기',
+                  destructive: true,
+                ),
+              ),
+              AppButton(
+                label: '삭제불가',
+                size: AppButtonSize.small,
+                variant: AppButtonVariant.weak,
+                onPressed: () => showShowConfirmPopup(
+                  context,
+                  alert: true,
+                  title: '공연을 삭제할 수 없어요',
+                  message: '티켓 판매가 시작된 공연은 삭제할 수 없어요.',
+                  notice: '이미 신청한 관객이 있어 공연을 삭제할 수 없어요.\n판매를 멈추려면 티켓관리에서 신청을 마감해 주세요.',
+                  confirmLabel: '확인',
+                ),
+              ),
             ],
           ),
         ),

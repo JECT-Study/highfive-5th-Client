@@ -246,7 +246,8 @@ dev 빌드의 컴포넌트 모음 화면(`/dev/widgets`, DEV 띠 길게 누르�
 | | `Container` (공고보기 · 내공고보기) | `PostLinkBar` |
 | | `ReportItem` | `ReportItem` |
 | | `Top` (채팅창 · 합동공연채팅) | `ChatTopBar` |
-| `show/` | `Line up` (card / 모집중 · 합류 준비) | `ShowLineupItem` / `ShowLineupPlaceholder` |
+| `show/` | `Line up` (card / 모집중 · 합류 준비 / 팀추가) | `ShowLineupItem` / `ShowLineupPlaceholder` / `ShowLineupAddButton` |
+| | `Badge` (주최 · 모집중), `Profile` (Default · 모집중) | `ShowTeamAvatar` |
 | | `Component` (Inquiry · Link · copy) | `ShowActionRow` |
 | | `Date` (default · today · Detail) | `ShowDateCard` |
 | | `Notice` (숫자 요약) | `ShowStatSummary` |
@@ -256,10 +257,12 @@ dev 빌드의 컴포넌트 모음 화면(`/dev/widgets`, DEV 띠 길게 누르�
 | | `Header` (false · true) | `ShowHeader` / `ShowHeader.compact` |
 | | `Top` (합동공연 / 현장입장) | `ShowTopBar` / `EntryTopBar` |
 | | `_Week`, `_Day` | `CalendarWeekRow`, `CalendarDayCell` |
-| | `InputImg` | `ImageInput` |
+| | `InputImg` (Default · 수정) | `ImageInput` (이미지가 있으면 수정 모양) |
 | | `LocationList` | `LocationListItem` |
 | | `입금확인` (확인완료 · 미확인 · 미입금 · 취소신청) | `DepositCheckCard` |
 | | (여러 컴포넌트의 점 구분 줄) | `ShowMetaText` |
+| | `이름으로 찾기` (현장 입장) | `EntryAttendeeRow` |
+| | `popup` (수정 · 수정스탑 · 삭제 · 삭제불가) | `ShowConfirmPopup` · `showShowConfirmPopup` |
 | `qr/` | `QRList` | `QrListCard` |
 | | `DetailList` | `QrDetailRow` |
 | `home/` | `CardLarge` (default · ticket · d-day / add) | `HomeShowCard` / `HomeShowAddCard` |
@@ -273,7 +276,9 @@ dev 빌드의 컴포넌트 모음 화면(`/dev/widgets`, DEV 띠 길게 누르�
 | `list/` | `List` | `ShowListItem` |
 | | `Notification` (Default · New / toggle · text · next) | `NotificationRow` / `NotificationSettingRow` |
 
-Figma 아이콘이 없어 Material 아이콘으로 대신한 곳: `ShowActionRow` 복사(`content_copy`), `ImageInput` 이미지(`image_outlined`), `DepositCheckCard` 타이머(`timer_outlined`), `OnboardingOptionCard` 자물쇠(`lock_outline`), `ShowListItem` 찜(`bookmark`).
+Figma 아이콘이 없어 Material 아이콘으로 대신한 곳: `ShowActionRow` 복사(`content_copy`), `ImageInput` 이미지(`image_outlined`), `DepositCheckCard` 타이머(`timer_outlined`). 자물쇠·찜은 Figma 아이콘(`Icon: lock`, `Icon:bookmark`)으로 바꿨다.
+
+2026-11-22 Figma 반영: 공연 팝업은 범용 `Dialog`와 여백·글자가 달라(폭 320, 여백 20, 설명 Body-1(R)) 영역 위젯으로 따로 두었다. 버튼은 `AppButton`을 그대로 써서 Figma 인스턴스의 SemiBold 글자와는 다르다. 팝업 안내 띠는 `AppNotice`(Body-1)라 Figma(Caption-1 회색)와 글자가 다르고, 느낌표 원 바탕 `#FDECEC`는 토큰이 없어 background.warning으로 맞췄다. `이름으로 찾기`의 화살표는 오른쪽 방향으로 가정했다(디자인 확인 필요).
 
 **버튼** — 크기: large = XL, medium = XS, small = Mini, floating = FloatingButton. 너비는 정하지 않는다(부모 레이아웃이 정한다).
 

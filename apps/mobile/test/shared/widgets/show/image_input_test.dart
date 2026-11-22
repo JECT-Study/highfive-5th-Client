@@ -17,44 +17,36 @@ Future<void> _pump(WidgetTester tester, Widget child) => tester.pumpWidget(
   ),
 );
 
-ImageInput _input({
-  ImageProvider? image,
-  VoidCallback? onTap,
-  VoidCallback? onRemove,
-}) => ImageInput(
+ImageInput _input({ImageProvider? image, VoidCallback? onTap}) => ImageInput(
   title: '공연 포스터',
   placeholder: '포스터 이미지 추가',
-  removeTooltip: '포스터 삭제',
+  changeLabel: '사진 변경',
   image: image,
   onTap: onTap,
-  onRemove: onRemove,
 );
 
 void main() {
-  testWidgets('이미지가 없으면 상자를 눌러 onTap을 부르고 지우기 버튼은 없다', (tester) async {
+  testWidgets('이미지가 없으면 상자를 눌러 onTap을 부르고 사진 변경 버튼은 없다', (tester) async {
     var taps = 0;
-    await _pump(tester, _input(onTap: () => taps++, onRemove: () {}));
+    await _pump(tester, _input(onTap: () => taps++));
 
     await tester.tap(find.text('포스터 이미지 추가'));
 
     expect(taps, 1);
-    expect(find.byTooltip('포스터 삭제'), findsNothing);
+    expect(find.text('사진 변경'), findsNothing);
   });
 
-  testWidgets('이미지가 있으면 지우기 버튼을 보이고 누르면 onRemove를 부른다', (tester) async {
-    var removes = 0;
+  testWidgets('이미지가 있으면 사진 변경 버튼을 보이고 누르면 onTap을 부른다', (tester) async {
+    var taps = 0;
     await _pump(
       tester,
-      _input(
-        image: MemoryImage(_transparentPng),
-        onTap: () {},
-        onRemove: () => removes++,
-      ),
+      _input(image: MemoryImage(_transparentPng), onTap: () => taps++),
     );
 
-    await tester.tap(find.byTooltip('포스터 삭제'));
+    await tester.tap(find.text('사진 변경'));
 
-    expect(removes, 1);
+    expect(taps, 1);
+    expect(find.text('포스터 이미지 추가'), findsNothing);
   });
 
   testWidgets('onTap이 없으면 상자가 비활성으로 읽힌다', (tester) async {

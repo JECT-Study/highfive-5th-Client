@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
+import '../app_icon.dart';
 import '../app_tag.dart';
 
 /// Figma `List` (목록). 팀 모집 공고·찜 목록에서 합동공연 공고 하나를 포스터·태그·정보로 보여 주는 줄.
@@ -81,8 +82,8 @@ class ShowListItem extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Icon(
-                    Icons.bookmark,
+                  AppIcon(
+                    AppIcons.bookmark,
                     size: _bookmarkSize,
                     color: bookmarked
                         ? colors.labelNormal

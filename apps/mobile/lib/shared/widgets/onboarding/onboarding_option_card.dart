@@ -46,8 +46,7 @@ class OnboardingOptionCard extends StatelessWidget {
       ),
       OnboardingOptionType.code => (
         colors.fillStrong,
-        // 앱 아이콘에 자물쇠가 없어 Material 아이콘으로 대신한다.
-        Icon(Icons.lock_outline, size: _lockIconSize, color: colors.gray800),
+        AppIcon(AppIcons.lock, size: _lockIconSize, color: colors.gray800),
       ),
     };
 

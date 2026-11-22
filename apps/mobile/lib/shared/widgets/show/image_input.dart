@@ -4,29 +4,28 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_radius.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_typography.dart';
+import '../app_button.dart';
 import '../app_form_section.dart';
-import '../app_icon.dart';
-import '../app_top_bar.dart';
 
 /// Figma `InputImg` (show). 폼에서 이미지 한 장(공연 포스터 등)을 고르는 칸: 제목, 점선 상자, 안내 문구.
 ///
-/// [image]가 없으면 점선 상자에 아이콘과 [placeholder]를 보이고, 있으면 상자를 그 이미지로 채우고 지우기 버튼을 둔다.
-/// 사진 고르기·지우기는 쓰는 쪽이 [onTap]·[onRemove]로 처리한다.
+/// [image]가 없으면 점선 상자에 아이콘과 [placeholder]를 보이고(Figma `Default`),
+/// 있으면 왼쪽에 작은 미리보기와 오른쪽에 [changeLabel] 버튼을 둔다(Figma `수정`).
+/// 사진 고르기는 쓰는 쪽이 [onTap]으로 처리한다. 상자·미리보기·버튼 모두 [onTap]을 부른다.
 class ImageInput extends StatelessWidget {
   const ImageInput({
     super.key,
     required this.title,
     required this.placeholder,
-    required this.removeTooltip,
+    required this.changeLabel,
     required this.onTap,
     this.helperText,
     this.image,
-    this.onRemove,
   });
 
   static const _boxHeight = 100.0; // Figma: Input 높이
   static const _iconSize = 24.0; // Figma: 이미지 아이콘
-  static const _removeIconSize = 20.0; // Figma: close(20) 아이콘
+  static const _previewWidth = 120.0; // Figma: 수정 variant의 미리보기 폭
 
   final String title;
 
@@ -38,11 +37,8 @@ class ImageInput extends StatelessWidget {
   final ImageProvider? image;
   final VoidCallback? onTap;
 
-  /// 이미지를 지운다. [image]가 있을 때만 버튼이 보인다.
-  final VoidCallback? onRemove;
-
-  /// 지우기 버튼의 읽히는 이름 (예: 포스터 삭제).
-  final String removeTooltip;
+  /// 이미지가 있을 때 미리보기 옆 버튼 글자 (예: 사진 변경).
+  final String changeLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -115,16 +111,18 @@ class ImageInput extends StatelessWidget {
       );
     }
 
-    // Figma에는 고른 뒤 모습이 없다. 상자를 이미지로 채우고(뜨기 전에는 회색) 오른쪽 위에 지우기 버튼을 둔다.
-    return SizedBox(
-      height: _boxHeight,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Semantics(
-            button: true,
-            enabled: onTap != null,
-            label: title,
+    // Figma `수정`: 미리보기(뜨기 전에는 회색) + weak small 버튼.
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      spacing: AppSpacing.x2_5,
+      children: [
+        Semantics(
+          button: true,
+          enabled: onTap != null,
+          label: title,
+          child: SizedBox(
+            width: _previewWidth,
+            height: _boxHeight,
             child: Material(
               color: colors.fillStrong,
               borderRadius: radius,
@@ -136,21 +134,14 @@ class ImageInput extends StatelessWidget {
               ),
             ),
           ),
-          if (onRemove != null)
-            Positioned(
-              top: 0,
-              right: 0,
-              child: AppIconButton(
-                icon: const AppIcon(
-                  AppIcons.closeCircle,
-                  size: _removeIconSize,
-                ),
-                tooltip: removeTooltip,
-                onPressed: onRemove,
-              ),
-            ),
-        ],
-      ),
+        ),
+        AppButton(
+          label: changeLabel,
+          onPressed: onTap,
+          variant: AppButtonVariant.weak,
+          size: AppButtonSize.small,
+        ),
+      ],
     );
   }
 }

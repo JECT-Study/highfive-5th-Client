@@ -3,7 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 /// Figma Icon 컴포넌트 (`와이어프레임 New/컴포넌트` → Icon → IconList24 · IconList20 등).
 /// 파일은 `assets/icons/`. 주석은 Figma 레이어 이름이다. 이름 뒤 숫자(add20)는 20 크기 목록의 아이콘.
-/// Figma에서 여러 조각으로 그려진 아이콘(menu, bell, lock, camera 등)은 아직 없다. 쓸 때 Figma에서 SVG로 내보내 추가한다.
+/// Figma에서 여러 조각으로 그려진 아이콘(menu, bell, camera 등)은 아직 없다. 쓸 때 Figma에서 SVG로 내보내 추가한다.
 enum AppIcons {
   home('assets/icons/home.svg'), // Icon: home
   search('assets/icons/search.svg'), // search
@@ -41,6 +41,8 @@ enum AppIcons {
   trash('assets/icons/trash.svg'), // Trash (20)
   write('assets/icons/write.svg'), // Write (20)
   pin('assets/icons/pin.svg'), // Pin (20)
+  bookmark('assets/icons/bookmark.svg'), // Icon:bookmark (20, 켜짐·꺼짐은 색으로)
+  lock('assets/icons/lock.svg'), // Icon: lock
   chevronLeft('assets/icons/chevron_left.svg'), // Icon:arrow (16)
   checkCircleLarge('assets/icons/check_circle_large.svg'); // Icon60Check (60)
 
