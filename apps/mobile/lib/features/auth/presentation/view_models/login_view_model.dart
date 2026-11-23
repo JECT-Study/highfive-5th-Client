@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../models/login_cancelled.dart';
 import '../../models/social_provider.dart';
 import '../providers/auth_providers.dart';
 import 'session_view_model.dart';
@@ -18,6 +20,7 @@ class LoginState {
   final SocialProvider? pending;
 
   /// 마지막 로그인이 실패했다. 화면은 이 값이 true가 될 때 오류 안내를 띄운다.
+  /// 사용자가 취소한 것은 실패가 아니다.
   final bool failed;
 }
 
@@ -33,6 +36,13 @@ class LoginViewModel extends Notifier<LoginState> {
       final session = await ref.read(authRepositoryProvider).login(provider);
       await ref.read(sessionProvider.notifier).signIn(session);
     });
-    if (ref.mounted) state = LoginState(failed: result.hasError);
+    // 디버그 빌드에서만 오류 종류·메시지를 찍는다 (토큰은 오류에 담지 않는다).
+    if (kDebugMode && result.hasError && result.error is! LoginCancelled) {
+      debugPrint('[Login] ${provider.name} 실패: ${result.error}');
+    }
+    if (!ref.mounted) return;
+    state = LoginState(
+      failed: result.hasError && result.error is! LoginCancelled,
+    );
   }
 }

@@ -7,7 +7,11 @@ enum Flavor { dev, prod }
 /// `FLUTTER_APP_FLAVOR`를 넣어 주므로 그 값을 먼저 읽는다.
 /// `--dart-define=FLAVOR`는 flavor 없이 도는 테스트·도구용으로만 남겨 둔다.
 class AppEnv {
-  const AppEnv({required this.flavor, required this.apiBaseUrl});
+  const AppEnv({
+    required this.flavor,
+    required this.apiBaseUrl,
+    required this.kakaoNativeAppKey,
+  });
 
   /// `FLUTTER_APP_FLAVOR` → `FLAVOR` 순서로 읽고, 둘 다 없으면 dev.
   /// 모르는 값이면 앱 시작 시 바로 실패한다.
@@ -25,17 +29,23 @@ class AppEnv {
         flavor: Flavor.dev,
         // TODO(BE): dev API 주소 확정 후 교체
         apiBaseUrl: 'https://dev-api.highfive.example',
+        kakaoNativeAppKey: '8f7351ffe7f85cf74698761a2029c90e', // Dev 키
       ),
       Flavor.prod => const AppEnv(
         flavor: Flavor.prod,
         // TODO(BE): prod API 주소 확정 후 교체
         apiBaseUrl: 'https://api.highfive.example',
+        kakaoNativeAppKey: '68320ddfa8016bae212ff9306cf24c8d', // Default 키
       ),
     };
   }
 
   final Flavor flavor;
   final String apiBaseUrl;
+
+  /// 카카오 네이티브 앱 키. 같은 값이 네이티브 설정에도 있다 (iOS 빌드 설정
+  /// `KAKAO_NATIVE_APP_KEY`, Android `build.gradle.kts`의 `manifestPlaceholders`). 바꿀 때 셋 다 바꾼다.
+  final String kakaoNativeAppKey;
 
   bool get isDev => flavor == Flavor.dev;
 }

@@ -49,10 +49,14 @@ android {
             applicationIdSuffix = ".dev"
             versionNameSuffix = "-dev"
             resValue("string", "app_name", "highfive DEV")
+            // 카카오 Dev 앱 키 (lib/app/env.dart와 같은 값)
+            manifestPlaceholders["kakaoNativeAppKey"] = "8f7351ffe7f85cf74698761a2029c90e"
         }
         create("prod") {
             dimension = "env"
             resValue("string", "app_name", "highfive")
+            // 카카오 Default 앱 키 (lib/app/env.dart와 같은 값)
+            manifestPlaceholders["kakaoNativeAppKey"] = "68320ddfa8016bae212ff9306cf24c8d"
         }
     }
 

@@ -26,7 +26,11 @@ Future<void> _open(WidgetTester tester, String location) async {
     ProviderScope(
       overrides: [
         appEnvProvider.overrideWithValue(
-          const AppEnv(flavor: Flavor.prod, apiBaseUrl: 'http://localhost'),
+          const AppEnv(
+            flavor: Flavor.prod,
+            apiBaseUrl: 'http://localhost',
+            kakaoNativeAppKey: 'test',
+          ),
         ),
         sessionRepositoryProvider.overrideWithValue(
           SessionRepository(SecureStore(const FlutterSecureStorage())),
@@ -101,7 +105,11 @@ void main() {
       ProviderScope(
         overrides: [
           appEnvProvider.overrideWithValue(
-            const AppEnv(flavor: Flavor.prod, apiBaseUrl: 'http://localhost'),
+            const AppEnv(
+              flavor: Flavor.prod,
+              apiBaseUrl: 'http://localhost',
+              kakaoNativeAppKey: 'test',
+            ),
           ),
           sessionRepositoryProvider.overrideWithValue(
             SessionRepository(SecureStore(const FlutterSecureStorage())),

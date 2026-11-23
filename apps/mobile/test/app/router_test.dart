@@ -11,6 +11,7 @@ import 'package:highfive/core/storage/secure_store.dart';
 import 'package:highfive/features/auth/data/repositories/auth_repository.dart';
 import 'package:highfive/features/auth/data/repositories/session_repository.dart';
 import 'package:highfive/features/auth/data/services/auth_service.dart';
+import 'package:highfive/features/auth/data/services/kakao_auth_service.dart';
 import 'package:highfive/features/auth/models/session.dart';
 import 'package:highfive/features/auth/models/social_provider.dart';
 import 'package:highfive/features/auth/presentation/providers/auth_providers.dart';
@@ -22,6 +23,12 @@ import 'package:highfive/features/my_page/presentation/views/my_page_view.dart';
 
 const _session = Session(accessToken: 'a');
 
+/// 카카오 SDK 대신 바로 토큰을 돌려준다.
+class _FakeKakaoAuthService extends KakaoAuthService {
+  @override
+  Future<String?> login() async => 'kakao-token';
+}
+
 /// [stored]가 저장된 상태로 앱을 처음부터 띄운다 (앱 재시작과 같다).
 Future<void> _start(WidgetTester tester, Map<String, String> stored) async {
   FlutterSecureStorage.setMockInitialValues(Map.of(stored));
@@ -29,12 +36,18 @@ Future<void> _start(WidgetTester tester, Map<String, String> stored) async {
     ProviderScope(
       overrides: [
         appEnvProvider.overrideWithValue(
-          const AppEnv(flavor: Flavor.prod, apiBaseUrl: 'http://localhost'),
+          const AppEnv(
+            flavor: Flavor.prod,
+            apiBaseUrl: 'http://localhost',
+            kakaoNativeAppKey: 'test',
+          ),
         ),
         sessionRepositoryProvider.overrideWithValue(
           SessionRepository(SecureStore(const FlutterSecureStorage())),
         ),
-        authRepositoryProvider.overrideWithValue(AuthRepository(AuthService())),
+        authRepositoryProvider.overrideWithValue(
+          AuthRepository(AuthService(), _FakeKakaoAuthService()),
+        ),
       ],
       child: const HighfiveApp(),
     ),

@@ -302,9 +302,11 @@ dev와 prod는 네이티브 flavor로 나눈다. 앱 ID가 달라서 두 앱이 
 | 홈 화면 이름 | `highfive DEV` | `highfive` |
 | 환경값 (`app/env.dart`) | `Flavor.dev`: dev API 주소 | `Flavor.prod`: prod API 주소 |
 | 화면 | 왼쪽 위 `DEV` 배너 | 배너 없음 |
+| 카카오 네이티브 앱 키 | Dev 키 (`8f7351ff…`) | Default 키 (`68320ddf…`) |
 
 - 값이 정해지는 순서: `--flavor dev`를 주면 Flutter가 `FLUTTER_APP_FLAVOR=dev`를 넣고, `AppEnv.fromEnvironment()`가 그 값을 먼저 읽는다. 없으면 `--dart-define=FLAVOR`(flavor 없이 도는 테스트·도구용)를, 그것도 없으면 dev를 쓴다. 모르는 값이면 시작할 때 바로 실패한다.
 - 설정 위치: Android는 `android/app/build.gradle.kts`의 `productFlavors`다. 앱 이름은 `resValue("string", "app_name", ...)`로 넣고, AGP 9는 이 기능이 기본으로 꺼져 있어 `buildFeatures.resValues = true`가 필요하다. iOS는 빌드 구성 `Debug-dev`·`Release-dev`·`Profile-dev`(prod도 같은 셋)와 공유 스킴 `dev`·`prod`다. Flutter는 스킴 이름이 flavor 이름과 같아야 찾는다. iOS 앱 이름은 빌드 설정 `APP_DISPLAY_NAME`이 `Info.plist`의 `CFBundleDisplayName`으로 들어간다.
+- 카카오 네이티브 앱 키는 한 카카오 앱의 키 두 개다(dev → Dev, prod → Default). Android 키 해시도 같은 키에 등록한다. 같은 값이 세 곳에 있어 바꿀 때 셋 다 바꾼다: `lib/app/env.dart`(`KakaoSdk.init`), iOS 빌드 설정 `KAKAO_NATIVE_APP_KEY`(`Info.plist`의 URL 스킴 `kakao$(KAKAO_NATIVE_APP_KEY)`), Android `build.gradle.kts`의 `manifestPlaceholders["kakaoNativeAppKey"]`(`AndroidManifest.xml`의 리다이렉트 스킴).
 - **명령에는 항상 `--flavor`를 붙인다.** Android는 flavor 없이 빌드하면 `Gradle build failed to produce an .apk file` 오류로 실패한다. iOS는 원래 `Runner` 스킴이 남아 있어 flavor 없이도 빌드되지만, 결과는 prod 앱 ID에 dev 환경(DEV 배너·dev API)이 섞인 앱이다. 이 빌드는 배포에 쓰지 않는다.
 - Xcode에서 직접 빌드할 때 Dart 쪽 flavor는 빌드 구성 이름에서 정해진다. `Debug-dev`처럼 `-` 뒤 이름이 스킴 이름과 같으면 그 flavor를 쓴다(flutter_tools `parseFlavorFromConfiguration`). 그래서 `dev`·`prod` 스킴을 고르면 맞게 들어간다. `Runner` 스킴(구성 `Debug`)은 구성 이름에 flavor가 없어서 마지막 `fvm flutter` 명령이 `ios/Flutter/Generated.xcconfig`에 남긴 `FLAVOR` 값을 쓴다. 그러니 Xcode에서는 `Runner` 스킴으로 빌드하지 않는다.
 - CocoaPods를 쓰게 되면 `ios/Podfile`의 `project 'Runner', {...}`에 새 구성 6개를 매핑해야 한다(`Debug-dev`는 `:debug`, `Release-dev`·`Profile-dev`는 `:release`, prod도 같게). 각 구성의 Pods xcconfig도 include해야 한다. 지금은 SwiftPM을 써서 Podfile이 없다.

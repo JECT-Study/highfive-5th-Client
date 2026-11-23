@@ -16,7 +16,11 @@ Widget _app(Flavor flavor) {
   return ProviderScope(
     overrides: [
       appEnvProvider.overrideWithValue(
-        AppEnv(flavor: flavor, apiBaseUrl: 'http://localhost'),
+        AppEnv(
+          flavor: flavor,
+          apiBaseUrl: 'http://localhost',
+          kakaoNativeAppKey: 'test',
+        ),
       ),
       sessionRepositoryProvider.overrideWithValue(
         SessionRepository(SecureStore(const FlutterSecureStorage())),

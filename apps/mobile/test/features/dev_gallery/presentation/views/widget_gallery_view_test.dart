@@ -15,7 +15,11 @@ Future<void> _pumpApp(WidgetTester tester, Flavor flavor) async {
     ProviderScope(
       overrides: [
         appEnvProvider.overrideWithValue(
-          AppEnv(flavor: flavor, apiBaseUrl: 'http://localhost'),
+          AppEnv(
+            flavor: flavor,
+            apiBaseUrl: 'http://localhost',
+            kakaoNativeAppKey: 'test',
+          ),
         ),
       ],
       child: const HighfiveApp(),

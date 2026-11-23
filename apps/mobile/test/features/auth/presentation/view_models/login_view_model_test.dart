@@ -8,6 +8,7 @@ import 'package:highfive/features/auth/data/dto/token_dto.dart';
 import 'package:highfive/features/auth/data/repositories/auth_repository.dart';
 import 'package:highfive/features/auth/data/repositories/session_repository.dart';
 import 'package:highfive/features/auth/data/services/auth_service.dart';
+import 'package:highfive/features/auth/data/services/kakao_auth_service.dart';
 import 'package:highfive/features/auth/models/session.dart';
 import 'package:highfive/features/auth/models/social_provider.dart';
 import 'package:highfive/features/auth/presentation/providers/auth_providers.dart';
@@ -21,17 +22,29 @@ class _FakeAuthService extends AuthService {
   final providers = <String>[];
 
   @override
-  Future<TokenDto> login(String provider) {
+  Future<TokenDto> login(String provider, {required String providerToken}) {
     providers.add(provider);
     return response.future;
   }
 }
 
-ProviderContainer _container(AuthService service) {
+/// 카카오 SDK 대신 [token]을 돌려준다. null이면 사용자가 취소한 것과 같다.
+class _FakeKakaoAuthService extends KakaoAuthService {
+  _FakeKakaoAuthService([this.token = 'kakao-token']);
+
+  final String? token;
+
+  @override
+  Future<String?> login() async => token;
+}
+
+ProviderContainer _container(AuthService service, [KakaoAuthService? kakao]) {
   FlutterSecureStorage.setMockInitialValues({});
   final container = ProviderContainer(
     overrides: [
-      authRepositoryProvider.overrideWithValue(AuthRepository(service)),
+      authRepositoryProvider.overrideWithValue(
+        AuthRepository(service, kakao ?? _FakeKakaoAuthService()),
+      ),
       sessionRepositoryProvider.overrideWithValue(
         SessionRepository(SecureStore(const FlutterSecureStorage())),
       ),
@@ -92,6 +105,22 @@ void main() {
     await first;
 
     expect(service.providers, ['kakao']);
+  });
+
+  test('사용자가 취소하면 failed가 아니고 세션도 없다', () async {
+    final service = _FakeAuthService();
+    final container = _container(service, _FakeKakaoAuthService(null));
+    await container.read(sessionProvider.future);
+
+    await container
+        .read(loginViewModelProvider.notifier)
+        .login(SocialProvider.kakao);
+
+    final state = container.read(loginViewModelProvider);
+    expect(state.failed, isFalse);
+    expect(state.pending, isNull);
+    expect(service.providers, isEmpty);
+    expect(container.read(sessionProvider).value, isNull);
   });
 
   test('로그인에 실패하면 failed가 되고 세션은 그대로 없다', () async {
