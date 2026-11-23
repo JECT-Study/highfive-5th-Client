@@ -57,7 +57,9 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (isDev)
         GoRoute(
           path: AppRoutes.devWidgets,
-          builder: (context, state) => const WidgetGalleryView(),
+          builder: (context, state) => WidgetGalleryView(
+            initialFolder: state.uri.queryParameters['folder'],
+          ),
         ),
       GoRoute(
         path: AppRoutes.splash,

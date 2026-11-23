@@ -219,7 +219,66 @@ dev 빌드의 컴포넌트 모음 화면(`/dev/widgets`, DEV 띠 길게 누르�
 
 웹은 관객 신청 화면에 쓸 것만 만들었다(`-`는 앱만).
 
-**영역별 컴포넌트** — 말풍선·공연 카드처럼 특정 화면 영역의 Figma 컴포넌트(메시지, 공연페이지, 홈, 온보딩, 목록, QR 섹션)는 아직 develop에 없다. 디자인 확정 전이라 `feat/JECT-239-area-widgets-archive` 브랜치에 보관해 두었고, 그 화면을 만드는 PR에서 필요한 폴더만 꺼내 넣는다. 넣는 위치와 규칙은 [mobile-architecture 1절](./mobile-architecture.md#1-폴더와-들어가는-파일).
+**영역별 컴포넌트** — 말풍선·공연 카드처럼 특정 화면 영역의 Figma 컴포넌트(메시지, 공연페이지, 홈, 온보딩, 목록, QR 섹션)는 화면보다 먼저 만들어 develop에 둔다. 두 사람이 같은 영역 위젯을 따로 만들거나 고치지 않게 하려는 것으로, "쓰는 곳 없는 코드는 미리 만들지 않는다"(AGENTS.md 1번)의 예외다. 디자인 확정 전 Figma 기준이라, 화면을 만들 때 Figma와 다시 맞추고 다르면 그 화면 PR에서 고친다.
+
+범용 폴더(`shared/widgets/`)의 `AppBandCard`(Figma `BandCard`)·`AppMemberHeader`(`MemberHeader`)·`AppChipGroup`(`Chipwarp`)도 같은 경우다.
+
+**영역 폴더의 컴포넌트** — 말풍선·공연 카드처럼 특정 화면 영역의 Figma 컴포넌트는 앱 `shared/widgets/<폴더>/`에 둔다(폴더 이름 = Figma 섹션: `message`, `show`, `home`, `onboarding`, `list`, `qr`). 값만 받아 그리는 위젯이라 어느 기능에서든 쓴다 (규칙은 [mobile-architecture 1절](./mobile-architecture.md#1-폴더와-들어가는-파일)).
+
+- 색·글자·간격·모서리·그림자는 위의 토큰만 쓴다. 버튼·태그·배지 같은 부품은 범용 위젯(`AppButton` 등)을 그대로 넣는다.
+- 앱에서만 쓰므로 컴포넌트 토큰을 따로 두지 않는다. 토큰에 없는 고정 크기(포스터 60, 프로필 40 등)만 위젯 안에 private 상수로 두고 Figma의 무엇인지 한 줄 적는다. 같은 크기가 여러 위젯에서 반복되면 토큰으로 올린다.
+- Figma 컴포넌트의 hex가 v3 의미 색과 다르면 범용 컴포넌트와 같은 기준으로 가장 가까운 의미 색을 쓴다(아래 '어긋난 값' 표).
+- 토큰과 1 차이 나는 간격(3, 5, 9, 11, 13, 15)과 모서리(15, 19)는 가장 가까운 단계로 맞췄다. 버튼·태그를 범용 위젯으로 넣으면서 높이·모서리가 1~4 달라진 곳도 있다(예: Figma 버튼 높이 30·33·35 → `AppButton` small 32).
+
+| 폴더 | Figma 컴포넌트 (variant) | 위젯 |
+| --- | --- | --- |
+| `message/` | `MessageTag` (보낸문의 · 받은 문의) | `MessageTag` |
+| | `Badge` | `ProfileBadge` (프로필 + `AppBadge`) |
+| | `Message Container` (Sent · Received) | `MessageBubble` |
+| | `MessageItem` (대표자 · 팀원) | `ChatTeamInputBar` |
+| | `MessageItem` (Default · 공고삭제 · 목록에서 확인) | `InquiryListItem` |
+| | `MessageSwipeRow` | `MessageSwipeRow` |
+| | `MessageInput` (입력전 · 입력후) | `MessageInputBar` |
+| | `ChatListRow` | `ChatListRow` |
+| | `SystemMessage` | `SystemMessage` |
+| | `Invitation` | `InvitationCard` |
+| | `ResultCard` (합류 · 합류실패) | `JoinResultCard` |
+| | `Container` (공고보기 · 내공고보기) | `PostLinkBar` |
+| | `ReportItem` | `ReportItem` |
+| | `Top` (채팅창 · 합동공연채팅) | `ChatTopBar` |
+| `show/` | `Line up` (card / 모집중 · 합류 준비 / 팀추가) | `ShowLineupItem` / `ShowLineupPlaceholder` / `ShowLineupAddButton` |
+| | `Badge` (주최 · 모집중), `Profile` (Default · 모집중) | `ShowTeamAvatar` |
+| | `Component` (Inquiry · Link · copy) | `ShowActionRow` |
+| | `Date` (default · today · Detail) | `ShowDateCard` |
+| | `Notice` (숫자 요약) | `ShowStatSummary` |
+| | `ProgressCard` (모집전 · 모집중 · 티켓판매 · 공연당일) | `ShowProgressCard` |
+| | `Feed Tab` (Text · Image) | `ShowFeedPost` |
+| | `Container` (고정 글) | `ShowPinnedPost` |
+| | `Header` (false · true) | `ShowHeader` / `ShowHeader.compact` |
+| | `Top` (합동공연 / 현장입장) | `ShowTopBar` / `EntryTopBar` |
+| | `_Week`, `_Day` | `CalendarWeekRow`, `CalendarDayCell` |
+| | `InputImg` (Default · 수정) | `ImageInput` (이미지가 있으면 수정 모양) |
+| | `LocationList` | `LocationListItem` |
+| | `입금확인` (확인완료 · 미확인 · 미입금 · 취소신청) | `DepositCheckCard` |
+| | (여러 컴포넌트의 점 구분 줄) | `ShowMetaText` |
+| | `이름으로 찾기` (현장 입장) | `EntryAttendeeRow` |
+| | `popup` (수정 · 수정스탑 · 삭제 · 삭제불가) | `ShowConfirmPopup` · `showShowConfirmPopup` |
+| `qr/` | `QRList` | `QrListCard` |
+| | `DetailList` | `QrDetailRow` |
+| `home/` | `CardLarge` (default · ticket · d-day / add) | `HomeShowCard` / `HomeShowAddCard` |
+| | `CardSmall` | `HomeShowCardSmall` |
+| | `Notice` | `HomeNotice` |
+| | `HomeList` | `HomeListRow` |
+| | `TeamProfile` | `HomeTeamProfile` |
+| | `Btn` (addBtn · searchBtn) | `HomeActionButton` |
+| `onboarding/` | `Onboarding` (Default · Code) | `OnboardingOptionCard` |
+| | `popup` | `OnboardingPopup` |
+| `list/` | `List` | `ShowListItem` |
+| | `Notification` (Default · New / toggle · text · next) | `NotificationRow` / `NotificationSettingRow` |
+
+Figma 아이콘이 없어 Material 아이콘으로 대신한 곳: `ShowActionRow` 복사(`content_copy`), `ImageInput` 이미지(`image_outlined`), `DepositCheckCard` 타이머(`timer_outlined`). 자물쇠·찜은 Figma 아이콘(`Icon: lock`, `Icon:bookmark`)으로 바꿨다.
+
+2026-11-22 Figma 반영: 공연 팝업은 범용 `Dialog`와 여백·글자가 달라(폭 320, 여백 20, 설명 Body-1(R)) 영역 위젯으로 따로 두었다. 버튼은 `AppButton`을 그대로 써서 Figma 인스턴스의 SemiBold 글자와는 다르다. 팝업 안내 띠는 `AppNotice`(Body-1)라 Figma(Caption-1 회색)와 글자가 다르고, 느낌표 원 바탕 `#FDECEC`는 토큰이 없어 background.warning으로 맞췄다. `이름으로 찾기`의 화살표는 오른쪽 방향으로 가정했다(디자인 확인 필요).
 
 **버튼** — 크기: large = XL, medium = XS, small = Mini, floating = FloatingButton. 너비는 정하지 않는다(부모 레이아웃이 정한다).
 
@@ -354,4 +413,4 @@ Container(
 - 다크 모드 (`AppColors.dark`, `@media (prefers-color-scheme: dark)`)
 - 애니메이션 시간
 - 여러 조각으로 그려진 Figma 아이콘(menu, bell, bookmark, lock, camera 등). 쓸 때 Figma에서 SVG로 내보내 `assets/icons/`와 `AppIcons`에 추가
-- 영역별 컴포넌트 (BandCard, ProgressCard, 채팅 말풍선, 캘린더 등). 보관 브랜치에서 화면 PR로 꺼내 넣는다
+- 영역별 컴포넌트는 들어가 있다. 화면을 만들 때 Figma와 다시 맞춘다

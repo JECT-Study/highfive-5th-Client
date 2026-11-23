@@ -4,9 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:highfive/app/app.dart';
 import 'package:highfive/app/env.dart';
 import 'package:highfive/app/providers.dart';
+import 'package:highfive/features/dev_gallery/presentation/views/sections/gallery_item.dart';
+import 'package:highfive/features/dev_gallery/presentation/views/sections/qr_gallery_section.dart';
 import 'package:highfive/features/dev_gallery/presentation/views/widget_gallery_view.dart';
 import 'package:highfive/shared/theme/app_theme.dart';
-import 'package:highfive/shared/widgets/app_bottom_nav_bar.dart';
+import 'package:highfive/shared/widgets/app_chip.dart';
 
 Future<void> _pumpApp(WidgetTester tester, Flavor flavor) async {
   await tester.pumpWidget(
@@ -38,7 +40,34 @@ void main() {
     expect(find.byKey(const ValueKey('app_devGalleryEntry')), findsNothing);
   });
 
-  testWidgets('좁은 화면(320)에서 모든 컴포넌트를 한 번에 그려도 넘침 오류가 없다', (tester) async {
+  testWidgets('폴더 칩을 누르면 그 폴더의 컴포넌트만 보여준다', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(theme: AppTheme.light, home: const WidgetGalleryView()),
+    );
+
+    await tester.tap(find.widgetWithText(AppChip, 'qr'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(QrGallerySection), findsOneWidget);
+    expect(
+      find.widgetWithText(GalleryFolderHeader, 'shared/widgets/'),
+      findsNothing,
+    );
+  });
+
+  testWidgets('initialFolder로 처음 보여 줄 폴더를 정한다', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: const WidgetGalleryView(initialFolder: 'qr'),
+      ),
+    );
+
+    expect(find.byType(QrGallerySection), findsOneWidget);
+    expect(find.byType(GalleryFolderHeader), findsOneWidget);
+  });
+
+  testWidgets('좁은 화면(320)에서 모든 폴더를 한 번에 그려도 넘침 오류가 없다', (tester) async {
     // 목록 전체가 한 번에 그려지도록 화면을 아주 길게 잡는다.
     tester.view.physicalSize = const Size(320, 60000);
     tester.view.devicePixelRatio = 1;
@@ -50,6 +79,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    expect(find.byType(AppBottomNavBar), findsOneWidget);
+    expect(find.byType(GalleryFolderHeader), findsNWidgets(7));
   });
 }
