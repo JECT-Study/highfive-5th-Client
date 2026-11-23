@@ -5,23 +5,40 @@ import '../../../../shared/theme/app_colors.dart';
 import '../../../../shared/theme/app_spacing.dart';
 import '../../../../shared/theme/app_typography.dart';
 import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/app_dialog.dart';
+import '../../models/social_provider.dart';
 import '../view_models/login_view_model.dart';
 
 /// 로그인 화면 (Figma `계정-회원가입`, node `1372:6594`).
 /// 디자이너 확인 전이라 토큰에 없는 시안 값도 [_Draft]에 모아 시안과 똑같이 맞춘다.
-/// 소셜 로그인 SDK를 붙이기 전이라 세 버튼 모두 임시 토큰으로 로그인한다 (`AuthService`).
+/// 소셜 로그인 SDK를 붙이기 전이라 어느 버튼이든 임시 토큰으로 로그인한다 (`AuthService`).
 class LoginView extends ConsumerWidget {
   const LoginView({super.key});
 
-  static const kakaoButtonKey = ValueKey('login_kakao');
-  static const appleButtonKey = ValueKey('login_apple');
-  static const googleButtonKey = ValueKey('login_google');
+  static ValueKey<String> buttonKey(SocialProvider provider) =>
+      ValueKey('login_${provider.name}');
   static const introKey = ValueKey('login_intro');
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final loading = ref.watch(loginViewModelProvider).isLoading;
-    void login() => ref.read(loginViewModelProvider.notifier).login();
+    final pending = ref.watch(loginViewModelProvider).pending;
+    void login(SocialProvider provider) =>
+        ref.read(loginViewModelProvider.notifier).login(provider);
+
+    ref.listen(loginViewModelProvider.select((state) => state.failed), (
+      _,
+      failed,
+    ) {
+      // 오류 안내 시안이 아직 없어 공통 Dialog로 알린다.
+      if (failed) {
+        showAppDialog(
+          context,
+          title: '로그인하지 못했어요',
+          message: '잠시 후 다시 시도해 주세요.',
+          confirmLabel: '확인',
+        );
+      }
+    });
 
     return Scaffold(
       body: SafeArea(
@@ -57,27 +74,27 @@ class LoginView extends ConsumerWidget {
                         child: Column(
                           children: [
                             _LoginButton(
-                              key: kakaoButtonKey,
+                              key: buttonKey(SocialProvider.kakao),
                               label: '카카오톡으로 계속하기',
                               variant: AppButtonVariant.fill,
-                              loading: loading,
-                              onPressed: login,
+                              loading: pending == SocialProvider.kakao,
+                              onPressed: () => login(SocialProvider.kakao),
                             ),
                             const SizedBox(height: AppSpacing.x2_5),
                             _LoginButton(
-                              key: appleButtonKey,
+                              key: buttonKey(SocialProvider.apple),
                               label: 'Apple로 계속하기',
                               variant: AppButtonVariant.weak,
-                              loading: loading,
-                              onPressed: login,
+                              loading: pending == SocialProvider.apple,
+                              onPressed: () => login(SocialProvider.apple),
                             ),
                             const SizedBox(height: AppSpacing.x2_5),
                             _LoginButton(
-                              key: googleButtonKey,
+                              key: buttonKey(SocialProvider.google),
                               label: 'Google로 계속하기',
                               variant: AppButtonVariant.weak,
-                              loading: loading,
-                              onPressed: login,
+                              loading: pending == SocialProvider.google,
+                              onPressed: () => login(SocialProvider.google),
                             ),
                           ],
                         ),
@@ -214,7 +231,8 @@ class _Intro extends StatelessWidget {
   }
 }
 
-/// 가로를 채우는 소셜 로그인 버튼. 하나가 로딩이면 모두 눌리지 않는다.
+/// 가로를 채우는 소셜 로그인 버튼. 누른 버튼만 로딩으로 보인다.
+/// 다른 버튼은 모양을 그대로 두고, 로그인 중에 눌리면 ViewModel이 무시한다.
 class _LoginButton extends StatelessWidget {
   const _LoginButton({
     super.key,

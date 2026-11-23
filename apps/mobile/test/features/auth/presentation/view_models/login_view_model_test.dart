@@ -9,19 +9,20 @@ import 'package:highfive/features/auth/data/repositories/auth_repository.dart';
 import 'package:highfive/features/auth/data/repositories/session_repository.dart';
 import 'package:highfive/features/auth/data/services/auth_service.dart';
 import 'package:highfive/features/auth/models/session.dart';
+import 'package:highfive/features/auth/models/social_provider.dart';
 import 'package:highfive/features/auth/presentation/providers/auth_providers.dart';
 import 'package:highfive/features/auth/presentation/providers/session_providers.dart';
 import 'package:highfive/features/auth/presentation/view_models/login_view_model.dart';
 import 'package:highfive/features/auth/presentation/view_models/session_view_model.dart';
 
-/// 응답 시점을 테스트가 정하고 호출 수를 센다.
+/// 응답 시점을 테스트가 정하고 받은 제공자를 기록한다.
 class _FakeAuthService extends AuthService {
   final response = Completer<TokenDto>();
-  int calls = 0;
+  final providers = <String>[];
 
   @override
-  Future<TokenDto> login() {
-    calls++;
+  Future<TokenDto> login(String provider) {
+    providers.add(provider);
     return response.future;
   }
 }
@@ -42,12 +43,31 @@ ProviderContainer _container(AuthService service) {
 }
 
 void main() {
-  test('로그인하면 세션이 생긴다', () async {
+  test('로그인 중에는 누른 제공자가 pending이다', () async {
+    final service = _FakeAuthService();
+    final container = _container(service);
+
+    final done = container
+        .read(loginViewModelProvider.notifier)
+        .login(SocialProvider.apple);
+
+    expect(
+      container.read(loginViewModelProvider).pending,
+      SocialProvider.apple,
+    );
+    expect(service.providers, ['apple']);
+    service.response.complete(const TokenDto(accessToken: 'a'));
+    await done;
+  });
+
+  test('로그인하면 세션이 생기고 pending·failed가 풀린다', () async {
     final service = _FakeAuthService();
     final container = _container(service);
     await container.read(sessionProvider.future);
 
-    final done = container.read(loginViewModelProvider.notifier).login();
+    final done = container
+        .read(loginViewModelProvider.notifier)
+        .login(SocialProvider.kakao);
     service.response.complete(const TokenDto(accessToken: 'a'));
     await done;
 
@@ -55,32 +75,39 @@ void main() {
       container.read(sessionProvider).value,
       const Session(accessToken: 'a'),
     );
-    expect(container.read(loginViewModelProvider).hasError, isFalse);
+    final state = container.read(loginViewModelProvider);
+    expect(state.pending, isNull);
+    expect(state.failed, isFalse);
   });
 
-  test('로그인 중에 다시 누르면 무시한다', () async {
+  test('로그인 중에 다시 누르면 다른 제공자여도 무시한다', () async {
     final service = _FakeAuthService();
     final container = _container(service);
     final notifier = container.read(loginViewModelProvider.notifier);
 
-    final first = notifier.login();
-    await notifier.login();
+    final first = notifier.login(SocialProvider.kakao);
+    await notifier.login(SocialProvider.kakao);
+    await notifier.login(SocialProvider.google);
     service.response.complete(const TokenDto(accessToken: 'a'));
     await first;
 
-    expect(service.calls, 1);
+    expect(service.providers, ['kakao']);
   });
 
-  test('로그인에 실패하면 오류 상태가 되고 세션은 그대로 없다', () async {
+  test('로그인에 실패하면 failed가 되고 세션은 그대로 없다', () async {
     final service = _FakeAuthService();
     final container = _container(service);
     await container.read(sessionProvider.future);
 
-    final done = container.read(loginViewModelProvider.notifier).login();
+    final done = container
+        .read(loginViewModelProvider.notifier)
+        .login(SocialProvider.google);
     service.response.completeError(Exception('network'));
     await done;
 
-    expect(container.read(loginViewModelProvider).hasError, isTrue);
+    final state = container.read(loginViewModelProvider);
+    expect(state.failed, isTrue);
+    expect(state.pending, isNull);
     expect(container.read(sessionProvider).value, isNull);
   });
 }

@@ -9,29 +9,25 @@ import 'package:highfive/features/auth/data/dto/token_dto.dart';
 import 'package:highfive/features/auth/data/repositories/auth_repository.dart';
 import 'package:highfive/features/auth/data/repositories/session_repository.dart';
 import 'package:highfive/features/auth/data/services/auth_service.dart';
+import 'package:highfive/features/auth/models/social_provider.dart';
 import 'package:highfive/features/auth/presentation/providers/auth_providers.dart';
 import 'package:highfive/features/auth/presentation/providers/session_providers.dart';
 import 'package:highfive/features/auth/presentation/views/login_view.dart';
 import 'package:highfive/shared/theme/app_theme.dart';
 import 'package:highfive/shared/widgets/app_button.dart';
+import 'package:highfive/shared/widgets/app_dialog.dart';
 
-/// 응답 시점을 테스트가 정하고 호출 수를 센다.
+/// 응답 시점을 테스트가 정하고 받은 제공자 값을 기록한다.
 class _FakeAuthService extends AuthService {
   final response = Completer<TokenDto>();
-  int calls = 0;
+  final providers = <String>[];
 
   @override
-  Future<TokenDto> login() {
-    calls++;
+  Future<TokenDto> login(String provider) {
+    providers.add(provider);
     return response.future;
   }
 }
-
-const _buttonKeys = [
-  LoginView.kakaoButtonKey,
-  LoginView.appleButtonKey,
-  LoginView.googleButtonKey,
-];
 
 Future<void> _pump(WidgetTester tester, AuthService service) async {
   FlutterSecureStorage.setMockInitialValues({});
@@ -49,20 +45,28 @@ Future<void> _pump(WidgetTester tester, AuthService service) async {
   await tester.pumpAndSettle();
 }
 
-AppButton _button(WidgetTester tester, Key key) => tester.widget<AppButton>(
-  find.descendant(of: find.byKey(key), matching: find.byType(AppButton)),
-);
+Finder _buttonFinder(SocialProvider provider) =>
+    find.byKey(LoginView.buttonKey(provider));
+
+AppButton _button(WidgetTester tester, SocialProvider provider) =>
+    tester.widget<AppButton>(
+      find.descendant(
+        of: _buttonFinder(provider),
+        matching: find.byType(AppButton),
+      ),
+    );
 
 void main() {
   testWidgets('카카오·Apple·Google 버튼을 순서대로 보여준다', (tester) async {
     await _pump(tester, _FakeAuthService());
 
     final tops = [
-      for (final key in _buttonKeys) tester.getTopLeft(find.byKey(key)).dy,
+      for (final provider in SocialProvider.values)
+        tester.getTopLeft(_buttonFinder(provider)).dy,
     ];
     expect(tops, orderedEquals([...tops]..sort()));
-    for (final key in _buttonKeys) {
-      expect(_button(tester, key).loading, isFalse, reason: '$key');
+    for (final provider in SocialProvider.values) {
+      expect(_button(tester, provider).loading, isFalse, reason: '$provider');
     }
   });
 
@@ -85,7 +89,7 @@ void main() {
 
     final introTop = tester.getTopLeft(find.byKey(LoginView.introKey)).dy;
     final gap =
-        tester.getTopLeft(find.byKey(LoginView.kakaoButtonKey)).dy -
+        tester.getTopLeft(_buttonFinder(SocialProvider.kakao)).dy -
         tester.getBottomLeft(find.byKey(LoginView.introKey)).dy;
     expect(introTop, lessThan(119));
     expect(gap, greaterThanOrEqualTo(32));
@@ -102,28 +106,45 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  for (final key in _buttonKeys) {
-    testWidgets('$key를 누르면 로그인을 한 번 요청하고, 응답 전에는 모든 버튼이 로딩이다', (tester) async {
+  for (final provider in SocialProvider.values) {
+    testWidgets('$provider 버튼을 누르면 그 제공자로 한 번만 요청하고 그 버튼만 로딩이다', (
+      tester,
+    ) async {
       final service = _FakeAuthService();
       await _pump(tester, service);
 
-      await tester.tap(find.byKey(key));
+      await tester.tap(_buttonFinder(provider));
       await tester.pump();
-      for (final other in _buttonKeys) {
-        await tester.tap(find.byKey(other));
+      for (final other in SocialProvider.values) {
+        await tester.tap(_buttonFinder(other));
       }
       await tester.pump();
 
-      expect(service.calls, 1);
-      for (final other in _buttonKeys) {
-        expect(_button(tester, other).loading, isTrue, reason: '$other');
+      expect(service.providers, [provider.name]);
+      for (final other in SocialProvider.values) {
+        expect(
+          _button(tester, other).loading,
+          other == provider,
+          reason: '$other',
+        );
       }
 
       service.response.complete(const TokenDto(accessToken: 'a'));
       await tester.pumpAndSettle();
-      for (final other in _buttonKeys) {
-        expect(_button(tester, other).loading, isFalse, reason: '$other');
-      }
+      expect(_button(tester, provider).loading, isFalse);
     });
   }
+
+  testWidgets('로그인에 실패하면 오류 안내를 띄우고 버튼 로딩이 풀린다', (tester) async {
+    final service = _FakeAuthService();
+    await _pump(tester, service);
+
+    await tester.tap(_buttonFinder(SocialProvider.kakao));
+    await tester.pump();
+    service.response.completeError(Exception('network'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AppDialog), findsOneWidget);
+    expect(_button(tester, SocialProvider.kakao).loading, isFalse);
+  });
 }

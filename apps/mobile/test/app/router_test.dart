@@ -12,6 +12,7 @@ import 'package:highfive/features/auth/data/repositories/auth_repository.dart';
 import 'package:highfive/features/auth/data/repositories/session_repository.dart';
 import 'package:highfive/features/auth/data/services/auth_service.dart';
 import 'package:highfive/features/auth/models/session.dart';
+import 'package:highfive/features/auth/models/social_provider.dart';
 import 'package:highfive/features/auth/presentation/providers/auth_providers.dart';
 import 'package:highfive/features/auth/presentation/providers/session_providers.dart';
 import 'package:highfive/features/auth/presentation/view_models/session_view_model.dart';
@@ -113,7 +114,7 @@ void main() {
   testWidgets('로그인 버튼을 누르면 홈으로 가고, 다시 켜도 홈이다', (tester) async {
     await _start(tester, {});
 
-    await tester.tap(find.byKey(LoginView.kakaoButtonKey));
+    await tester.tap(find.byKey(LoginView.buttonKey(SocialProvider.kakao)));
     await tester.pumpAndSettle();
     expect(find.byType(HomeView), findsOneWidget);
 
