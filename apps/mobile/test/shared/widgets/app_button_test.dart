@@ -61,4 +61,45 @@ void main() {
       );
     }
   });
+
+  testWidgets('아이콘과 글자 사이는 iconGap이 있으면 그 값, 없으면 크기별 토큰이다', (tester) async {
+    const iconKey = ValueKey('icon');
+    final gaps = {null: AppButtonTokens.largeGap, 10.0: 10.0};
+    for (final MapEntry(key: iconGap, value: expected) in gaps.entries) {
+      await _pump(
+        tester,
+        AppButton(
+          label: '확인',
+          onPressed: () {},
+          icon: const SizedBox(key: iconKey),
+          iconGap: iconGap,
+        ),
+      );
+      final gap =
+          tester.getTopLeft(find.text('확인')).dx -
+          tester.getTopRight(find.byKey(iconKey)).dx;
+      expect(gap, expected, reason: 'iconGap: $iconGap');
+    }
+  });
+
+  testWidgets('아이콘 크기는 iconSize가 있으면 그 값, 없으면 크기별 토큰이다', (tester) async {
+    const iconKey = ValueKey('icon');
+    final sizes = {null: AppButtonTokens.iconSize, 26.0: 26.0};
+    for (final MapEntry(key: iconSize, value: expected) in sizes.entries) {
+      await _pump(
+        tester,
+        AppButton(
+          label: '확인',
+          onPressed: () {},
+          icon: const SizedBox.expand(key: iconKey),
+          iconSize: iconSize,
+        ),
+      );
+      expect(
+        tester.getSize(find.byKey(iconKey)),
+        Size.square(expected),
+        reason: 'iconSize: $iconSize',
+      );
+    }
+  });
 }

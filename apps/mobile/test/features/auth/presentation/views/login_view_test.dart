@@ -66,6 +66,32 @@ void main() {
     }
   });
 
+  testWidgets('충분히 긴 화면에서는 로고가 시안처럼 위에서 119에 있다', (tester) async {
+    tester.view.physicalSize = const Size(375, 812);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await _pump(tester, _FakeAuthService());
+
+    expect(tester.getTopLeft(find.byKey(LoginView.introKey)).dy, 119);
+  });
+
+  testWidgets('짧은 화면에서는 로고 위 여백이 줄고 소개 ↔ 버튼 사이는 32 이상이다', (tester) async {
+    tester.view.physicalSize = const Size(375, 600);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await _pump(tester, _FakeAuthService());
+
+    final introTop = tester.getTopLeft(find.byKey(LoginView.introKey)).dy;
+    final gap =
+        tester.getTopLeft(find.byKey(LoginView.kakaoButtonKey)).dy -
+        tester.getBottomLeft(find.byKey(LoginView.introKey)).dy;
+    expect(introTop, lessThan(119));
+    expect(gap, greaterThanOrEqualTo(32));
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('작은 화면에서도 넘치지 않는다', (tester) async {
     tester.view.physicalSize = const Size(320, 480);
     tester.view.devicePixelRatio = 1;
