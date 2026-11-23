@@ -113,7 +113,7 @@ void main() {
   testWidgets('로그인 버튼을 누르면 홈으로 가고, 다시 켜도 홈이다', (tester) async {
     await _start(tester, {});
 
-    await tester.tap(find.text('임시 로그인'));
+    await tester.tap(find.byKey(LoginView.kakaoButtonKey));
     await tester.pumpAndSettle();
     expect(find.byType(HomeView), findsOneWidget);
 

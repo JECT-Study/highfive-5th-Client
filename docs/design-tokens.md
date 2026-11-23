@@ -371,6 +371,28 @@ Figma 아이콘이 없어 Material 아이콘으로 대신한 곳: `ShowActionRow
 - BottomSheet 그림자(`0 4 10` 8%)는 v3 Elevation에 없어 넣지 않았다. 뒷 배경을 material.dimmer로 어둡게 해 구분된다.
 - 입력창 Error variant는 Figma에 아직 색이 없다 (‘인풋에 오류상태 추가’ 메모). 테두리를 status.destructive로 임시 지정했다.
 
+#### Figma 화면과 어긋난 값 (디자이너 확인 필요)
+
+화면 시안이 공통 컴포넌트·토큰 대신 직접 칠한 값을 쓴 곳이다. 화면은 공통 컴포넌트와 가장 가까운 토큰을 그대로 쓰고, 디자이너가 시안 값이 맞다고 하면 토큰을 추가하거나 값을 바꾼다 (2절 절차). 화면 PR 설명에도 같은 표를 붙인다.
+
+**로그인 (`계정-회원가입`, Figma node `1372:6594`, JECT-180)**
+
+| 자리 | Figma 화면 값 | 쓰는 것 (값) |
+| --- | --- | --- |
+| 제목 "음악이 통하는 순간…" | 26 Bold, 행간 1.3 | head (24 SemiBold, 행간 1.3) |
+| 카카오 버튼 바탕 | `#1A1A1A` | AppButton fill → label.strong (black) |
+| Apple·Google 버튼 테두리 | `#C5C5C5` | AppButton weak → line.neutral (`#E8E8EA`) |
+| Apple·Google 버튼 글자 | `#1A1A1A` 16 SemiBold | AppButton weak → label.neutral (`#47484C`) Title-2(R) |
+| 카카오 버튼 글자 | 16 SemiBold | AppButton fill → Title-2(B) |
+| 버튼 아이콘 · 글자 사이 | 26 · 10 | AppButton 아이콘 24 · 간격 2 |
+| 부제목·"로그인에 문제가 있으신가요?" | `#7F7F7F` 14 Medium, 부제목 행간 1.5 | label.alternative (`#6E6E73`) Body-1(M), 행간 1.4 |
+| 로고 ↔ 제목 간격 | 28 | spacing.x6 (24) |
+
+정해지지 않은 것:
+
+- 로고와 버튼 아이콘 3개는 시안도 회색 자리 표시다. 같은 크기 자리만 둔다 (로고 100, 아이콘 24).
+- 카카오는 브랜드 가이드상 노란 버튼(`#FEE500`), Apple은 Sign in with Apple 가이드 모양을 요구한다. 검은·흰 버튼이 심사를 통과하는지 디자이너와 확인한다.
+
 ## 4. 쓰는 법
 
 앱:
