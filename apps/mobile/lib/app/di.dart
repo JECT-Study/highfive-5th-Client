@@ -8,6 +8,7 @@ import '../core/storage/secure_store.dart';
 import '../features/auth/data/repositories/auth_repository.dart';
 import '../features/auth/data/repositories/session_repository.dart';
 import '../features/auth/data/services/auth_service.dart';
+import '../features/auth/data/services/google_auth_service.dart';
 import '../features/auth/data/services/kakao_auth_service.dart';
 import 'env.dart';
 
@@ -28,6 +29,16 @@ void setupDi(AppEnv env) {
     ..registerLazySingleton(AuthService.new)
     ..registerLazySingleton(KakaoAuthService.new)
     ..registerLazySingleton(
-      () => AuthRepository(getIt<AuthService>(), getIt<KakaoAuthService>()),
+      () => GoogleAuthService(
+        iosClientId: env.googleIosClientId,
+        serverClientId: env.googleServerClientId,
+      ),
+    )
+    ..registerLazySingleton(
+      () => AuthRepository(
+        getIt<AuthService>(),
+        getIt<KakaoAuthService>(),
+        getIt<GoogleAuthService>(),
+      ),
     );
 }

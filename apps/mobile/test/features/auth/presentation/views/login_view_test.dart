@@ -9,6 +9,7 @@ import 'package:highfive/features/auth/data/dto/token_dto.dart';
 import 'package:highfive/features/auth/data/repositories/auth_repository.dart';
 import 'package:highfive/features/auth/data/repositories/session_repository.dart';
 import 'package:highfive/features/auth/data/services/auth_service.dart';
+import 'package:highfive/features/auth/data/services/google_auth_service.dart';
 import 'package:highfive/features/auth/data/services/kakao_auth_service.dart';
 import 'package:highfive/features/auth/models/social_provider.dart';
 import 'package:highfive/features/auth/presentation/providers/auth_providers.dart';
@@ -40,6 +41,17 @@ class _FakeKakaoAuthService extends KakaoAuthService {
   Future<String?> login() async => token;
 }
 
+/// Google SDK 대신 [token]을 돌려준다. null이면 사용자가 취소한 것과 같다.
+class _FakeGoogleAuthService extends GoogleAuthService {
+  _FakeGoogleAuthService([this.token = 'google-token'])
+    : super(iosClientId: '', serverClientId: '');
+
+  final String? token;
+
+  @override
+  Future<String?> login() async => token;
+}
+
 Future<void> _pump(
   WidgetTester tester,
   AuthService service, [
@@ -50,7 +62,11 @@ Future<void> _pump(
     ProviderScope(
       overrides: [
         authRepositoryProvider.overrideWithValue(
-          AuthRepository(service, kakao ?? _FakeKakaoAuthService()),
+          AuthRepository(
+            service,
+            kakao ?? _FakeKakaoAuthService(),
+            _FakeGoogleAuthService(),
+          ),
         ),
         sessionRepositoryProvider.overrideWithValue(
           SessionRepository(SecureStore(const FlutterSecureStorage())),

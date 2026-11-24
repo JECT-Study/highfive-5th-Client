@@ -33,6 +33,13 @@
 				<string>kakao$(KAKAO_NATIVE_APP_KEY)</string>
 			</array>
 		</dict>
+		<dict>
+			<!-- Google 로그인 리다이렉트. 뒤집은 iOS 클라이언트 ID, 빌드 설정 GOOGLE_REVERSED_CLIENT_ID (lib/app/env.dart의 googleIosClientId와 짝) -->
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>$(GOOGLE_REVERSED_CLIENT_ID)</string>
+			</array>
+		</dict>
 	</array>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>

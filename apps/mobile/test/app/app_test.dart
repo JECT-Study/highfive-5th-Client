@@ -20,6 +20,8 @@ Widget _app(Flavor flavor) {
           flavor: flavor,
           apiBaseUrl: 'http://localhost',
           kakaoNativeAppKey: 'test',
+          googleIosClientId: 'test',
+          googleServerClientId: 'test',
         ),
       ),
       sessionRepositoryProvider.overrideWithValue(

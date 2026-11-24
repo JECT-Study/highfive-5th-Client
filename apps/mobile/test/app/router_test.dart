@@ -11,6 +11,7 @@ import 'package:highfive/core/storage/secure_store.dart';
 import 'package:highfive/features/auth/data/repositories/auth_repository.dart';
 import 'package:highfive/features/auth/data/repositories/session_repository.dart';
 import 'package:highfive/features/auth/data/services/auth_service.dart';
+import 'package:highfive/features/auth/data/services/google_auth_service.dart';
 import 'package:highfive/features/auth/data/services/kakao_auth_service.dart';
 import 'package:highfive/features/auth/models/session.dart';
 import 'package:highfive/features/auth/models/social_provider.dart';
@@ -29,6 +30,14 @@ class _FakeKakaoAuthService extends KakaoAuthService {
   Future<String?> login() async => 'kakao-token';
 }
 
+/// Google SDK 대신 바로 토큰을 돌려준다.
+class _FakeGoogleAuthService extends GoogleAuthService {
+  _FakeGoogleAuthService() : super(iosClientId: '', serverClientId: '');
+
+  @override
+  Future<String?> login() async => 'google-token';
+}
+
 /// [stored]가 저장된 상태로 앱을 처음부터 띄운다 (앱 재시작과 같다).
 Future<void> _start(WidgetTester tester, Map<String, String> stored) async {
   FlutterSecureStorage.setMockInitialValues(Map.of(stored));
@@ -40,13 +49,19 @@ Future<void> _start(WidgetTester tester, Map<String, String> stored) async {
             flavor: Flavor.prod,
             apiBaseUrl: 'http://localhost',
             kakaoNativeAppKey: 'test',
+            googleIosClientId: 'test',
+            googleServerClientId: 'test',
           ),
         ),
         sessionRepositoryProvider.overrideWithValue(
           SessionRepository(SecureStore(const FlutterSecureStorage())),
         ),
         authRepositoryProvider.overrideWithValue(
-          AuthRepository(AuthService(), _FakeKakaoAuthService()),
+          AuthRepository(
+            AuthService(),
+            _FakeKakaoAuthService(),
+            _FakeGoogleAuthService(),
+          ),
         ),
       ],
       child: const HighfiveApp(),

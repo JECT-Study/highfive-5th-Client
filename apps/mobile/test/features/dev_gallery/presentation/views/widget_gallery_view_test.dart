@@ -19,6 +19,8 @@ Future<void> _pumpApp(WidgetTester tester, Flavor flavor) async {
             flavor: flavor,
             apiBaseUrl: 'http://localhost',
             kakaoNativeAppKey: 'test',
+            googleIosClientId: 'test',
+            googleServerClientId: 'test',
           ),
         ),
       ],

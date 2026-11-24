@@ -30,6 +30,8 @@ Future<void> _open(WidgetTester tester, String location) async {
             flavor: Flavor.prod,
             apiBaseUrl: 'http://localhost',
             kakaoNativeAppKey: 'test',
+            googleIosClientId: 'test',
+            googleServerClientId: 'test',
           ),
         ),
         sessionRepositoryProvider.overrideWithValue(
@@ -109,6 +111,8 @@ void main() {
               flavor: Flavor.prod,
               apiBaseUrl: 'http://localhost',
               kakaoNativeAppKey: 'test',
+              googleIosClientId: 'test',
+              googleServerClientId: 'test',
             ),
           ),
           sessionRepositoryProvider.overrideWithValue(
