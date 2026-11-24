@@ -10,7 +10,7 @@ import 'package:highfive/app/routes.dart';
 import 'package:highfive/core/storage/secure_store.dart';
 import 'package:highfive/features/auth/data/repositories/auth_repository.dart';
 import 'package:highfive/features/auth/data/repositories/session_repository.dart';
-import 'package:highfive/features/auth/data/services/auth_service.dart';
+import 'package:highfive/features/auth/data/services/fake_auth_service.dart';
 import 'package:highfive/features/auth/data/services/google_auth_service.dart';
 import 'package:highfive/features/auth/data/services/kakao_auth_service.dart';
 import 'package:highfive/features/auth/models/session.dart';
@@ -58,7 +58,7 @@ Future<void> _start(WidgetTester tester, Map<String, String> stored) async {
         ),
         authRepositoryProvider.overrideWithValue(
           AuthRepository(
-            AuthService(),
+            FakeAuthService(),
             _FakeKakaoAuthService(),
             _FakeGoogleAuthService(),
           ),

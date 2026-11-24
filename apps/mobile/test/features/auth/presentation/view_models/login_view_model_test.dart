@@ -4,12 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:highfive/core/storage/secure_store.dart';
-import 'package:highfive/features/auth/data/dto/token_dto.dart';
+import 'package:dio/dio.dart';
+import 'package:highfive/features/auth/data/dto/login_response_dto.dart';
 import 'package:highfive/features/auth/data/repositories/auth_repository.dart';
 import 'package:highfive/features/auth/data/repositories/session_repository.dart';
 import 'package:highfive/features/auth/data/services/auth_service.dart';
 import 'package:highfive/features/auth/data/services/google_auth_service.dart';
 import 'package:highfive/features/auth/data/services/kakao_auth_service.dart';
+import 'package:highfive/core/error/app_exception.dart';
+import 'package:highfive/features/auth/models/login_failure.dart';
 import 'package:highfive/features/auth/models/session.dart';
 import 'package:highfive/features/auth/models/social_provider.dart';
 import 'package:highfive/features/auth/presentation/providers/auth_providers.dart';
@@ -19,11 +22,16 @@ import 'package:highfive/features/auth/presentation/view_models/session_view_mod
 
 /// 응답 시점을 테스트가 정하고 받은 제공자를 기록한다.
 class _FakeAuthService extends AuthService {
-  final response = Completer<TokenDto>();
+  _FakeAuthService() : super(Dio());
+
+  final response = Completer<LoginResponseDto>();
   final providers = <String>[];
 
   @override
-  Future<TokenDto> login(String provider, {required String providerToken}) {
+  Future<LoginResponseDto> login(
+    String provider, {
+    required String providerToken,
+  }) {
     providers.add(provider);
     return response.future;
   }
@@ -71,6 +79,13 @@ ProviderContainer _container(AuthService service, [KakaoAuthService? kakao]) {
   return container;
 }
 
+const _response = LoginResponseDto(
+  accessToken: 'a',
+  refreshToken: 'r',
+  user: LoginUserDto(id: 1, status: 'ACTIVE'),
+  nextStep: 'HOME',
+);
+
 void main() {
   test('로그인 중에는 누른 제공자가 pending이다', () async {
     final service = _FakeAuthService();
@@ -85,11 +100,11 @@ void main() {
       SocialProvider.apple,
     );
     expect(service.providers, ['apple']);
-    service.response.complete(const TokenDto(accessToken: 'a'));
+    service.response.complete(_response);
     await done;
   });
 
-  test('로그인하면 세션이 생기고 pending·failed가 풀린다', () async {
+  test('로그인하면 세션이 생기고 pending·failure가 풀린다', () async {
     final service = _FakeAuthService();
     final container = _container(service);
     await container.read(sessionProvider.future);
@@ -97,16 +112,16 @@ void main() {
     final done = container
         .read(loginViewModelProvider.notifier)
         .login(SocialProvider.kakao);
-    service.response.complete(const TokenDto(accessToken: 'a'));
+    service.response.complete(_response);
     await done;
 
     expect(
       container.read(sessionProvider).value,
-      const Session(accessToken: 'a'),
+      const Session(accessToken: 'a', refreshToken: 'r'),
     );
     final state = container.read(loginViewModelProvider);
     expect(state.pending, isNull);
-    expect(state.failed, isFalse);
+    expect(state.failure, isNull);
   });
 
   test('로그인 중에 다시 누르면 다른 제공자여도 무시한다', () async {
@@ -117,13 +132,13 @@ void main() {
     final first = notifier.login(SocialProvider.kakao);
     await notifier.login(SocialProvider.kakao);
     await notifier.login(SocialProvider.google);
-    service.response.complete(const TokenDto(accessToken: 'a'));
+    service.response.complete(_response);
     await first;
 
     expect(service.providers, ['kakao']);
   });
 
-  test('사용자가 취소하면 failed가 아니고 세션도 없다', () async {
+  test('사용자가 취소하면 failure가 없고 세션도 없다', () async {
     final service = _FakeAuthService();
     final container = _container(service, _FakeKakaoAuthService(null));
     await container.read(sessionProvider.future);
@@ -133,13 +148,13 @@ void main() {
         .login(SocialProvider.kakao);
 
     final state = container.read(loginViewModelProvider);
-    expect(state.failed, isFalse);
+    expect(state.failure, isNull);
     expect(state.pending, isNull);
     expect(service.providers, isEmpty);
     expect(container.read(sessionProvider).value, isNull);
   });
 
-  test('로그인에 실패하면 failed가 되고 세션은 그대로 없다', () async {
+  test('이유를 모르는 오류로 실패하면 failure가 unknown이고 세션은 그대로 없다', () async {
     final service = _FakeAuthService();
     final container = _container(service);
     await container.read(sessionProvider.future);
@@ -151,8 +166,26 @@ void main() {
     await done;
 
     final state = container.read(loginViewModelProvider);
-    expect(state.failed, isTrue);
+    expect(state.failure, LoginFailureReason.unknown);
     expect(state.pending, isNull);
     expect(container.read(sessionProvider).value, isNull);
+  });
+
+  test('서버가 소셜 토큰을 거절하면 failure가 socialAuthFailed다', () async {
+    final service = _FakeAuthService();
+    final container = _container(service);
+
+    final done = container
+        .read(loginViewModelProvider.notifier)
+        .login(SocialProvider.kakao);
+    service.response.completeError(
+      const ApiException(statusCode: 401, code: 'AUTH_006'),
+    );
+    await done;
+
+    expect(
+      container.read(loginViewModelProvider).failure,
+      LoginFailureReason.socialAuthFailed,
+    );
   });
 }

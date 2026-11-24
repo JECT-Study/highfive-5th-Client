@@ -8,6 +8,7 @@ import '../core/storage/secure_store.dart';
 import '../features/auth/data/repositories/auth_repository.dart';
 import '../features/auth/data/repositories/session_repository.dart';
 import '../features/auth/data/services/auth_service.dart';
+import '../features/auth/data/services/fake_auth_service.dart';
 import '../features/auth/data/services/google_auth_service.dart';
 import '../features/auth/data/services/kakao_auth_service.dart';
 import 'env.dart';
@@ -26,7 +27,9 @@ void setupDi(AppEnv env) {
   getIt
     ..registerLazySingleton(() => SecureStore(getIt<FlutterSecureStorage>()))
     ..registerLazySingleton(() => SessionRepository(getIt<SecureStore>()))
-    ..registerLazySingleton(AuthService.new)
+    // TODO(BE): 로그인 서버가 열리면 `AuthService(getIt<Dio>())`로 바꾸고
+    // fake_auth_service.dart를 지운다.
+    ..registerLazySingleton<AuthService>(FakeAuthService.new)
     ..registerLazySingleton(KakaoAuthService.new)
     ..registerLazySingleton(
       () => GoogleAuthService(

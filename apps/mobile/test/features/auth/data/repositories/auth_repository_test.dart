@@ -1,23 +1,35 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:highfive/features/auth/data/dto/token_dto.dart';
+import 'package:dio/dio.dart';
+import 'package:highfive/core/error/app_exception.dart';
+import 'package:highfive/features/auth/data/dto/login_response_dto.dart';
 import 'package:highfive/features/auth/data/repositories/auth_repository.dart';
 import 'package:highfive/features/auth/data/services/auth_service.dart';
 import 'package:highfive/features/auth/data/services/google_auth_service.dart';
 import 'package:highfive/features/auth/data/services/kakao_auth_service.dart';
 import 'package:highfive/features/auth/models/login_cancelled.dart';
+import 'package:highfive/features/auth/models/login_failure.dart';
 import 'package:highfive/features/auth/models/social_provider.dart';
 
-/// 받은 제공자 값과 제공자 토큰을 기록한다.
+/// 받은 제공자 값과 제공자 토큰을 기록한다. [error]가 있으면 그 오류를 던진다.
 class _FakeAuthService extends AuthService {
+  _FakeAuthService([this.error]) : super(Dio());
+
+  final AppException? error;
   final calls = <(String, String)>[];
 
   @override
-  Future<TokenDto> login(
+  Future<LoginResponseDto> login(
     String provider, {
     required String providerToken,
   }) async {
     calls.add((provider, providerToken));
-    return const TokenDto(accessToken: 'a', refreshToken: 'r');
+    if (error case final error?) throw error;
+    return const LoginResponseDto(
+      accessToken: 'a',
+      refreshToken: 'r',
+      user: LoginUserDto(id: 1, status: 'ACTIVE'),
+      nextStep: 'HOME',
+    );
   }
 }
 
@@ -117,5 +129,31 @@ void main() {
     expect(kakao.calls, 0);
     expect(google.calls, 0);
     expect(service.calls, [('apple', '')]);
+  });
+
+  test('서버 오류는 이유별 LoginFailure로 바꾼다', () async {
+    final cases = {
+      const ApiException(statusCode: 401, code: 'AUTH_006'):
+          LoginFailureReason.socialAuthFailed,
+      const ApiException(statusCode: 403, code: 'USER_004'):
+          LoginFailureReason.withdrawn,
+      const NetworkException(): LoginFailureReason.network,
+      const ApiException(statusCode: 400, code: 'AUTH_007'):
+          LoginFailureReason.unknown,
+      const ApiException(statusCode: 500): LoginFailureReason.unknown,
+    };
+    for (final MapEntry(key: error, value: reason) in cases.entries) {
+      final repository = AuthRepository(
+        _FakeAuthService(error),
+        _FakeKakaoAuthService(),
+        _FakeGoogleAuthService(),
+      );
+
+      await expectLater(
+        repository.login(SocialProvider.kakao),
+        throwsA(isA<LoginFailure>().having((f) => f.reason, 'reason', reason)),
+        reason: '$error',
+      );
+    }
   });
 }

@@ -1,4 +1,6 @@
+import '../../../../core/error/app_exception.dart';
 import '../../models/login_cancelled.dart';
+import '../../models/login_failure.dart';
 import '../../models/session.dart';
 import '../../models/social_provider.dart';
 import '../services/auth_service.dart';
@@ -8,7 +10,7 @@ import '../services/kakao_auth_service.dart';
 /// 로그인해서 세션을 받는다. 저장은 `SessionRepository`가 한다.
 ///
 /// 제공자 SDK로 로그인해 받은 토큰을 서버에 보내 우리 세션으로 바꾼다.
-/// 사용자가 SDK 화면에서 취소하면 [LoginCancelled]를 던진다.
+/// 사용자가 SDK 화면에서 취소하면 [LoginCancelled], 서버가 거절하면 [LoginFailure]를 던진다.
 class AuthRepository {
   AuthRepository(this._service, this._kakao, this._google);
 
@@ -24,10 +26,22 @@ class AuthRepository {
       SocialProvider.apple => '',
     };
     if (providerToken == null) throw const LoginCancelled();
-    final token = await _service.login(
-      provider.name,
-      providerToken: providerToken,
-    );
-    return token.toModel();
+    try {
+      final response = await _service.login(
+        provider.name,
+        providerToken: providerToken,
+      );
+      return response.toModel();
+    } on AppException catch (error) {
+      throw LoginFailure(_reasonOf(error), error);
+    }
   }
+
+  /// 서버 오류 코드 → 실패 이유 (docs/api/auth-login.md "에러").
+  static LoginFailureReason _reasonOf(AppException error) => switch (error) {
+    NetworkException() => LoginFailureReason.network,
+    ApiException(code: 'AUTH_006') => LoginFailureReason.socialAuthFailed,
+    ApiException(code: 'USER_004') => LoginFailureReason.withdrawn,
+    ApiException() || UnknownApiException() => LoginFailureReason.unknown,
+  };
 }

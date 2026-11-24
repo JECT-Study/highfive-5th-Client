@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/login_cancelled.dart';
+import '../../models/login_failure.dart';
 import '../../models/social_provider.dart';
 import '../providers/auth_providers.dart';
 import 'session_view_model.dart';
@@ -14,14 +15,14 @@ final loginViewModelProvider =
 
 /// 로그인 화면 상태.
 class LoginState {
-  const LoginState({this.pending, this.failed = false});
+  const LoginState({this.pending, this.failure});
 
   /// 지금 로그인 중인 제공자. 그 버튼만 로딩으로 보인다. null이면 로그인 중이 아니다.
   final SocialProvider? pending;
 
-  /// 마지막 로그인이 실패했다. 화면은 이 값이 true가 될 때 오류 안내를 띄운다.
-  /// 사용자가 취소한 것은 실패가 아니다.
-  final bool failed;
+  /// 마지막 로그인이 실패한 이유. 화면은 이 값이 생길 때 이유에 맞는 안내를 띄운다.
+  /// 사용자가 취소한 것은 실패가 아니다 (null).
+  final LoginFailureReason? failure;
 }
 
 class LoginViewModel extends Notifier<LoginState> {
@@ -41,8 +42,13 @@ class LoginViewModel extends Notifier<LoginState> {
       debugPrint('[Login] ${provider.name} 실패: ${result.error}');
     }
     if (!ref.mounted) return;
-    state = LoginState(
-      failed: result.hasError && result.error is! LoginCancelled,
-    );
+    state = LoginState(failure: _failureOf(result.error));
   }
+
+  /// SDK 오류처럼 이유를 모르는 실패는 [LoginFailureReason.unknown].
+  static LoginFailureReason? _failureOf(Object? error) => switch (error) {
+    null || LoginCancelled() => null,
+    LoginFailure(:final reason) => reason,
+    _ => LoginFailureReason.unknown,
+  };
 }

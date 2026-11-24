@@ -25,8 +25,8 @@ lib/
 │   ├── network/
 │   │   ├── dio_client.dart          (있음) createDio: baseUrl·timeout·디버그 로그
 │   │   ├── auth_interceptor.dart    토큰 첨부, 401 → 한 번만 갱신 후 재시도
-│   │   └── api_error_mapper.dart    DioException → AppException 변환
-│   ├── error/app_exception.dart     sealed class: network / unauthorized / notFound / conflict / server / unknown
+│   │   └── api_error_mapper.dart    (있음) DioException → AppException 변환 (서버 본문의 code를 담는다)
+│   ├── error/app_exception.dart     (있음) sealed class: NetworkException / ApiException(statusCode, code) / UnknownApiException
 │   ├── storage/
 │   │   ├── secure_store.dart        (있음) FlutterSecureStorage 래퍼 + 키 상수 (토큰)
 │   │   └── prefs_store.dart         SharedPreferencesAsync 래퍼 + 키 상수 (설정)
@@ -248,7 +248,7 @@ Service(DioException) ─► core/network/api_error_mapper ─► AppException
       ─► Repository(통과) ─► ViewModel(AsyncValue.guard → AsyncError) ─► View(ErrorView)
 ```
 
-- `AppException`은 `core/error/app_exception.dart`의 sealed class. 화면은 종류별로 문구·행동(재시도, 로그인 이동)을 정한다.
+- `AppException`은 `core/error/app_exception.dart`의 sealed class. 서버 오류는 `ApiException`에 HTTP 상태와 서버 오류 코드(예: `AUTH_006`)를 담는다. 기능의 Repository가 코드를 그 기능의 실패 이유로 바꾸고(예: `AuthRepository` → `LoginFailureReason`), 화면은 이유별로 문구·행동(재시도, 로그인 이동)을 정한다. 코드별 처리는 `docs/api/`의 명세에 적는다.
 - View는 `AsyncValue.when`으로 로딩·오류·빈 결과를 반드시 그린다. `shared/widgets`의 `LoadingView`·`ErrorView`·`EmptyView`를 쓴다(첫 화면 만들 때 생성).
 - 네트워크 단절·5xx로 로그아웃하지 않는다. `unauthorized`(갱신 실패)만 세션을 정리한다.
 

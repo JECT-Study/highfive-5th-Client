@@ -5,7 +5,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:highfive/core/storage/secure_store.dart';
-import 'package:highfive/features/auth/data/dto/token_dto.dart';
+import 'package:dio/dio.dart';
+import 'package:highfive/features/auth/data/dto/login_response_dto.dart';
 import 'package:highfive/features/auth/data/repositories/auth_repository.dart';
 import 'package:highfive/features/auth/data/repositories/session_repository.dart';
 import 'package:highfive/features/auth/data/services/auth_service.dart';
@@ -21,11 +22,16 @@ import 'package:highfive/shared/widgets/app_dialog.dart';
 
 /// 응답 시점을 테스트가 정하고 받은 제공자 값을 기록한다.
 class _FakeAuthService extends AuthService {
-  final response = Completer<TokenDto>();
+  _FakeAuthService() : super(Dio());
+
+  final response = Completer<LoginResponseDto>();
   final providers = <String>[];
 
   @override
-  Future<TokenDto> login(String provider, {required String providerToken}) {
+  Future<LoginResponseDto> login(
+    String provider, {
+    required String providerToken,
+  }) {
     providers.add(provider);
     return response.future;
   }
@@ -88,6 +94,13 @@ AppButton _button(WidgetTester tester, SocialProvider provider) =>
         matching: find.byType(AppButton),
       ),
     );
+
+const _response = LoginResponseDto(
+  accessToken: 'a',
+  refreshToken: 'r',
+  user: LoginUserDto(id: 1, status: 'ACTIVE'),
+  nextStep: 'HOME',
+);
 
 void main() {
   testWidgets('카카오·Apple·Google 버튼을 순서대로 보여준다', (tester) async {
@@ -162,7 +175,7 @@ void main() {
         );
       }
 
-      service.response.complete(const TokenDto(accessToken: 'a'));
+      service.response.complete(_response);
       await tester.pumpAndSettle();
       expect(_button(tester, provider).loading, isFalse);
     });

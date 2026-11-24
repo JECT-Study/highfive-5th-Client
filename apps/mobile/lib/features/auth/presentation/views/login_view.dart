@@ -6,6 +6,7 @@ import '../../../../shared/theme/app_spacing.dart';
 import '../../../../shared/theme/app_typography.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_dialog.dart';
+import '../../models/login_failure.dart';
 import '../../models/social_provider.dart';
 import '../view_models/login_view_model.dart';
 
@@ -19,22 +20,29 @@ class LoginView extends ConsumerWidget {
       ValueKey('login_${provider.name}');
   static const introKey = ValueKey('login_intro');
 
+  static String _failureMessage(LoginFailureReason reason) => switch (reason) {
+    LoginFailureReason.socialAuthFailed => '소셜 로그인 인증에 실패했어요. 다시 시도해 주세요.',
+    LoginFailureReason.withdrawn => '탈퇴한 계정이에요.',
+    LoginFailureReason.network => '네트워크 상태를 확인하고 다시 시도해 주세요.',
+    LoginFailureReason.unknown => '잠시 후 다시 시도해 주세요.',
+  };
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pending = ref.watch(loginViewModelProvider).pending;
     void login(SocialProvider provider) =>
         ref.read(loginViewModelProvider.notifier).login(provider);
 
-    ref.listen(loginViewModelProvider.select((state) => state.failed), (
+    ref.listen(loginViewModelProvider.select((state) => state.failure), (
       _,
-      failed,
+      failure,
     ) {
-      // 오류 안내 시안이 아직 없어 공통 Dialog로 알린다.
-      if (failed) {
+      // 오류 안내 시안이 아직 없어 공통 Dialog로 알린다. 문구는 docs/api/auth-login.md "에러".
+      if (failure != null) {
         showAppDialog(
           context,
           title: '로그인하지 못했어요',
-          message: '잠시 후 다시 시도해 주세요.',
+          message: _failureMessage(failure),
           confirmLabel: '확인',
         );
       }
