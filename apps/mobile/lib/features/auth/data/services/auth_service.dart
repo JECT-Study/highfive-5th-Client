@@ -27,4 +27,13 @@ class AuthService {
       throw mapDioException(error);
     }
   }
+
+  /// 서버에 저장된 리프레시 토큰을 지운다. 액세스 토큰은 `AuthInterceptor`가 붙인다.
+  Future<void> logout() async {
+    try {
+      await _dio.post<Object?>('/api/v1/auth/logout');
+    } on DioException catch (error) {
+      throw mapDioException(error);
+    }
+  }
 }

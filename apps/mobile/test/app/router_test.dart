@@ -41,6 +41,9 @@ class _FakeAuthService extends AuthService {
     user: LoginUserDto(id: 1, status: 'ACTIVE'),
     nextStep: 'HOME',
   );
+
+  @override
+  Future<void> logout() async {}
 }
 
 /// 카카오 SDK 대신 바로 토큰을 돌려준다.

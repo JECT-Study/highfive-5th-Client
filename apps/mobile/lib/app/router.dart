@@ -104,7 +104,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.my,
                 builder: (context, state) => MyPageView(
-                  onSignOut: () => ref.read(sessionProvider.notifier).signOut(),
+                  onSignOut: () => ref.read(sessionProvider.notifier).logout(),
                 ),
               ),
             ],

@@ -86,4 +86,18 @@ void main() {
       ),
     );
   });
+
+  test('로그아웃은 본문 없이 POST /api/v1/auth/logout을 보낸다', () async {
+    final (service, adapter) = _service(200, {
+      'status': 200,
+      'code': 'COMMON_000',
+      'data': <String, Object?>{},
+    });
+
+    await service.logout();
+
+    expect(adapter.request?.method, 'POST');
+    expect(adapter.request?.path, '/api/v1/auth/logout');
+    expect(adapter.request?.data, isNull);
+  });
 }

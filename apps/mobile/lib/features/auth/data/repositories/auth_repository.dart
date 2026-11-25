@@ -37,6 +37,9 @@ class AuthRepository {
     }
   }
 
+  /// 서버 로그아웃. 실패하면 `AppException`을 그대로 던진다 (부르는 쪽이 무시할지 정한다).
+  Future<void> logout() => _service.logout();
+
   /// 서버 오류 코드 → 실패 이유 (docs/api/auth-login.md "에러").
   static LoginFailureReason _reasonOf(AppException error) => switch (error) {
     NetworkException() => LoginFailureReason.network,

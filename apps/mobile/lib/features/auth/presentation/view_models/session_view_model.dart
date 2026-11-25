@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../models/session.dart';
+import '../providers/auth_providers.dart';
 import '../providers/session_providers.dart';
 
 /// 로그인 세션 (앱 공통, keepAlive). 값이 null이면 로그인 안 된 상태.
@@ -13,6 +15,9 @@ final sessionProvider = AsyncNotifierProvider<SessionViewModel, Session?>(
 );
 
 class SessionViewModel extends AsyncNotifier<Session?> {
+  /// 로그아웃 중이면 다시 눌러도 서버에 한 번만 보낸다.
+  bool _loggingOut = false;
+
   @override
   Future<Session?> build() {
     final subscription = ref
@@ -29,7 +34,23 @@ class SessionViewModel extends AsyncNotifier<Session?> {
     state = AsyncData(session);
   }
 
-  /// 저장된 세션을 지우고 로그인 안 된 상태로 바꾼다.
+  /// 사용자가 로그아웃을 눌렀다. 서버의 리프레시 토큰을 지우고, 서버 호출이 실패해도
+  /// 저장된 세션은 지운다 (명세: 앱은 응답과 상관없이 저장된 토큰을 지운다).
+  Future<void> logout() async {
+    if (_loggingOut) return;
+    _loggingOut = true;
+    try {
+      await ref.read(authRepositoryProvider).logout();
+    } on Exception catch (error) {
+      if (kDebugMode) debugPrint('[Session] 서버 로그아웃 실패, 저장된 토큰만 지운다: $error');
+    } finally {
+      _loggingOut = false;
+    }
+    await signOut();
+  }
+
+  /// 저장된 세션을 지우고 로그인 안 된 상태로 바꾼다. 서버에는 알리지 않는다.
+  /// 서버가 세션을 끝냈을 때(`SessionExpiry`)도 이것을 부른다.
   /// 기능별 캐시·소켓 정리는 그 기능이 생길 때 여기서 같이 부른다 (mobile-architecture 4절).
   Future<void> signOut() async {
     await ref.read(sessionRepositoryProvider).clear();
