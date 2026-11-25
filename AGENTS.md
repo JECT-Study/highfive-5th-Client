@@ -55,6 +55,6 @@ Flutter 버전은 `apps/mobile/.fvmrc`, Node는 `apps/web/.nvmrc`·`packageManag
 ## 아직 안 한 것
 
 - Shorebird, Fastlane, 스토어 배포, 실기기 서명
-- 토큰 갱신·WebView bridge, 로그인 서버 연결(코드는 있고 서버가 열리기 전이라 `FakeAuthService` 사용), `shared/widgets`(Loading/Error/Empty)
+- 토큰 재발급(`AUTH_002`)·`AUTH_004` 처리·로그아웃 API, WebView bridge, `shared/widgets`(Loading/Error/Empty)
 - 웹 서버 데이터 라이브러리(TanStack Query) 도입 여부, 웹 호스팅
 - `develop` 브랜치, `docs/releases.md`

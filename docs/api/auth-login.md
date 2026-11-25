@@ -2,6 +2,9 @@
 
 `POST /api/v1/auth/login/{provider}`
 
+- dev 서버: `https://dev-api.highfive-app.link` (Swagger `/swagger-ui/index.html`). DB는 개발 중 초기화될 수 있다.
+- 애플은 서버가 아직 지원하지 않는다 (Apple Developer 설정 전).
+
 BE 명세를 앱에서 쓰는 부분만 옮겼다. 명세가 바뀌면 이 파일과 `features/auth/data/dto/login_response_dto.dart`를 같이 고친다.
 
 - 호출 시점: 로그인 화면에서 카카오·구글·애플 SDK 로그인에 성공한 직후
@@ -14,7 +17,7 @@ BE 명세를 앱에서 쓰는 부분만 옮겼다. 명세가 바뀌면 이 파�
 | --- | --- | --- |
 | Header | Content-Type | `application/json` |
 | Path | provider | `kakao` / `google` / `apple` (소문자) |
-| Body | token | 카카오: 액세스 토큰 / 구글: ID 토큰 / 애플: identityToken (`@NotBlank`) |
+| Body | token | 카카오: ID 토큰 (OpenID Connect) / 구글: ID 토큰 / 애플: identityToken (`@NotBlank`) |
 
 ```json
 { "token": "소셜 SDK에서 받은 토큰" }
@@ -65,4 +68,4 @@ BE 명세를 앱에서 쓰는 부분만 옮겼다. 명세가 바뀌면 이 파�
 - 서버는 `refresh:{userId}`를 덮어쓰므로 새 기기에서 로그인하면 이전 기기의 로그인이 끊긴다 (동시 로그인 불가).
 - `nextStep`에 따라 화면을 옮긴다. 약관·프로필·밴드 시작 화면이 생기기 전까지는 모두 홈으로 간다.
 - 구글은 SDK에 서버용(웹) 클라이언트 ID를 `serverClientId`로 넣어야 서버 검증을 통과한다 (`env.dart` `googleServerClientId`).
-- 서버가 열리기 전에는 `FakeAuthService`가 위 200 응답 예시를 돌려준다 (`app/di.dart`).
+- 이후 요청은 `Authorization: Bearer {accessToken}`. `AUTH_002`(액세스 토큰 만료)일 때만 `POST /api/v1/auth/refresh` 후 원래 요청을 다시 보낸다. 재발급하면 리프레시 토큰도 바뀌므로 새 값으로 저장한다. `AUTH_004`면 로그인 화면으로 (다른 기기 로그인 포함). 로그아웃은 `POST /api/v1/auth/logout` (Bearer). 아직 구현 전.

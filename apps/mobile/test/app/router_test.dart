@@ -10,7 +10,9 @@ import 'package:highfive/app/routes.dart';
 import 'package:highfive/core/storage/secure_store.dart';
 import 'package:highfive/features/auth/data/repositories/auth_repository.dart';
 import 'package:highfive/features/auth/data/repositories/session_repository.dart';
-import 'package:highfive/features/auth/data/services/fake_auth_service.dart';
+import 'package:dio/dio.dart';
+import 'package:highfive/features/auth/data/dto/login_response_dto.dart';
+import 'package:highfive/features/auth/data/services/auth_service.dart';
 import 'package:highfive/features/auth/data/services/google_auth_service.dart';
 import 'package:highfive/features/auth/data/services/kakao_auth_service.dart';
 import 'package:highfive/features/auth/models/session.dart';
@@ -23,6 +25,22 @@ import 'package:highfive/features/home/presentation/views/home_view.dart';
 import 'package:highfive/features/my_page/presentation/views/my_page_view.dart';
 
 const _session = Session(accessToken: 'a');
+
+/// 서버 대신 바로 로그인 응답을 돌려준다.
+class _FakeAuthService extends AuthService {
+  _FakeAuthService() : super(Dio());
+
+  @override
+  Future<LoginResponseDto> login(
+    String provider, {
+    required String providerToken,
+  }) async => const LoginResponseDto(
+    accessToken: 'a',
+    refreshToken: 'r',
+    user: LoginUserDto(id: 1, status: 'ACTIVE'),
+    nextStep: 'HOME',
+  );
+}
 
 /// 카카오 SDK 대신 바로 토큰을 돌려준다.
 class _FakeKakaoAuthService extends KakaoAuthService {
@@ -58,7 +76,7 @@ Future<void> _start(WidgetTester tester, Map<String, String> stored) async {
         ),
         authRepositoryProvider.overrideWithValue(
           AuthRepository(
-            FakeAuthService(),
+            _FakeAuthService(),
             _FakeKakaoAuthService(),
             _FakeGoogleAuthService(),
           ),

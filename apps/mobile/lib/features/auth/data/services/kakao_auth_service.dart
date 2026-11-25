@@ -6,8 +6,8 @@ import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 ///
 /// 카카오톡이 설치돼 있으면 카카오톡으로, 없으면 카카오계정(웹)으로 로그인한다 (카카오 공식 예제 순서).
 class KakaoAuthService {
-  /// 카카오 access token을 돌려준다. 사용자가 취소하면 null.
-  /// BE가 ID 토큰(OpenID Connect)을 원하면 여기서 `idToken`을 돌려주도록 바꾼다.
+  /// 카카오 ID 토큰(OpenID Connect)을 돌려준다. 서버가 이 값으로 검증한다. 사용자가 취소하면 null.
+  /// 카카오 콘솔에서 OpenID Connect가 꺼져 있으면 ID 토큰이 오지 않아 [StateError]를 던진다.
   Future<String?> login() async {
     try {
       final talkInstalled = await isKakaoTalkInstalled();
@@ -15,8 +15,12 @@ class KakaoAuthService {
       final token = talkInstalled
           ? await _loginWithTalk()
           : await _loginWithAccount();
-      _log('성공 (ID 토큰 있음: ${token.idToken != null})');
-      return token.accessToken;
+      final idToken = token.idToken;
+      _log('성공 (ID 토큰 있음: ${idToken != null})');
+      if (idToken == null) {
+        throw StateError('카카오 ID 토큰이 없다. 카카오 콘솔의 OpenID Connect 설정을 확인한다.');
+      }
+      return idToken;
     } on Exception catch (error) {
       if (_isCancel(error)) {
         _log('사용자 취소');

@@ -29,8 +29,8 @@ class AppEnv {
     return switch (Flavor.values.byName(name)) {
       Flavor.dev => const AppEnv(
         flavor: Flavor.dev,
-        // TODO(BE): dev API 주소 확정 후 교체
-        apiBaseUrl: 'https://dev-api.highfive.example',
+        // dev 서버. DB는 개발 중 초기화될 수 있다.
+        apiBaseUrl: 'https://dev-api.highfive-app.link',
         kakaoNativeAppKey: '8f7351ffe7f85cf74698761a2029c90e', // Dev 키
         googleIosClientId: '620350281095-0h5cs8o86celcea40kv3u22gp3994n3a.apps.googleusercontent.com',
         googleServerClientId: _googleServerClientId,
