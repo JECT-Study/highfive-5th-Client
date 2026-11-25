@@ -24,7 +24,9 @@ lib/
 │   ├── di/locator.dart              (있음) getIt 인스턴스
 │   ├── network/
 │   │   ├── dio_client.dart          (있음) createDio: baseUrl·timeout·디버그 로그
-│   │   ├── auth_interceptor.dart    토큰 첨부, 401 → 한 번만 갱신 후 재시도
+│   │   ├── auth_interceptor.dart    (있음) 토큰 첨부, AUTH_002 → 한 번만 재발급 후 재시도, AUTH_001·003·004 → SessionExpiry
+│   │   ├── session_expiry.dart      (있음) 서버가 세션을 끝냈다는 알림. 세션 ViewModel이 듣고 로그아웃
+│   │   ├── api_log_interceptor.dart (있음) 디버그 요청·응답 로그 (토큰 값 가림)
 │   │   └── api_error_mapper.dart    (있음) DioException → AppException 변환 (서버 본문의 code를 담는다)
 │   ├── error/app_exception.dart     (있음) sealed class: NetworkException / ApiException(statusCode, code) / UnknownApiException
 │   ├── storage/

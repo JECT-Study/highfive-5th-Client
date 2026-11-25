@@ -68,4 +68,4 @@ BE 명세를 앱에서 쓰는 부분만 옮겼다. 명세가 바뀌면 이 파�
 - 서버는 `refresh:{userId}`를 덮어쓰므로 새 기기에서 로그인하면 이전 기기의 로그인이 끊긴다 (동시 로그인 불가).
 - `nextStep`에 따라 화면을 옮긴다. 약관·프로필·밴드 시작 화면이 생기기 전까지는 모두 홈으로 간다.
 - 구글은 SDK에 서버용(웹) 클라이언트 ID를 `serverClientId`로 넣어야 서버 검증을 통과한다 (`env.dart` `googleServerClientId`).
-- 이후 요청은 `Authorization: Bearer {accessToken}`. `AUTH_002`(액세스 토큰 만료)일 때만 `POST /api/v1/auth/refresh` 후 원래 요청을 다시 보낸다. 재발급하면 리프레시 토큰도 바뀌므로 새 값으로 저장한다. `AUTH_004`면 로그인 화면으로 (다른 기기 로그인 포함). 로그아웃은 `POST /api/v1/auth/logout` (Bearer). 아직 구현 전.
+- 이후 요청은 `Authorization: Bearer {accessToken}`. `AUTH_002`(액세스 토큰 만료)일 때만 `POST /api/v1/auth/refresh` 후 원래 요청을 다시 보낸다. 재발급하면 리프레시 토큰도 바뀌므로 새 값으로 저장한다. `AUTH_004`면 로그인 화면으로 (다른 기기 로그인 포함). 로그아웃은 `POST /api/v1/auth/logout` (Bearer, 아직 구현 전). 재발급은 `core/network/auth_interceptor.dart`가 한다.

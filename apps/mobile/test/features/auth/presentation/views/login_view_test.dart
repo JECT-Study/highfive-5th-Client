@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:highfive/core/network/session_expiry.dart';
 import 'package:highfive/core/storage/secure_store.dart';
 import 'package:dio/dio.dart';
 import 'package:highfive/features/auth/data/dto/login_response_dto.dart';
@@ -74,6 +75,7 @@ Future<void> _pump(
             _FakeGoogleAuthService(),
           ),
         ),
+        sessionExpiryProvider.overrideWithValue(SessionExpiry()),
         sessionRepositoryProvider.overrideWithValue(
           SessionRepository(SecureStore(const FlutterSecureStorage())),
         ),

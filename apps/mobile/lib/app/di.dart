@@ -3,7 +3,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/di/locator.dart';
+import '../core/network/auth_interceptor.dart';
 import '../core/network/dio_client.dart';
+import '../core/network/session_expiry.dart';
 import '../core/storage/secure_store.dart';
 import '../features/auth/data/repositories/auth_repository.dart';
 import '../features/auth/data/repositories/session_repository.dart';
@@ -20,11 +22,23 @@ import 'env.dart';
 void setupDi(AppEnv env) {
   getIt
     ..registerSingleton<AppEnv>(env)
-    ..registerSingleton<Dio>(createDio(baseUrl: env.apiBaseUrl))
     ..registerSingleton<FlutterSecureStorage>(const FlutterSecureStorage())
     ..registerSingleton<SharedPreferencesAsync>(SharedPreferencesAsync());
   getIt
     ..registerLazySingleton(() => SecureStore(getIt<FlutterSecureStorage>()))
+    ..registerLazySingleton(SessionExpiry.new)
+    // API 호출용 Dio. 토큰을 붙이고 만료되면 재발급한다.
+    // 재발급·재시도는 인터셉터가 없는 Dio로 보낸다.
+    ..registerLazySingleton<Dio>(
+      () => createDio(baseUrl: env.apiBaseUrl)
+        ..interceptors.add(
+          AuthInterceptor(
+            store: getIt<SecureStore>(),
+            plainDio: createDio(baseUrl: env.apiBaseUrl),
+            expiry: getIt<SessionExpiry>(),
+          ),
+        ),
+    )
     ..registerLazySingleton(() => SessionRepository(getIt<SecureStore>()))
     ..registerLazySingleton(() => AuthService(getIt<Dio>()))
     ..registerLazySingleton(KakaoAuthService.new)

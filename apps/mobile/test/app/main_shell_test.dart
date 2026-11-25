@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:highfive/core/network/session_expiry.dart';
 import 'package:highfive/app/app.dart';
 import 'package:highfive/app/env.dart';
 import 'package:highfive/app/providers.dart';
@@ -34,6 +35,7 @@ Future<void> _open(WidgetTester tester, String location) async {
             googleServerClientId: 'test',
           ),
         ),
+        sessionExpiryProvider.overrideWithValue(SessionExpiry()),
         sessionRepositoryProvider.overrideWithValue(
           SessionRepository(SecureStore(const FlutterSecureStorage())),
         ),
@@ -115,6 +117,7 @@ void main() {
               googleServerClientId: 'test',
             ),
           ),
+          sessionExpiryProvider.overrideWithValue(SessionExpiry()),
           sessionRepositoryProvider.overrideWithValue(
             SessionRepository(SecureStore(const FlutterSecureStorage())),
           ),
