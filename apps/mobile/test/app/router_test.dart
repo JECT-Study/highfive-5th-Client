@@ -16,6 +16,7 @@ import 'package:highfive/features/auth/data/dto/login_response_dto.dart';
 import 'package:highfive/features/auth/data/services/auth_service.dart';
 import 'package:highfive/features/auth/data/services/google_auth_service.dart';
 import 'package:highfive/features/auth/data/services/kakao_auth_service.dart';
+import 'package:highfive/features/auth/models/next_step.dart';
 import 'package:highfive/features/auth/models/session.dart';
 import 'package:highfive/features/auth/models/social_provider.dart';
 import 'package:highfive/features/auth/presentation/providers/auth_providers.dart';
@@ -131,6 +132,28 @@ void main() {
       expect(sessionRedirect(signedIn, AppRoutes.login), AppRoutes.home);
       expect(sessionRedirect(signedIn, AppRoutes.recruit), isNull);
       expect(sessionRedirect(signedIn, AppRoutes.onboardingProfile), isNull);
+      expect(
+        sessionRedirect(signedIn, AppRoutes.termsDetailOf(1)),
+        AppRoutes.home,
+      );
+    });
+
+    test('약관 동의 전이면 로그인 화면과 약관 상세만 허용하고 나머지는 로그인으로 보낸다', () {
+      const needsTerms = AsyncData<Session?>(
+        Session(accessToken: 'a', nextStep: NextStep.terms),
+      );
+      expect(sessionRedirect(needsTerms, AppRoutes.login), isNull);
+      expect(sessionRedirect(needsTerms, AppRoutes.termsDetailOf(1)), isNull);
+      expect(sessionRedirect(needsTerms, AppRoutes.home), AppRoutes.login);
+      expect(sessionRedirect(needsTerms, AppRoutes.splash), AppRoutes.login);
+    });
+
+    test('로그인 안 됐으면 약관 상세도 로그인으로 보낸다', () {
+      const signedOut = AsyncData<Session?>(null);
+      expect(
+        sessionRedirect(signedOut, AppRoutes.termsDetailOf(1)),
+        AppRoutes.login,
+      );
     });
   });
 

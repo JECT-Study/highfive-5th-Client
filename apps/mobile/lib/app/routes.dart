@@ -10,6 +10,9 @@ abstract final class AppRoutes {
   // 인증·온보딩 (로그인 전)
   static const login = '/login';
   static const terms = '/terms';
+  // 약관 상세. 로그인 화면의 약관 동의 시트 위에 쌓는다 (push).
+  static const termsDetail = '/terms/:termId';
+  static String termsDetailOf(int termId) => '/terms/$termId';
   static const signup = '/signup';
   static const onboardingProfile = '/onboarding/profile';
   static const onboardingBandNew = '/onboarding/band/new';

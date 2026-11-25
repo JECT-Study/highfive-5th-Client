@@ -7,6 +7,7 @@ import '../features/auth/models/session.dart';
 import '../features/auth/presentation/view_models/session_view_model.dart';
 import '../features/auth/presentation/views/login_view.dart';
 import '../features/auth/presentation/views/splash_view.dart';
+import '../features/auth/presentation/views/terms_detail_view.dart';
 import '../features/chat/presentation/views/chat_list_view.dart';
 import '../features/dev_gallery/presentation/views/widget_gallery_view.dart';
 import '../features/home/presentation/views/home_view.dart';
@@ -17,14 +18,19 @@ import 'providers.dart';
 import 'routes.dart';
 
 /// 로그인 전에만 머무는 화면. 로그인 상태면 홈으로 보낸다.
-const _signedOutRoutes = {AppRoutes.login, AppRoutes.terms, AppRoutes.signup};
+const _signedOutRoutes = {AppRoutes.login, AppRoutes.signup};
+
+/// 약관 상세(`/terms/:termId`). 약관 동의 전에만 연다.
+bool _isTermsDetail(String location) =>
+    location.startsWith('${AppRoutes.terms}/');
 
 /// 세션 상태에 맞는 경로. 그대로 두면 null.
 ///
 /// - 세션을 읽는 중 → 스플래시
 /// - 로그인 안 됨(복원 실패 포함) → 로그인 전 화면만, 나머지는 로그인으로
-/// - 로그인 됨 + 약관 동의 전(`nextStep` terms) → 로그인 화면에 머문다. 약관 동의 시트는 로그인 화면이 띄운다.
-/// - 로그인 됨 → 스플래시·로그인 전 화면에 있으면 홈으로
+/// - 로그인 됨 + 약관 동의 전(`nextStep` terms) → 로그인 화면에 머문다. 약관 동의 시트는 로그인 화면이 띄우고,
+///   약관 상세는 그 위에 쌓인다. 나머지는 로그인으로
+/// - 로그인 됨 → 스플래시·로그인 전 화면·약관 상세에 있으면 홈으로
 /// 프로필·밴드 시작 단계는 그 화면이 생길 때 추가한다. 그 전까지는 홈으로 간다.
 String? sessionRedirect(AsyncValue<Session?> session, String location) {
   // dev 위젯 모음은 로그인과 상관없이 연다 (dev flavor 라우터에만 등록된다).
@@ -37,9 +43,13 @@ String? sessionRedirect(AsyncValue<Session?> session, String location) {
     return _signedOutRoutes.contains(location) ? null : AppRoutes.login;
   }
   if (session.value!.nextStep == NextStep.terms) {
-    return location == AppRoutes.login ? null : AppRoutes.login;
+    return location == AppRoutes.login || _isTermsDetail(location)
+        ? null
+        : AppRoutes.login;
   }
-  if (location == AppRoutes.splash || _signedOutRoutes.contains(location)) {
+  if (location == AppRoutes.splash ||
+      _signedOutRoutes.contains(location) ||
+      _isTermsDetail(location)) {
     return AppRoutes.home;
   }
   return null;
@@ -72,7 +82,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.login,
-        builder: (context, state) => const LoginView(),
+        // push: 약관 상세를 로그인 화면·약관 동의 시트 위에 쌓아 뒤로 가면 시트로 돌아온다.
+        builder: (context, state) => LoginView(
+          onViewTerm: (term) => context.push(AppRoutes.termsDetailOf(term.id)),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.termsDetail,
+        // 경로는 termsDetailOf로만 만들어 숫자다. 아니면 없는 약관으로 보고 빈 화면을 보인다.
+        builder: (context, state) => TermsDetailView(
+          termId: int.tryParse(state.pathParameters['termId']!) ?? -1,
+        ),
       ),
       // 하단 탭. 탭마다 스택을 따로 유지한다. 순서 = MainShell의 탭 순서.
       // 탭 안에서 이어지는 화면(예: /recruit/:postId)은 해당 branch의 routes 아래에 붙인다.

@@ -2,6 +2,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:highfive/core/storage/secure_store.dart';
 import 'package:highfive/features/auth/data/repositories/session_repository.dart';
+import 'package:highfive/features/auth/models/next_step.dart';
 import 'package:highfive/features/auth/models/session.dart';
 
 SessionRepository _repo([Map<String, String> stored = const {}]) {
@@ -43,5 +44,32 @@ void main() {
     await repo.clear();
 
     expect(await repo.restore(), isNull);
+  });
+
+  test('nextStep도 저장하고 복원한다. 저장된 값이 없으면 홈이다', () async {
+    final repo = _repo();
+
+    await repo.save(const Session(accessToken: 'a', nextStep: NextStep.terms));
+    expect((await repo.restore())!.nextStep, NextStep.terms);
+
+    await repo.saveNextStep(NextStep.profile);
+    expect((await repo.restore())!.nextStep, NextStep.profile);
+
+    expect(
+      (await _repo({SecureStore.accessTokenKey: 'a'}).restore())!.nextStep,
+      NextStep.home,
+    );
+  });
+
+  test('지우면 nextStep도 지운다', () async {
+    final repo = _repo();
+    await repo.save(const Session(accessToken: 'a', nextStep: NextStep.terms));
+
+    await repo.clear();
+
+    expect(
+      await const FlutterSecureStorage().read(key: SecureStore.nextStepKey),
+      isNull,
+    );
   });
 }

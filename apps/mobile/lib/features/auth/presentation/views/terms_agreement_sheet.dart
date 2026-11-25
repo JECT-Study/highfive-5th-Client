@@ -8,8 +8,10 @@ import '../../../../shared/theme/app_spacing.dart';
 import '../../../../shared/theme/app_typography.dart';
 import '../../../../shared/widgets/app_bottom_sheet.dart';
 import '../../../../shared/widgets/app_button.dart';
+import '../../../../shared/widgets/app_dialog.dart';
 import '../../../../shared/widgets/app_selection_controls.dart';
 import '../../models/term.dart';
+import '../../models/terms_failure.dart';
 import '../view_models/terms_view_model.dart';
 
 /// 약관 동의 BottomSheet 내용 (Figma `로그인_약관동의_선택_컴포넌트`, node `1965:11471`).
@@ -23,11 +25,35 @@ class TermsAgreementSheet extends ConsumerWidget {
   static const allKey = ValueKey('terms_all');
   static ValueKey<String> termKey(Term term) => ValueKey('terms_${term.id}');
   static const submitKey = ValueKey('terms_submit');
+  static const retryKey = ValueKey('terms_retry');
+
+  static String _failureMessage(TermsFailureReason reason) => switch (reason) {
+    TermsFailureReason.network => '네트워크 상태를 확인하고 다시 시도해 주세요.',
+    TermsFailureReason.termsChanged => '약관이 바뀌었어요. 다시 확인해 주세요.',
+    TermsFailureReason.unknown => '잠시 후 다시 시도해 주세요.',
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(termsViewModelProvider);
     final viewModel = ref.read(termsViewModelProvider.notifier);
+    // 다시 받는 중에도 이전 목록이 있으면 그대로 보여 준다.
+    final data = state.value;
+
+    ref.listen(termsViewModelProvider.select((state) => state.value?.failure), (
+      _,
+      failure,
+    ) {
+      // 오류 안내 시안이 아직 없어 공통 Dialog로 알린다. 문구는 docs/api/terms.md "에러".
+      if (failure != null) {
+        showAppDialog(
+          context,
+          title: '약관 동의를 저장하지 못했어요',
+          message: _failureMessage(failure),
+          confirmLabel: '확인',
+        );
+      }
+    });
 
     // 동의 없이 나가는 동작은 기획 확인 전이라 뒤로 가기로도 닫히지 않게 한다.
     // 바깥 누르기·끌어내리기는 띄우는 쪽(`showAppBottomSheet`)이 막는다.
@@ -39,40 +65,98 @@ class TermsAgreementSheet extends ConsumerWidget {
         spacing: AppBottomSheetTokens.gap,
         children: [
           const AppModalHeader(title: '서비스 이용을 위해\n약관에 동의해 주세요'),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: AppSpacing.x1_5,
-            children: [
-              _TermRow(
-                key: allKey,
-                label: '전체 동의하기',
-                checked: state.allAgreed,
-                highlighted: true,
-                onTap: viewModel.toggleAll,
-              ),
-              for (final term in state.terms)
+          if (data != null)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: AppSpacing.x1_5,
+              children: [
                 _TermRow(
-                  key: termKey(term),
-                  label: '${term.required ? '[필수]' : '[선택]'} ${term.title}',
-                  checked: state.isAgreed(term),
-                  onTap: () => viewModel.toggle(term),
-                  onView: term.contentUrl == null
-                      ? null
-                      : () => onViewTerm(term),
+                  key: allKey,
+                  label: '전체 동의하기',
+                  checked: data.allAgreed,
+                  highlighted: true,
+                  onTap: viewModel.toggleAll,
                 ),
-            ],
-          ),
+                for (final term in data.terms)
+                  _TermRow(
+                    key: termKey(term),
+                    label: '${term.required ? '[필수]' : '[선택]'} ${term.title}',
+                    checked: data.isAgreed(term),
+                    onTap: () => viewModel.toggle(term),
+                    onView: term.contentUrl == null
+                        ? null
+                        : () => onViewTerm(term),
+                  ),
+              ],
+            )
+          else if (state.hasError && !state.isLoading)
+            _LoadFailure(
+              message: _failureMessage(switch (state.error) {
+                TermsFailure(:final reason) => reason,
+                _ => TermsFailureReason.unknown,
+              }),
+              onRetry: viewModel.retry,
+            )
+          else
+            const _Loading(),
           SizedBox(
             width: double.infinity,
             child: AppButton(
               key: submitKey,
               label: '동의하고 계속하기',
-              // 동의 저장 API는 다음 단계에서 붙인다.
-              onPressed: state.canSubmit ? () {} : null,
+              loading: data?.submitting ?? false,
+              onPressed: (data?.canSubmit ?? false) ? viewModel.submit : null,
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// 약관 목록을 받는 중.
+class _Loading extends StatelessWidget {
+  const _Loading();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.x8),
+      child: Center(
+        child: CircularProgressIndicator(color: context.colors.labelAssistive),
+      ),
+    );
+  }
+}
+
+/// 약관 목록을 받지 못했다. 안내와 "다시 시도".
+class _LoadFailure extends StatelessWidget {
+  const _LoadFailure({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      spacing: AppSpacing.x3,
+      children: [
+        Text(
+          '약관을 불러오지 못했어요.\n$message',
+          textAlign: TextAlign.center,
+          style: context.textStyles.body1Regular.copyWith(
+            color: context.colors.labelNeutral,
+          ),
+        ),
+        AppButton(
+          key: TermsAgreementSheet.retryKey,
+          label: '다시 시도',
+          variant: AppButtonVariant.weak,
+          size: AppButtonSize.medium,
+          onPressed: onRetry,
+        ),
+      ],
     );
   }
 }

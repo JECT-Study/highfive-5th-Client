@@ -10,6 +10,7 @@ import '../../../../shared/widgets/app_dialog.dart';
 import '../../models/login_failure.dart';
 import '../../models/next_step.dart';
 import '../../models/social_provider.dart';
+import '../../models/term.dart';
 import '../view_models/login_view_model.dart';
 import '../view_models/session_view_model.dart';
 import 'terms_agreement_sheet.dart';
@@ -21,7 +22,10 @@ import 'terms_agreement_sheet.dart';
 /// 로그인했지만 약관 동의 전(`nextStep` terms)이면 라우터가 이 화면에 머물게 하고,
 /// 이 화면이 약관 동의 시트를 띄운다 (docs/api/terms.md).
 class LoginView extends ConsumerStatefulWidget {
-  const LoginView({super.key});
+  const LoginView({super.key, required this.onViewTerm});
+
+  /// 약관 동의 시트에서 "보기"를 눌렀다. 라우터가 약관 상세를 시트 위에 쌓는다.
+  final ValueChanged<Term> onViewTerm;
 
   static ValueKey<String> buttonKey(SocialProvider provider) =>
       ValueKey('login_${provider.name}');
@@ -69,8 +73,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
         context,
         isDismissible: false,
         enableDrag: false,
-        // 약관 상세 화면은 다음 단계에서 붙인다.
-        builder: (_) => TermsAgreementSheet(onViewTerm: (_) {}),
+        builder: (_) => TermsAgreementSheet(onViewTerm: widget.onViewTerm),
       );
       _termsSheetOpen = false;
     });
