@@ -29,43 +29,50 @@ class TermsAgreementSheet extends ConsumerWidget {
     final state = ref.watch(termsViewModelProvider);
     final viewModel = ref.read(termsViewModelProvider.notifier);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      spacing: AppBottomSheetTokens.gap,
-      children: [
-        const AppModalHeader(title: '서비스 이용을 위해\n약관에 동의해 주세요'),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          spacing: AppSpacing.x1_5,
-          children: [
-            _TermRow(
-              key: allKey,
-              label: '전체 동의하기',
-              checked: state.allAgreed,
-              highlighted: true,
-              onTap: viewModel.toggleAll,
-            ),
-            for (final term in state.terms)
+    // 동의 없이 나가는 동작은 기획 확인 전이라 뒤로 가기로도 닫히지 않게 한다.
+    // 바깥 누르기·끌어내리기는 띄우는 쪽(`showAppBottomSheet`)이 막는다.
+    return PopScope(
+      canPop: false,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: AppBottomSheetTokens.gap,
+        children: [
+          const AppModalHeader(title: '서비스 이용을 위해\n약관에 동의해 주세요'),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: AppSpacing.x1_5,
+            children: [
               _TermRow(
-                key: termKey(term),
-                label: '${term.required ? '[필수]' : '[선택]'} ${term.title}',
-                checked: state.isAgreed(term),
-                onTap: () => viewModel.toggle(term),
-                onView: term.contentUrl == null ? null : () => onViewTerm(term),
+                key: allKey,
+                label: '전체 동의하기',
+                checked: state.allAgreed,
+                highlighted: true,
+                onTap: viewModel.toggleAll,
               ),
-          ],
-        ),
-        SizedBox(
-          width: double.infinity,
-          child: AppButton(
-            key: submitKey,
-            label: '동의하고 계속하기',
-            // 동의 저장 API는 다음 단계에서 붙인다.
-            onPressed: state.canSubmit ? () {} : null,
+              for (final term in state.terms)
+                _TermRow(
+                  key: termKey(term),
+                  label: '${term.required ? '[필수]' : '[선택]'} ${term.title}',
+                  checked: state.isAgreed(term),
+                  onTap: () => viewModel.toggle(term),
+                  onView: term.contentUrl == null
+                      ? null
+                      : () => onViewTerm(term),
+                ),
+            ],
           ),
-        ),
-      ],
+          SizedBox(
+            width: double.infinity,
+            child: AppButton(
+              key: submitKey,
+              label: '동의하고 계속하기',
+              // 동의 저장 API는 다음 단계에서 붙인다.
+              onPressed: state.canSubmit ? () {} : null,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

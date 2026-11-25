@@ -4,16 +4,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/theme/app_colors.dart';
 import '../../../../shared/theme/app_spacing.dart';
 import '../../../../shared/theme/app_typography.dart';
+import '../../../../shared/widgets/app_bottom_sheet.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_dialog.dart';
 import '../../models/login_failure.dart';
+import '../../models/next_step.dart';
 import '../../models/social_provider.dart';
 import '../view_models/login_view_model.dart';
+import '../view_models/session_view_model.dart';
+import 'terms_agreement_sheet.dart';
 
 /// 로그인 화면 (Figma `계정-회원가입`, node `1372:6594`).
 /// 디자이너 확인 전이라 토큰에 없는 시안 값도 [_Draft]에 모아 시안과 똑같이 맞춘다.
 /// 소셜 로그인 SDK를 붙이기 전이라 어느 버튼이든 임시 토큰으로 로그인한다 (`AuthService`).
-class LoginView extends ConsumerWidget {
+///
+/// 로그인했지만 약관 동의 전(`nextStep` terms)이면 라우터가 이 화면에 머물게 하고,
+/// 이 화면이 약관 동의 시트를 띄운다 (docs/api/terms.md).
+class LoginView extends ConsumerStatefulWidget {
   const LoginView({super.key});
 
   static ValueKey<String> buttonKey(SocialProvider provider) =>
@@ -28,7 +35,49 @@ class LoginView extends ConsumerWidget {
   };
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LoginView> createState() => _LoginViewState();
+}
+
+class _LoginViewState extends ConsumerState<LoginView> {
+  /// 약관 동의 시트가 떠 있는지. 같은 시트를 두 번 띄우지 않게 한다.
+  bool _termsSheetOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 로그인 직후(세션이 바뀔 때)와 앱을 다시 켜서 이 화면에 왔을 때(fireImmediately) 모두 본다.
+    ref.listenManual(
+      sessionProvider.select(
+        (session) => session.value?.nextStep == NextStep.terms,
+      ),
+      (_, needsTerms) {
+        if (needsTerms) _openTermsSheet();
+      },
+      fireImmediately: true,
+    );
+  }
+
+  /// 바깥 누르기·끌어내리기로 닫히지 않는 약관 동의 시트를 띄운다.
+  /// 동의하면 라우터가 다음 화면으로 옮기고, 이 화면과 함께 시트도 사라진다.
+  void _openTermsSheet() {
+    if (_termsSheetOpen) return;
+    _termsSheetOpen = true;
+    // build 중에 불릴 수 있어 화면을 다 그린 뒤 띄운다.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await showAppBottomSheet<void>(
+        context,
+        isDismissible: false,
+        enableDrag: false,
+        // 약관 상세 화면은 다음 단계에서 붙인다.
+        builder: (_) => TermsAgreementSheet(onViewTerm: (_) {}),
+      );
+      _termsSheetOpen = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final pending = ref.watch(loginViewModelProvider).pending;
     void login(SocialProvider provider) =>
         ref.read(loginViewModelProvider.notifier).login(provider);
@@ -42,7 +91,7 @@ class LoginView extends ConsumerWidget {
         showAppDialog(
           context,
           title: '로그인하지 못했어요',
-          message: _failureMessage(failure),
+          message: LoginView._failureMessage(failure),
           confirmLabel: '확인',
         );
       }
@@ -72,7 +121,7 @@ class LoginView extends ConsumerWidget {
                                 maxHeight: _Draft.introTop,
                               ),
                             ),
-                            _Intro(key: introKey),
+                            _Intro(key: LoginView.introKey),
                             // 남는 높이는 이 아래(버튼 위)에 생긴다.
                             SizedBox(height: AppSpacing.x8),
                           ],
@@ -82,7 +131,7 @@ class LoginView extends ConsumerWidget {
                         child: Column(
                           children: [
                             _LoginButton(
-                              key: buttonKey(SocialProvider.kakao),
+                              key: LoginView.buttonKey(SocialProvider.kakao),
                               label: '카카오톡으로 계속하기',
                               variant: AppButtonVariant.fill,
                               loading: pending == SocialProvider.kakao,
@@ -90,7 +139,7 @@ class LoginView extends ConsumerWidget {
                             ),
                             const SizedBox(height: AppSpacing.x2_5),
                             _LoginButton(
-                              key: buttonKey(SocialProvider.apple),
+                              key: LoginView.buttonKey(SocialProvider.apple),
                               label: 'Apple로 계속하기',
                               variant: AppButtonVariant.weak,
                               loading: pending == SocialProvider.apple,
@@ -98,7 +147,7 @@ class LoginView extends ConsumerWidget {
                             ),
                             const SizedBox(height: AppSpacing.x2_5),
                             _LoginButton(
-                              key: buttonKey(SocialProvider.google),
+                              key: LoginView.buttonKey(SocialProvider.google),
                               label: 'Google로 계속하기',
                               variant: AppButtonVariant.weak,
                               loading: pending == SocialProvider.google,
