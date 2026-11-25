@@ -6,14 +6,21 @@ import '../theme/app_typography.dart';
 
 /// Figma `BottomSheet`를 띄운다. [builder]가 만든 내용이 손잡이 아래에 들어간다.
 /// 보통 `AppModalHeader` → 내용 → `AppButton` 순서로 넣는다.
+///
+/// 꼭 끝내야 하는 단계(예: 약관 동의)는 [isDismissible]·[enableDrag]를 false로 넘겨
+/// 바깥 누르기·끌어내리기로 닫히지 않게 한다. 뒤로 가기는 내용 쪽 `PopScope`가 막는다.
 Future<T?> showAppBottomSheet<T>(
   BuildContext context, {
   required WidgetBuilder builder,
+  bool isDismissible = true,
+  bool enableDrag = true,
 }) {
   return showModalBottomSheet<T>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
+    isDismissible: isDismissible,
+    enableDrag: enableDrag,
     backgroundColor: context.colors.backgroundNormal,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(

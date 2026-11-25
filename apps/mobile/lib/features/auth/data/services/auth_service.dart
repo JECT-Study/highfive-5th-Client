@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 
 import '../../../../core/network/api_error_mapper.dart';
+import '../../../../core/network/api_response.dart';
 import '../dto/login_response_dto.dart';
 
 /// 로그인 API 호출 (docs/api/auth-login.md).
@@ -20,9 +21,10 @@ class AuthService {
         '/api/v1/auth/login/$provider',
         data: {'token': providerToken},
       );
-      return LoginResponseDto.fromJson(
-        response.data!['data'] as Map<String, dynamic>,
-      );
+      return ApiResponse.fromJson(
+        response.data!,
+        (data) => LoginResponseDto.fromJson(data! as Map<String, dynamic>),
+      ).data;
     } on DioException catch (error) {
       throw mapDioException(error);
     }
