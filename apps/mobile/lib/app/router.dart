@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/auth/models/next_step.dart';
 import '../features/auth/models/session.dart';
 import '../features/auth/presentation/view_models/session_view_model.dart';
 import '../features/auth/presentation/views/login_view.dart';
@@ -22,8 +23,9 @@ const _signedOutRoutes = {AppRoutes.login, AppRoutes.terms, AppRoutes.signup};
 ///
 /// - 세션을 읽는 중 → 스플래시
 /// - 로그인 안 됨(복원 실패 포함) → 로그인 전 화면만, 나머지는 로그인으로
+/// - 로그인 됨 + 약관 동의 전(`nextStep` terms) → 로그인 화면에 머문다. 약관 동의 시트는 로그인 화면이 띄운다.
 /// - 로그인 됨 → 스플래시·로그인 전 화면에 있으면 홈으로
-/// 온보딩 미완료 → 온보딩 분기는 온보딩 정보를 받을 때 추가한다.
+/// 프로필·밴드 시작 단계는 그 화면이 생길 때 추가한다. 그 전까지는 홈으로 간다.
 String? sessionRedirect(AsyncValue<Session?> session, String location) {
   // dev 위젯 모음은 로그인과 상관없이 연다 (dev flavor 라우터에만 등록된다).
   if (location == AppRoutes.devWidgets) return null;
@@ -33,6 +35,9 @@ String? sessionRedirect(AsyncValue<Session?> session, String location) {
   final signedIn = session.hasValue && session.value != null;
   if (!signedIn) {
     return _signedOutRoutes.contains(location) ? null : AppRoutes.login;
+  }
+  if (session.value!.nextStep == NextStep.terms) {
+    return location == AppRoutes.login ? null : AppRoutes.login;
   }
   if (location == AppRoutes.splash || _signedOutRoutes.contains(location)) {
     return AppRoutes.home;
