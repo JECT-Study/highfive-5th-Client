@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:highfive/shared/theme/app_component_tokens.dart';
 import 'package:highfive/shared/theme/app_theme.dart';
 import 'package:highfive/shared/widgets/app_chip.dart';
 
@@ -41,5 +42,17 @@ void main() {
       );
     }
     semantics.dispose();
+  });
+
+  // Figma Chip(1497:9998)은 38, 웹 Chip(border-box)은 글자 + 여백 + 1px 테두리다.
+  testWidgets('높이는 글자 줄 + 위아래 여백 + 1px 테두리다', (tester) async {
+    const border = 1.0;
+    await _pump(tester, AppChip(label: '1~3년', selected: false, onTap: () {}));
+
+    final text = tester.getSize(find.text('1~3년')).height;
+    expect(
+      tester.getSize(find.byType(AppChip)).height,
+      text + (AppChipTokens.paddingY + border) * 2,
+    );
   });
 }

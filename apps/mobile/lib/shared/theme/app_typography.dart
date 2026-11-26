@@ -30,13 +30,14 @@ TextStyle _style(double size, FontWeight weight, [double? height]) => TextStyle(
   letterSpacing: 0,
 );
 
-/// 글자 스타일 토큰. 이름은 Figma 텍스트 스타일 이름(Title-1(B) → `title1Bold`).
+/// 글자 스타일 토큰. 이름은 Figma 텍스트 스타일 이름(Title-1(B) → `title1Bold`). `head`는 Head(SB), `headBold`는 Head(B).
 /// 위젯은 `context.textStyles.body1Regular`처럼 이것만 쓰고 `TextStyle(fontSize: 16)`을 직접 만들지 않는다.
 /// 색은 넣지 않는다. 기본 글자색(`labelNormal`)을 물려받고, 바꿀 때만 `.copyWith(color: context.colors.*)`.
 @immutable
 class AppTextStyles extends ThemeExtension<AppTextStyles> {
   const AppTextStyles({
     required this.head,
+    required this.headBold,
     required this.title1Bold,
     required this.title1Regular,
     required this.title2Bold,
@@ -55,6 +56,7 @@ class AppTextStyles extends ThemeExtension<AppTextStyles> {
 
   static final standard = AppTextStyles(
     head: _style(AppFontSize.head, FontWeight.w600, AppLineHeight.head),
+    headBold: _style(AppFontSize.head, FontWeight.w700, AppLineHeight.head),
     title1Bold: _style(AppFontSize.title1, FontWeight.w700),
     title1Regular: _style(AppFontSize.title1, FontWeight.w400),
     title2Bold: _style(AppFontSize.title2, FontWeight.w700),
@@ -96,6 +98,9 @@ class AppTextStyles extends ThemeExtension<AppTextStyles> {
   );
 
   final TextStyle head;
+
+  /// Figma Head(B). v4 타이포그래피 표(1502:11314)에만 있고 텍스트 스타일로는 아직 등록되지 않았다.
+  final TextStyle headBold;
   final TextStyle title1Bold;
   final TextStyle title1Regular;
   final TextStyle title2Bold;
@@ -129,6 +134,7 @@ class AppTextStyles extends ThemeExtension<AppTextStyles> {
   @override
   AppTextStyles copyWith({
     TextStyle? head,
+    TextStyle? headBold,
     TextStyle? title1Bold,
     TextStyle? title1Regular,
     TextStyle? title2Bold,
@@ -146,6 +152,7 @@ class AppTextStyles extends ThemeExtension<AppTextStyles> {
   }) {
     return AppTextStyles(
       head: head ?? this.head,
+      headBold: headBold ?? this.headBold,
       title1Bold: title1Bold ?? this.title1Bold,
       title1Regular: title1Regular ?? this.title1Regular,
       title2Bold: title2Bold ?? this.title2Bold,
@@ -168,6 +175,7 @@ class AppTextStyles extends ThemeExtension<AppTextStyles> {
     if (other == null) return this;
     return AppTextStyles(
       head: TextStyle.lerp(head, other.head, t)!,
+      headBold: TextStyle.lerp(headBold, other.headBold, t)!,
       title1Bold: TextStyle.lerp(title1Bold, other.title1Bold, t)!,
       title1Regular: TextStyle.lerp(title1Regular, other.title1Regular, t)!,
       title2Bold: TextStyle.lerp(title2Bold, other.title2Bold, t)!,

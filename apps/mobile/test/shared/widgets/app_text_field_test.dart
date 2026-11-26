@@ -50,4 +50,42 @@ void main() {
       AppInputTokens.height,
     );
   });
+
+  // Figma Input(1501:10747 글자 x=15, 654:5752 앞 아이콘 x=15 · 글자 x=49)과
+  // 웹 TextField(border-box)처럼 여백 토큰은 1px 테두리 안쪽에서 잰다.
+  testWidgets('글자·아이콘은 테두리 안쪽 Input 여백·간격에 둔다', (tester) async {
+    const border = 1.0;
+    const icon = 24.0;
+    const inset = AppInputTokens.paddingX + border;
+    Rect rectOf(Finder finder) => tester.getRect(finder);
+
+    await _pump(
+      tester,
+      const SizedBox(width: 335, child: AppTextField(hintText: '이름')),
+    );
+    var field = rectOf(find.byType(AppTextField));
+    var text = rectOf(find.byType(EditableText));
+    expect(text.left - field.left, inset);
+    expect(field.right - text.right, inset);
+
+    await _pump(
+      tester,
+      const SizedBox(
+        width: 335,
+        child: AppTextField(
+          hintText: '검색',
+          prefix: SizedBox.square(key: ValueKey('prefix'), dimension: icon),
+          suffix: SizedBox.square(key: ValueKey('suffix'), dimension: icon),
+        ),
+      ),
+    );
+    field = rectOf(find.byType(AppTextField));
+    text = rectOf(find.byType(EditableText));
+    final prefix = rectOf(find.byKey(const ValueKey('prefix')));
+    final suffix = rectOf(find.byKey(const ValueKey('suffix')));
+    expect(prefix.left - field.left, inset);
+    expect(text.left - prefix.right, AppInputTokens.gap);
+    expect(suffix.left - text.right, AppInputTokens.gap);
+    expect(field.right - suffix.right, inset);
+  });
 }

@@ -28,4 +28,14 @@ void main() {
     expect(t.titleLarge?.fontSize, s.title1Bold.fontSize);
     expect(t.titleLarge?.fontWeight, FontWeight.w700);
   });
+
+  test('Head(B)는 Head(SB)와 크기·행간이 같고 굵기만 Bold다', () {
+    final s = AppTextStyles.standard;
+
+    expect(s.headBold.fontSize, s.head.fontSize);
+    expect(s.headBold.height, s.head.height);
+    expect(s.headBold.fontWeight, FontWeight.w700);
+    // 기존 화면이 쓰는 head는 Head(SB) 그대로다.
+    expect(s.head.fontWeight, FontWeight.w600);
+  });
 }

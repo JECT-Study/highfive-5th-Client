@@ -5,6 +5,9 @@ import '../theme/app_component_tokens.dart';
 import '../theme/app_typography.dart';
 import 'app_icon.dart';
 
+/// Chip 테두리 두께. 웹(border-box)처럼 여백 토큰 바깥에 더해 Figma Chip 높이 38(1497:9998)에 맞춘다.
+const _chipBorderWidth = 1.0;
+
 /// Figma `Chip` 선택형 버튼. 선택지를 고르거나 목록을 거를 때 쓴다.
 ///
 /// 선택 전은 흰 바탕 + 테두리, 선택 후는 진한 바탕 + 흰 글자.
@@ -34,14 +37,16 @@ class AppChip extends StatelessWidget {
       selected: selected,
       child: Material(
         color: background,
-        shape: StadiumBorder(side: BorderSide(color: borderColor)),
+        shape: StadiumBorder(
+          side: BorderSide(color: borderColor, width: _chipBorderWidth),
+        ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: AppChipTokens.paddingX,
-              vertical: AppChipTokens.paddingY,
+              horizontal: AppChipTokens.paddingX + _chipBorderWidth,
+              vertical: AppChipTokens.paddingY + _chipBorderWidth,
             ),
             child: Text(
               label,

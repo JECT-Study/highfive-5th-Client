@@ -1,11 +1,11 @@
 :root {
-  /* primitive — Figma 디자인 시스템 v3 Primitive. use only inside this file */
+  /* primitive — Figma 디자인 시스템 Primitive (v4 색상변경V3 반영). use only inside this file */
   --gray-800: #0b0b0c;
-  --pink-50: #ffeaf4;
+  --pink-50: #ffd6e9;
   --pink-300: #ff5fa6;
   --pink-500: #ff2f8c;
-  --pink-600: #e62a7e;
-  --pink-700: #c7256d;
+  --pink-600: #dc136c;
+  --pink-700: #8e0341;
   --blue-50: #e9f4ff;
   --blue-500: #2f97ff;
   --blue-600: #2887e6;
@@ -22,7 +22,7 @@
   --color-label-disable: #dfdfe0;
   --color-background-normal: var(--white);
   --color-background-alternative: #f7f7f8;
-  --color-background-warning: #f1e1e1;
+  --color-background-warning: #ffe7e7;
   --color-interaction-inactive: #989ba2;
   --color-interaction-disable: #f4f4f5;
   --color-line-normal: #e0e0e2;
@@ -142,6 +142,7 @@
   --font-size-caption1: 12px;
   --font-size-tag: 10px;
   --text-head: 600 var(--font-size-head) / 1.3 var(--font-family);
+  --text-head-bold: 700 var(--font-size-head) / 1.3 var(--font-family);
   --text-title1-bold: 700 var(--font-size-title1) / normal var(--font-family);
   --text-title1-regular: 400 var(--font-size-title1) / normal var(--font-family);
   --text-title2-bold: 700 var(--font-size-title2) / normal var(--font-family);
