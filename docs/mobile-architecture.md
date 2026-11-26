@@ -24,9 +24,11 @@ lib/
 │   ├── di/locator.dart              (있음) getIt 인스턴스
 │   ├── network/
 │   │   ├── dio_client.dart          (있음) createDio: baseUrl·timeout·디버그 로그
-│   │   ├── auth_interceptor.dart    토큰 첨부, 401 → 한 번만 갱신 후 재시도
-│   │   └── api_error_mapper.dart    DioException → AppException 변환
-│   ├── error/app_exception.dart     sealed class: network / unauthorized / notFound / conflict / server / unknown
+│   │   ├── auth_interceptor.dart    (있음) 토큰 첨부, AUTH_002 → 한 번만 재발급 후 재시도, AUTH_001·003·004 → SessionExpiry
+│   │   ├── session_expiry.dart      (있음) 서버가 세션을 끝냈다는 알림. 세션 ViewModel이 듣고 로그아웃
+│   │   ├── api_log_interceptor.dart (있음) 디버그 요청·응답 로그 (토큰 값 가림)
+│   │   └── api_error_mapper.dart    (있음) DioException → AppException 변환 (서버 본문의 code를 담는다)
+│   ├── error/app_exception.dart     (있음) sealed class: NetworkException / ApiException(statusCode, code) / UnknownApiException
 │   ├── storage/
 │   │   ├── secure_store.dart        (있음) FlutterSecureStorage 래퍼 + 키 상수 (토큰)
 │   │   └── prefs_store.dart         SharedPreferencesAsync 래퍼 + 키 상수 (설정)
@@ -248,7 +250,7 @@ Service(DioException) ─► core/network/api_error_mapper ─► AppException
       ─► Repository(통과) ─► ViewModel(AsyncValue.guard → AsyncError) ─► View(ErrorView)
 ```
 
-- `AppException`은 `core/error/app_exception.dart`의 sealed class. 화면은 종류별로 문구·행동(재시도, 로그인 이동)을 정한다.
+- `AppException`은 `core/error/app_exception.dart`의 sealed class. 서버 오류는 `ApiException`에 HTTP 상태와 서버 오류 코드(예: `AUTH_006`)를 담는다. 기능의 Repository가 코드를 그 기능의 실패 이유로 바꾸고(예: `AuthRepository` → `LoginFailureReason`), 화면은 이유별로 문구·행동(재시도, 로그인 이동)을 정한다. 코드별 처리는 `docs/api/`의 명세에 적는다.
 - View는 `AsyncValue.when`으로 로딩·오류·빈 결과를 반드시 그린다. `shared/widgets`의 `LoadingView`·`ErrorView`·`EmptyView`를 쓴다(첫 화면 만들 때 생성).
 - 네트워크 단절·5xx로 로그아웃하지 않는다. `unauthorized`(갱신 실패)만 세션을 정리한다.
 
@@ -302,9 +304,14 @@ dev와 prod는 네이티브 flavor로 나눈다. 앱 ID가 달라서 두 앱이 
 | 홈 화면 이름 | `highfive DEV` | `highfive` |
 | 환경값 (`app/env.dart`) | `Flavor.dev`: dev API 주소 | `Flavor.prod`: prod API 주소 |
 | 화면 | 왼쪽 위 `DEV` 배너 | 배너 없음 |
+| 카카오 네이티브 앱 키 | Dev 키 (`8f7351ff…`) | Default 키 (`68320ddf…`) |
+| Google iOS 클라이언트 ID | `620350281095-0h5cs8o8…` | `620350281095-gadtuaqo…` |
+| Google 서버(웹) 클라이언트 ID | `620350281095-d3ubpmrm…` (같음) | 같음 |
 
 - 값이 정해지는 순서: `--flavor dev`를 주면 Flutter가 `FLUTTER_APP_FLAVOR=dev`를 넣고, `AppEnv.fromEnvironment()`가 그 값을 먼저 읽는다. 없으면 `--dart-define=FLAVOR`(flavor 없이 도는 테스트·도구용)를, 그것도 없으면 dev를 쓴다. 모르는 값이면 시작할 때 바로 실패한다.
 - 설정 위치: Android는 `android/app/build.gradle.kts`의 `productFlavors`다. 앱 이름은 `resValue("string", "app_name", ...)`로 넣고, AGP 9는 이 기능이 기본으로 꺼져 있어 `buildFeatures.resValues = true`가 필요하다. iOS는 빌드 구성 `Debug-dev`·`Release-dev`·`Profile-dev`(prod도 같은 셋)와 공유 스킴 `dev`·`prod`다. Flutter는 스킴 이름이 flavor 이름과 같아야 찾는다. iOS 앱 이름은 빌드 설정 `APP_DISPLAY_NAME`이 `Info.plist`의 `CFBundleDisplayName`으로 들어간다.
+- 카카오 네이티브 앱 키는 한 카카오 앱의 키 두 개다(dev → Dev, prod → Default). Android 키 해시도 같은 키에 등록한다. 같은 값이 세 곳에 있어 바꿀 때 셋 다 바꾼다: `lib/app/env.dart`(`KakaoSdk.init`), iOS 빌드 설정 `KAKAO_NATIVE_APP_KEY`(`Info.plist`의 URL 스킴 `kakao$(KAKAO_NATIVE_APP_KEY)`), Android `build.gradle.kts`의 `manifestPlaceholders["kakaoNativeAppKey"]`(`AndroidManifest.xml`의 리다이렉트 스킴).
+- Google 로그인: iOS 클라이언트 ID는 `lib/app/env.dart`(`googleIosClientId`)와 iOS 빌드 설정 `GOOGLE_REVERSED_CLIENT_ID`(뒤집은 값, `Info.plist` URL 스킴) 두 곳에 있다. Android는 코드에 ID가 없고 Google Cloud 콘솔의 Android 클라이언트(패키지명 + SHA-1)로 알아본다. 그래서 서명 키가 늘면(다른 개발자 Mac의 debug 키, release 키, Play 앱 서명 키) 그 SHA-1로 Android 클라이언트를 추가해야 한다. 서버(웹) 클라이언트 ID는 ID 토큰의 대상이고 BE가 검증에 쓴다.
 - **명령에는 항상 `--flavor`를 붙인다.** Android는 flavor 없이 빌드하면 `Gradle build failed to produce an .apk file` 오류로 실패한다. iOS는 원래 `Runner` 스킴이 남아 있어 flavor 없이도 빌드되지만, 결과는 prod 앱 ID에 dev 환경(DEV 배너·dev API)이 섞인 앱이다. 이 빌드는 배포에 쓰지 않는다.
 - Xcode에서 직접 빌드할 때 Dart 쪽 flavor는 빌드 구성 이름에서 정해진다. `Debug-dev`처럼 `-` 뒤 이름이 스킴 이름과 같으면 그 flavor를 쓴다(flutter_tools `parseFlavorFromConfiguration`). 그래서 `dev`·`prod` 스킴을 고르면 맞게 들어간다. `Runner` 스킴(구성 `Debug`)은 구성 이름에 flavor가 없어서 마지막 `fvm flutter` 명령이 `ios/Flutter/Generated.xcconfig`에 남긴 `FLAVOR` 값을 쓴다. 그러니 Xcode에서는 `Runner` 스킴으로 빌드하지 않는다.
 - CocoaPods를 쓰게 되면 `ios/Podfile`의 `project 'Runner', {...}`에 새 구성 6개를 매핑해야 한다(`Debug-dev`는 `:debug`, `Release-dev`·`Profile-dev`는 `:release`, prod도 같게). 각 구성의 Pods xcconfig도 include해야 한다. 지금은 SwiftPM을 써서 Podfile이 없다.

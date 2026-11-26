@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:highfive/core/network/session_expiry.dart';
 import 'package:highfive/app/app.dart';
 import 'package:highfive/app/env.dart';
 import 'package:highfive/app/providers.dart';
@@ -26,8 +27,15 @@ Future<void> _open(WidgetTester tester, String location) async {
     ProviderScope(
       overrides: [
         appEnvProvider.overrideWithValue(
-          const AppEnv(flavor: Flavor.prod, apiBaseUrl: 'http://localhost'),
+          const AppEnv(
+            flavor: Flavor.prod,
+            apiBaseUrl: 'http://localhost',
+            kakaoNativeAppKey: 'test',
+            googleIosClientId: 'test',
+            googleServerClientId: 'test',
+          ),
         ),
+        sessionExpiryProvider.overrideWithValue(SessionExpiry()),
         sessionRepositoryProvider.overrideWithValue(
           SessionRepository(SecureStore(const FlutterSecureStorage())),
         ),
@@ -101,8 +109,15 @@ void main() {
       ProviderScope(
         overrides: [
           appEnvProvider.overrideWithValue(
-            const AppEnv(flavor: Flavor.prod, apiBaseUrl: 'http://localhost'),
+            const AppEnv(
+              flavor: Flavor.prod,
+              apiBaseUrl: 'http://localhost',
+              kakaoNativeAppKey: 'test',
+              googleIosClientId: 'test',
+              googleServerClientId: 'test',
+            ),
           ),
+          sessionExpiryProvider.overrideWithValue(SessionExpiry()),
           sessionRepositoryProvider.overrideWithValue(
             SessionRepository(SecureStore(const FlutterSecureStorage())),
           ),

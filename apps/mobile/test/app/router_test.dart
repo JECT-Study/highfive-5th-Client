@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:highfive/core/network/session_expiry.dart';
 import 'package:highfive/app/app.dart';
 import 'package:highfive/app/env.dart';
 import 'package:highfive/app/providers.dart';
@@ -10,8 +11,13 @@ import 'package:highfive/app/routes.dart';
 import 'package:highfive/core/storage/secure_store.dart';
 import 'package:highfive/features/auth/data/repositories/auth_repository.dart';
 import 'package:highfive/features/auth/data/repositories/session_repository.dart';
+import 'package:dio/dio.dart';
+import 'package:highfive/features/auth/data/dto/login_response_dto.dart';
 import 'package:highfive/features/auth/data/services/auth_service.dart';
+import 'package:highfive/features/auth/data/services/google_auth_service.dart';
+import 'package:highfive/features/auth/data/services/kakao_auth_service.dart';
 import 'package:highfive/features/auth/models/session.dart';
+import 'package:highfive/features/auth/models/social_provider.dart';
 import 'package:highfive/features/auth/presentation/providers/auth_providers.dart';
 import 'package:highfive/features/auth/presentation/providers/session_providers.dart';
 import 'package:highfive/features/auth/presentation/view_models/session_view_model.dart';
@@ -21,6 +27,39 @@ import 'package:highfive/features/my_page/presentation/views/my_page_view.dart';
 
 const _session = Session(accessToken: 'a');
 
+/// 서버 대신 바로 로그인 응답을 돌려준다.
+class _FakeAuthService extends AuthService {
+  _FakeAuthService() : super(Dio());
+
+  @override
+  Future<LoginResponseDto> login(
+    String provider, {
+    required String providerToken,
+  }) async => const LoginResponseDto(
+    accessToken: 'a',
+    refreshToken: 'r',
+    user: LoginUserDto(id: 1, status: 'ACTIVE'),
+    nextStep: 'HOME',
+  );
+
+  @override
+  Future<void> logout() async {}
+}
+
+/// 카카오 SDK 대신 바로 토큰을 돌려준다.
+class _FakeKakaoAuthService extends KakaoAuthService {
+  @override
+  Future<String?> login() async => 'kakao-token';
+}
+
+/// Google SDK 대신 바로 토큰을 돌려준다.
+class _FakeGoogleAuthService extends GoogleAuthService {
+  _FakeGoogleAuthService() : super(iosClientId: '', serverClientId: '');
+
+  @override
+  Future<String?> login() async => 'google-token';
+}
+
 /// [stored]가 저장된 상태로 앱을 처음부터 띄운다 (앱 재시작과 같다).
 Future<void> _start(WidgetTester tester, Map<String, String> stored) async {
   FlutterSecureStorage.setMockInitialValues(Map.of(stored));
@@ -28,12 +67,25 @@ Future<void> _start(WidgetTester tester, Map<String, String> stored) async {
     ProviderScope(
       overrides: [
         appEnvProvider.overrideWithValue(
-          const AppEnv(flavor: Flavor.prod, apiBaseUrl: 'http://localhost'),
+          const AppEnv(
+            flavor: Flavor.prod,
+            apiBaseUrl: 'http://localhost',
+            kakaoNativeAppKey: 'test',
+            googleIosClientId: 'test',
+            googleServerClientId: 'test',
+          ),
         ),
+        sessionExpiryProvider.overrideWithValue(SessionExpiry()),
         sessionRepositoryProvider.overrideWithValue(
           SessionRepository(SecureStore(const FlutterSecureStorage())),
         ),
-        authRepositoryProvider.overrideWithValue(AuthRepository(AuthService())),
+        authRepositoryProvider.overrideWithValue(
+          AuthRepository(
+            _FakeAuthService(),
+            _FakeKakaoAuthService(),
+            _FakeGoogleAuthService(),
+          ),
+        ),
       ],
       child: const HighfiveApp(),
     ),
@@ -113,7 +165,7 @@ void main() {
   testWidgets('로그인 버튼을 누르면 홈으로 가고, 다시 켜도 홈이다', (tester) async {
     await _start(tester, {});
 
-    await tester.tap(find.text('임시 로그인'));
+    await tester.tap(find.byKey(LoginView.buttonKey(SocialProvider.kakao)));
     await tester.pumpAndSettle();
     expect(find.byType(HomeView), findsOneWidget);
 

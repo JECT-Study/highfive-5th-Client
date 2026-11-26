@@ -27,6 +27,8 @@ class AppButton extends StatelessWidget {
     this.variant = AppButtonVariant.fill,
     this.size = AppButtonSize.large,
     this.icon,
+    this.iconGap,
+    this.iconSize,
     this.loading = false,
   });
 
@@ -37,6 +39,12 @@ class AppButton extends StatelessWidget {
 
   /// 글자 앞에 놓는 아이콘 (Figma PrefixIcon). 색은 버튼 글자색을 물려받는다.
   final Widget? icon;
+
+  /// 아이콘과 글자 사이. 없으면 크기별 토큰 값이다. 화면 시안이 다를 때만 `AppSpacing` 값을 넘긴다.
+  final double? iconGap;
+
+  /// 아이콘 크기. 없으면 크기별 토큰 값이다. 화면 시안이 다를 때만 넘긴다.
+  final double? iconSize;
   final bool loading;
 
   bool get _enabled => onPressed != null;
@@ -62,14 +70,14 @@ class AppButton extends StatelessWidget {
                 IconTheme.merge(
                   data: IconThemeData(
                     color: style.foreground,
-                    size: metrics.iconSize,
+                    size: iconSize ?? metrics.iconSize,
                   ),
                   child: SizedBox.square(
-                    dimension: metrics.iconSize,
+                    dimension: iconSize ?? metrics.iconSize,
                     child: icon,
                   ),
                 ),
-                SizedBox(width: metrics.gap),
+                SizedBox(width: iconGap ?? metrics.gap),
               ],
               Flexible(
                 child: Text(

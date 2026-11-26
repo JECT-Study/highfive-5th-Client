@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:highfive/core/network/session_expiry.dart';
 import 'package:highfive/app/app.dart';
 import 'package:highfive/app/env.dart';
 import 'package:highfive/app/providers.dart';
@@ -16,8 +17,15 @@ Widget _app(Flavor flavor) {
   return ProviderScope(
     overrides: [
       appEnvProvider.overrideWithValue(
-        AppEnv(flavor: flavor, apiBaseUrl: 'http://localhost'),
+        AppEnv(
+          flavor: flavor,
+          apiBaseUrl: 'http://localhost',
+          kakaoNativeAppKey: 'test',
+          googleIosClientId: 'test',
+          googleServerClientId: 'test',
+        ),
       ),
+      sessionExpiryProvider.overrideWithValue(SessionExpiry()),
       sessionRepositoryProvider.overrideWithValue(
         SessionRepository(SecureStore(const FlutterSecureStorage())),
       ),
