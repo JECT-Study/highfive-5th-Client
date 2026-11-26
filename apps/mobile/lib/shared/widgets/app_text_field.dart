@@ -4,6 +4,16 @@ import '../theme/app_colors.dart';
 import '../theme/app_component_tokens.dart';
 import '../theme/app_typography.dart';
 
+/// 테두리 두께. Figma Input과 웹(border-box)처럼 여백 토큰은 이 테두리 안쪽에서 잰다.
+const _borderWidth = 1.0;
+
+/// 바깥 테두리에서 글자·아이콘까지 (Figma 654:5752 앞 아이콘 x=15).
+const _inset = AppInputTokens.paddingX + _borderWidth;
+
+/// Flutter M3 InputDecorator가 prefixIcon·suffixIcon과 입력 사이에 넣는 고정 간격
+/// (`prefixToInputGap`·`inputToSuffixGap`, 설정 불가). Figma 간격(gap)에서 빼서 맞춘다.
+const _materialIconGap = 4.0;
+
 /// Figma `Input` 공통 입력창.
 ///
 /// Figma Variant의 Weak(입력 전 안내 문구)와 Fill(입력한 값)은 입력 여부로 자동으로 바뀐다.
@@ -50,9 +60,12 @@ class AppTextField extends StatelessWidget {
     final colors = context.colors;
     final textStyle = context.textStyles.body1Regular;
 
+    // M3는 OutlineInputBorder.gapPadding(기본 4)을 입력 앞뒤 여백에도 더한다.
+    // 떠 있는 라벨이 없으므로 0으로 두어 글자를 Figma처럼 테두리 안쪽 여백에 둔다.
     OutlineInputBorder border(Color color) => OutlineInputBorder(
       borderRadius: BorderRadius.circular(AppInputTokens.radius),
-      borderSide: BorderSide(color: color),
+      borderSide: BorderSide(color: color, width: _borderWidth),
+      gapPadding: 0,
     );
 
     // Figma에는 포커스 상태가 없어 기본 테두리와 같게 둔다.
@@ -85,15 +98,13 @@ class AppTextField extends StatelessWidget {
         constraints: const BoxConstraints.tightFor(
           height: AppInputTokens.height,
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: AppInputTokens.paddingX,
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: _inset),
         prefixIcon: prefix == null
             ? null
             : Padding(
                 padding: const EdgeInsets.only(
-                  left: AppInputTokens.paddingX,
-                  right: AppInputTokens.gap,
+                  left: _inset,
+                  right: AppInputTokens.gap - _materialIconGap,
                 ),
                 child: prefix,
               ),
@@ -102,8 +113,8 @@ class AppTextField extends StatelessWidget {
             ? null
             : Padding(
                 padding: const EdgeInsets.only(
-                  left: AppInputTokens.gap,
-                  right: AppInputTokens.paddingX,
+                  left: AppInputTokens.gap - _materialIconGap,
+                  right: _inset,
                 ),
                 child: suffix,
               ),

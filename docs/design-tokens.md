@@ -29,6 +29,7 @@
 ## 3. 토큰 표
 
 색·글자·그림자는 Figma 디자인 시스템 v3 기준이다. 2026-11 디자이너가 "너무 연해서" 반투명 회색(Label·Line·Fill)을 불투명 색으로 바꾸고 Status/Destructive·Line/Strong을 바꾼 변수 값을 따른다 (Figma `디자인` 파일 변수). 모서리는 v3 공통 컴포넌트(Button·Input·Chip·Tag)에서 쓰는 값이다. 간격은 Figma에 아직 없어 임시값이다.
+2026-11-26 디자인 시스템 v4(`디자인시스템_v4` 페이지)와 대조해 바뀐 값(Pink-50·600·700, Background/Warning, Head(B), 입력창·칩 테두리 안쪽 여백)을 반영했다. 근거와 디자이너 확인 항목은 아래 [v4 대조](#v4-대조-2026-11-26)에 모았다.
 
 ### 색 — 원시 (토큰 파일 안에서만)
 
@@ -45,11 +46,11 @@ Figma 디자인 시스템 v3 Primitive (Neutral → `gray`, Primary-Pink → `pi
 | gray.500 | `#858586` (미사용) |
 | gray.700 | `#545456` (미사용) |
 | gray.800 | `#0B0B0C` |
-| pink.50 | `#FFEAF4` |
+| pink.50 | `#FFD6E9` |
 | pink.300 | `#FF5FA6` |
 | pink.500 | `#FF2F8C` |
-| pink.600 | `#E62A7E` |
-| pink.700 | `#C7256D` |
+| pink.600 | `#DC136C` |
+| pink.700 | `#8E0341` |
 | blue.50 | `#E9F4FF` |
 | blue.500 | `#2F97FF` |
 | blue.600 | `#2887E6` |
@@ -72,7 +73,7 @@ Figma Semantic 값이 원시 팔레트에 없으면 토큰 파일의 의미 토�
 | label.disable | `#DFDFE0` | `labelDisable` | `--color-label-disable` | 비활성 글자 |
 | background.normal | white | `backgroundNormal` | `--color-background-normal` | 화면 바탕 |
 | background.alternative | `#F7F7F8` | `backgroundAlternative` | `--color-background-alternative` | 구역 구분 바탕 |
-| background.warning | `#F1E1E1` | `backgroundWarning` | `--color-background-warning` | 경고 바탕 |
+| background.warning | `#FFE7E7` | `backgroundWarning` | `--color-background-warning` | 경고 바탕 |
 | interaction.inactive | `#989BA2` | `interactionInactive` | `--color-interaction-inactive` | 선택 안 된 상태 |
 | interaction.disable | `#F4F4F5` | `interactionDisable` | `--color-interaction-disable` | 비활성 요소 바탕 |
 | line.normal | `#E0E0E2` | `lineNormal` | `--color-line-normal` | 기본 테두리 |
@@ -163,6 +164,7 @@ Pink·Blue는 Figma에서 둘 다 Primary다. Gray-800은 Figma Icon 컴포넌�
 | Figma | 굵기 | 크기 | 행간 | 앱 `context.textStyles.*` | 웹 `font: var(...)` |
 | --- | --- | --- | --- | --- | --- |
 | Head(SB) | SemiBold 600 | 24 | 130% | `head` | `--text-head` |
+| Head(B) | Bold 700 | 24 | 130% | `headBold` | `--text-head-bold` |
 | Title-1(B) | Bold 700 | 18 | auto | `title1Bold` | `--text-title1-bold` |
 | Title-1(R) | Regular 400 | 18 | auto | `title1Regular` | `--text-title1-regular` |
 | Title-2(B) | Bold 700 | 16 | auto | `title2Bold` | `--text-title2-bold` |
@@ -182,7 +184,8 @@ Pink·Blue는 Figma에서 둘 다 Primary다. Gray-800은 Figma Icon 컴포넌�
 - auto는 글꼴 기본 행간 (앱은 `height` 지정 안 함, 웹은 `normal`).
 - 스타일에는 색이 없다. 기본 글자색 `label.normal`을 물려받고, 다른 색은 앱 `.copyWith(color: context.colors.*)`, 웹 `color: var(--color-*)`로 따로 준다.
 - Material 기본 위젯용으로 `TextTheme`에도 매핑해 둔다 (`bodyMedium` = Body-1(R), `titleLarge` = Title-1(B) 등, `AppTextStyles.toTextTheme`). 화면 코드는 `TextTheme` 이름을 쓰지 않는다.
-- 2026-11 디자이너가 스타일을 추가해 표의 15개가 모두 Figma 텍스트 스타일과 같다. 코드 이름 `tag1`·`tag2`는 Figma Tag-1(SB)·Tag-1(M)이다.
+- Head(B)를 뺀 15개는 Figma 텍스트 스타일과 같다. v4 스타일 이름은 `Head/Head(SB)`, `Title/1(B)`, `Body/1(R)`, `Caption/1(R)`, `Tag/1(SB)`·`Tag/1(M)`처럼 그룹/이름이다. 코드 이름 `tag1`·`tag2`는 Figma Tag-1(SB)·Tag-1(M)이다.
+- Head(B)는 v4 타이포그래피 표(`1502:11358`)에만 있고 텍스트 스타일로 등록되지 않았다. 기존 화면이 쓰는 `head`(Head(SB))는 그대로다.
 
 ### 컴포넌트 (Figma 디자인 시스템 v3 공통 컴포넌트)
 
@@ -300,9 +303,9 @@ Figma 아이콘이 없어 Material 아이콘으로 대신한 곳: `ShowActionRow
 
 로딩(Figma Loaing)은 글자 대신 점 3개(지름 6, 간격 8, 불투명도 100·70·40%)를 글자색으로 그리고 눌리지 않는다.
 
-**입력창** — 높이 47, 좌우 여백 14, 아이콘·단위와 간격 10, radius.md (10). 바탕 background.normal, 테두리 line.strong, 글자 Body-1(R) label.normal, 안내 문구 label.alternative. 비활성: 바탕 interaction.disable, 글자 label.alternative. 오류: 테두리 status.destructive. 포커스: 웹은 테두리를 label.normal로 바꾼다(키보드로 이동할 때 어느 칸인지 보여야 해서. Figma에 모양이 없어 임시값이고 오류 색이 우선), 앱은 커서로 알리고 테두리는 그대로 둔다. TextArea도 같다.
+**입력창** — 높이 47, 좌우 여백 14(1px 테두리 안쪽에서 잰다. 바깥 테두리에서 글자·아이콘까지 15 — Figma `654:5752`·`1501:10747`), 아이콘·단위와 간격 10, radius.md (10). 바탕 background.normal, 테두리 line.strong, 글자 Body-1(R) label.normal, 안내 문구 label.alternative. 비활성: 바탕 interaction.disable, 글자 label.alternative. 오류: 테두리 status.destructive (Figma Error variant `1501:10747`, 변수 Status/Destructive). 앱 `AppTextField`는 Material 입력창이 테두리를 여백에 넣지 않고 입력 앞뒤에 4를 더하므로(M3 `gapPadding`·아이콘 간격) 위젯 안에서 보정해 웹과 같은 위치에 둔다. 포커스: 웹은 테두리를 label.normal로 바꾼다(키보드로 이동할 때 어느 칸인지 보여야 해서. Figma에 모양이 없어 임시값이고 오류 색이 우선), 앱은 커서로 알리고 테두리는 그대로 둔다. TextArea도 같다.
 
-**칩** — 여백 좌우 12 · 위아래 8, radius.full, 글자 Body-1(R). 선택 전: 바탕 background.normal, 테두리 line.strong, 글자 label.normal. 선택 후: 바탕·테두리 label.normal, 글자 static.white.
+**칩** — 여백 좌우 12 · 위아래 8 (1px 테두리 안쪽. 높이 38 = Figma `1497:9998`), radius.full, 글자 Body-1(R). 선택 전: 바탕 background.normal, 테두리 line.strong, 글자 label.normal. 선택 후: 바탕·테두리 label.normal, 글자 static.white.
 
 **상태 속성 이름** — 같은 뜻은 앱·웹·모든 컴포넌트에서 같은 이름을 쓴다. 상태 값은 화면(ViewModel)이 갖고 컴포넌트는 받은 값을 그린다.
 
@@ -352,7 +355,7 @@ Figma 아이콘이 없어 Material 아이콘으로 대신한 곳: `ShowActionRow
 | 컴포넌트 자리 | Figma 컴포넌트 값 | 쓰는 토큰 (값) |
 | --- | --- | --- |
 | 칩 테두리 | `#CFCFCF` (스타일 없음) | line.strong (`#D9D9D9`) |
-| 입력창·칩 글자 | `#1A1A1A` (스타일 없음) | label.normal (`#171719`) |
+| 입력창 Fill 글자 | 변수 없음 (v3 `#1A1A1A`. 칩·입력창 Error 글자는 v4에서 Label/Normal 변수) | label.normal (`#171719`) |
 | 둥근 태그 L 글자 | `#030303` (스타일 없음) | label.strong (black) |
 | 힌트·단계 글자 | `#606060` (스타일 없음) | label.alternative (`#6E6E73`) |
 | TextArea 글자 수 | `#878787` (스타일 없음) | label.alternative |
@@ -369,7 +372,36 @@ Figma 아이콘이 없어 Material 아이콘으로 대신한 곳: `ShowActionRow
 - 버튼 Mini 좌우 여백: Default 8, Disabled 10 → 8.
 - Toggle은 Figma가 그림(SVG)이라 치수를 읽어 맞춘 바탕 채운 모양이다. 켜짐/꺼짐 색만 Figma(label.strong / label.assistive)와 같다.
 - BottomSheet 그림자(`0 4 10` 8%)는 v3 Elevation에 없어 넣지 않았다. 뒷 배경을 material.dimmer로 어둡게 해 구분된다.
-- 입력창 Error variant는 Figma에 아직 색이 없다 (‘인풋에 오류상태 추가’ 메모). 테두리를 status.destructive로 임시 지정했다.
+- 입력창 뒤 아이콘 칸: Weak(`654:5752`)만 오른쪽 5, Error·Fill/서브텍스트·지우기 아이콘(`1501:10747`·`1959:20282`·`1701:13048`)은 15 → 15. 2Fill의 검색 아이콘↔글자는 8(다른 variant 10) → 10.
+
+#### v4 대조 (2026-11-26)
+
+Figma `디자인` 파일 `디자인시스템_v4` 페이지(`107:315`)의 `디자인 시스템v4`(`1502:11241`), `인풋 수정 v2`(`1681:11168`), `색상변경V3`(`2175:28537`)와 대조했다. 값은 Figma Desktop MCP의 변수·텍스트 스타일(`get_variable_defs`), 좌표(`get_metadata`), 견본 스크린샷 픽셀(sRGB)로 읽었다.
+
+| 항목 | 이전 | v4 | 근거 |
+| --- | --- | --- | --- |
+| pink.50 | `#FFEAF4` | `#FFD6E9` | 변수 `색상/Primary/Pink/50`(공통·공연페이지·홈 컴포넌트), 견본 `1502:11498` |
+| pink.600 | `#E62A7E` | `#DC136C` | 견본 `1502:11511` (이전 값은 `2175:28624`에 따로 둠) |
+| pink.700 | `#C7256D` | `#8E0341` | 견본 `1502:11516` (이전 값은 `2175:29148`) |
+| background.warning | `#F1E1E1` | `#FFE7E7` | 변수 `색상/Background/Normal/Warning`(공통·Button 컴포넌트) |
+| Head(B) | 없음 | Bold 24 / 130% | 타이포그래피 표 `1502:11355`~`11358` |
+| 입력창·칩 여백 | 앱만 테두리 포함 14(글자는 18) | 테두리 안쪽 14 = 바깥에서 15 | Input `654:5752`·`1501:10747`, Chip `1497:9998` 높이 38 |
+
+디자이너 확인 필요:
+
+- Pink-600·700은 변수에 연결된 곳이 없어 색상 문서 견본 값을 따랐다. 변수 `색상/Primary/Pink/600`·`700` 값이 같은지.
+- Background/Warning 변수는 `#FFE7E7`인데 색상 문서 견본(`1681:13570`)과 다크 표 글자(`2218:149795`)는 `#F1E1E1`이다. 코드는 컴포넌트가 쓰는 변수를 따랐다.
+- Blue-700 견본은 `#1A6EC2`를 약 76% 불투명도로 칠해 `#5191D1`로 보인다. 값은 바꾸지 않았다.
+- 색상 문서 프레임(`1502:11429`)의 Label·Line·Fill 견본은 아직 옛 반투명 라이브러리 변수(`Label/Neutral` `#2E2F33` 88% 등)를 쓴다. 컴포넌트는 `색상/*` 불투명 변수를 쓰고 코드는 이것을 따른다.
+- 타이포그래피 표(`1502:11314`) 라벨과 샘플이 실제 스타일과 다르다. Caption-1(SB) 행 라벨 Regular, Caption-1(R) 행 라벨 SemiBold, 캡션 행간 auto(실제 140%). 샘플 연결은 Caption-1(M) 행→`Caption/1(SB)`, Caption-1(R) 행→`Caption/1(M)`, Title-1(B) 행→`Title/2(SB)`, Tag-2 행→`Tag/1(SB)`. 코드는 컴포넌트가 쓰는 실제 스타일(예: `Caption/1(R)` Regular 400 · 140%)을 따른다.
+- Head(B)를 텍스트 스타일로 등록할지.
+
+코드에 아직 없는 v4 항목:
+
+- Input `Fill/서브텍스트`(`1959:20282`, 높이 56, 값 아래 `상세주소` 한 줄 Label/Neutral). 글자에 스타일이 연결되지 않아 값을 확인한 뒤 추가한다.
+- Input `2Fill`(`1701:13048`, 검색 아이콘 + 지우기 20)은 지금 `prefix`·`suffix`로 만든다.
+- 밴드 합동공연 Dark(`2218:149494`, `밴드 합동공연/Dark/*` 변수)는 다크 화면을 만들 때 추가한다. Lime·Purple·Glow·Primary·Secondary 일부는 변수가 없다.
+- Accent(Background·Foreground)는 색상 프레임에 이름만 있고 값이 없다.
 
 #### Figma 화면과 어긋난 값 (디자이너 확인 필요)
 
@@ -442,7 +474,7 @@ Container(
 
 ## 6. 아직 없는 것 (필요해질 때 같은 절차로 추가)
 
-- 다크 모드 (`AppColors.dark`, `@media (prefers-color-scheme: dark)`)
+- 다크 모드 (`AppColors.dark`, `@media (prefers-color-scheme: dark)`). 밴드 합동공연 Dark 팔레트는 Figma `2218:149494`
 - 애니메이션 시간
 - 여러 조각으로 그려진 Figma 아이콘(menu, bell, bookmark, lock, camera 등). 쓸 때 Figma에서 SVG로 내보내 `assets/icons/`와 `AppIcons`에 추가
 - 영역별 컴포넌트는 들어가 있다. 화면을 만들 때 Figma와 다시 맞춘다

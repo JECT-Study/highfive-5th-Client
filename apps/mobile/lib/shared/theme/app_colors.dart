@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
-/// 원시(primitive) 팔레트. Figma 디자인 시스템 v3의 Primitive와 같은 이름·값.
+/// 원시(primitive) 팔레트. Figma 디자인 시스템 Primitive와 같은 이름·값 (v4 색상변경V3 반영).
 /// 이 파일 밖에서 쓰지 않는다. 아직 안 쓰는 원시 값(gray.800 외 gray.*)은 docs 표에만 있고, 쓸 때 여기에 추가한다.
 ///
 /// 값의 기준은 `docs/design-tokens.md`이고,
 /// `apps/web/src/shared/styles/tokens.css`와 같은 값을 유지한다.
 abstract final class _Palette {
-  static const pink50 = Color(0xFFFFEAF4);
+  static const pink50 = Color(0xFFFFD6E9);
   static const pink300 = Color(0xFFFF5FA6);
   static const pink500 = Color(0xFFFF2F8C);
-  static const pink600 = Color(0xFFE62A7E);
-  static const pink700 = Color(0xFFC7256D);
+  static const pink600 = Color(0xFFDC136C);
+  static const pink700 = Color(0xFF8E0341);
   static const blue50 = Color(0xFFE9F4FF);
   static const blue500 = Color(0xFF2F97FF);
   static const blue600 = Color(0xFF2887E6);
@@ -74,7 +74,7 @@ class AppColors extends ThemeExtension<AppColors> {
     labelDisable: Color(0xFFDFDFE0), // Label/Disable
     backgroundNormal: _Palette.white, // Background/Normal/Normal
     backgroundAlternative: Color(0xFFF7F7F8), // Background/Normal/Alternative
-    backgroundWarning: Color(0xFFF1E1E1), // Background/Normal/Warning
+    backgroundWarning: Color(0xFFFFE7E7), // Background/Normal/Warning
     interactionInactive: Color(0xFF989BA2), // Interaction/Inactive
     interactionDisable: Color(0xFFF4F4F5), // Interaction/Disable
     lineNormal: Color(0xFFE0E0E2), // Line/Normal
