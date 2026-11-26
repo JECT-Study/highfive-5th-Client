@@ -80,7 +80,10 @@ Future<void> _pump(
           SessionRepository(SecureStore(const FlutterSecureStorage())),
         ),
       ],
-      child: MaterialApp(theme: AppTheme.light, home: const LoginView()),
+      child: MaterialApp(
+        theme: AppTheme.light,
+        home: LoginView(onViewTerm: (_) {}),
+      ),
     ),
   );
   await tester.pumpAndSettle();

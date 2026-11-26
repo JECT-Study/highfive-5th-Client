@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../models/next_step.dart';
 import '../../models/session.dart';
 import '../providers/auth_providers.dart';
 import '../providers/session_providers.dart';
@@ -32,6 +33,16 @@ class SessionViewModel extends AsyncNotifier<Session?> {
   Future<void> signIn(Session session) async {
     await ref.read(sessionRepositoryProvider).save(session);
     state = AsyncData(session);
+  }
+
+  /// 온보딩 한 단계를 마쳤다 (예: 약관 동의 저장). 서버가 준 다음 단계로 바꾸고 저장한다.
+  /// 그 사이 로그아웃했으면 늦게 온 결과는 버린다.
+  Future<void> updateNextStep(NextStep nextStep) async {
+    final session = state.value;
+    if (session == null) return;
+    await ref.read(sessionRepositoryProvider).saveNextStep(nextStep);
+    if (state.value?.accessToken != session.accessToken) return;
+    state = AsyncData(session.copyWith(nextStep: nextStep));
   }
 
   /// 사용자가 로그아웃을 눌렀다. 서버의 리프레시 토큰을 지우고, 서버 호출이 실패해도

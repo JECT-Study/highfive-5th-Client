@@ -2,6 +2,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 import '../../models/next_step.dart';
 import '../../models/session.dart';
+import 'next_step_json.dart';
 
 part 'login_response_dto.g.dart';
 
@@ -25,16 +26,14 @@ class LoginResponseDto {
   /// `TERMS` / `PROFILE` / `BAND_START` / `HOME`. 앱에서는 [nextStepModel]로 쓴다.
   final String nextStep;
 
-  Session toModel() =>
-      Session(accessToken: accessToken, refreshToken: refreshToken);
+  Session toModel() => Session(
+    accessToken: accessToken,
+    refreshToken: refreshToken,
+    nextStep: nextStepModel,
+  );
 
-  /// 모르는 값이면 홈으로 보낸다. 서버가 새 단계를 추가해도 앱이 멈추지 않게 한다.
-  NextStep get nextStepModel => switch (nextStep) {
-    'TERMS' => NextStep.terms,
-    'PROFILE' => NextStep.profile,
-    'BAND_START' => NextStep.bandStart,
-    _ => NextStep.home,
-  };
+  /// 모르는 값이면 홈 ([nextStepFromJson]).
+  NextStep get nextStepModel => nextStepFromJson(nextStep);
 }
 
 @JsonSerializable(createToJson: false)
