@@ -64,6 +64,36 @@ const _request = ProfileRequestDto(
 );
 
 void main() {
+  test('GET codes에 GENRE,POSITION을 요청하고 서버 순서대로 선택지로 바꾼다', () async {
+    final (service, adapter) = _service(
+      200,
+      _ok({
+        'GENRE': [
+          {'code': 'ROCK', 'name': '록'},
+          {'code': 'ETC', 'name': '기타'},
+        ],
+        'POSITION': [
+          {'code': 'GUITAR', 'name': '기타'},
+          {'code': 'CUSTOM', 'name': '직접입력'},
+        ],
+      }),
+    );
+
+    final options = (await service.fetchCodes()).toModel();
+
+    expect(adapter.request?.method, 'GET');
+    expect(adapter.request?.path, '/api/v1/codes');
+    expect(adapter.request?.queryParameters, {'types': 'GENRE,POSITION'});
+    expect(options.genres, [
+      (code: 'ROCK', label: '록'),
+      (code: 'ETC', label: '기타'),
+    ]);
+    expect(options.positions, [
+      (code: 'GUITAR', label: '기타'),
+      (code: 'CUSTOM', label: '직접입력'),
+    ]);
+  });
+
   group('checkNickname', () {
     test('GET nickname-availability에 닉네임을 query로 보내고 결과를 읽는다', () async {
       final (service, adapter) = _service(

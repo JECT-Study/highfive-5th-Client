@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/network/api_error_mapper.dart';
 import '../../../../core/network/api_response.dart';
+import '../dto/codes_response_dto.dart';
 import '../dto/nickname_availability_dto.dart';
 import '../dto/profile_dto.dart';
 
@@ -11,6 +12,22 @@ class ProfileService {
   ProfileService(this._dio);
 
   final Dio _dio;
+
+  /// 선호 장르·연주 포지션 선택지.
+  Future<CodesResponseDto> fetchCodes() async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/api/v1/codes',
+        queryParameters: {'types': 'GENRE,POSITION'},
+      );
+      return ApiResponse.fromJson(
+        response.data!,
+        (data) => CodesResponseDto.fromJson(data! as Map<String, dynamic>),
+      ).data;
+    } on DioException catch (error) {
+      throw mapDioException(error);
+    }
+  }
 
   /// 닉네임을 쓸 수 있는지. Dio가 query 값을 URL 인코딩한다.
   Future<NicknameAvailabilityDto> checkNickname(String nickname) async {

@@ -6,7 +6,6 @@ import '../../../../shared/theme/app_spacing.dart';
 import '../../../../shared/theme/app_typography.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_chip_group.dart';
-import '../../../../shared/widgets/app_dialog.dart';
 import '../../../../shared/widgets/app_form_section.dart';
 import '../../../../shared/widgets/app_progress_bar.dart';
 import '../../../../shared/widgets/app_text_field.dart';
@@ -14,11 +13,14 @@ import '../../models/nickname_check_result.dart';
 import '../../models/profile_failure.dart';
 import '../../models/profile_options.dart';
 import '../../models/profile_rules.dart';
+import '../providers/profile_providers.dart';
 import '../view_models/profile_view_model.dart';
 
 /// 온보딩 개인 프로필 1단계: 닉네임·선호 장르·연주 포지션
 /// (Figma `온보딩-프로필정보 입력1`, node `2216:139626`). docs/api/profile.md
 ///
+/// 닉네임은 입력이 멈추면 저절로 확인한다 (시안의 "중복 확인" 버튼은 두지 않는다).
+/// 장르·포지션 칩은 서버 코드 목록(`GET /api/v1/codes`)으로 그린다.
 /// 색은 공통 토큰·위젯을 그대로 쓴다 (시안은 다크 팔레트, 앱은 아직 라이트 토큰만 있다).
 /// "다음"을 누르면 사진 화면이 이 화면 위에 쌓이고, 저장은 사진 화면에서 한 번에 한다.
 class ProfileInfoView extends ConsumerStatefulWidget {
@@ -28,8 +30,8 @@ class ProfileInfoView extends ConsumerStatefulWidget {
   final VoidCallback onNext;
 
   static const nicknameFieldKey = ValueKey('profile_nickname');
-  static const checkButtonKey = ValueKey('profile_check_nickname');
   static const nicknameMessageKey = ValueKey('profile_nickname_message');
+  static const optionsRetryKey = ValueKey('profile_options_retry');
   static const genreCustomFieldKey = ValueKey('profile_genre_custom');
   static const positionCustomFieldKey = ValueKey('profile_position_custom');
   static const nextButtonKey = ValueKey('profile_next');
@@ -48,7 +50,7 @@ class ProfileInfoView extends ConsumerStatefulWidget {
 
   static String _failureMessage(ProfileFailureReason reason) =>
       reason == ProfileFailureReason.network
-      ? '네트워크 상태를 확인하고 다시 시도해 주세요.'
+      ? '네트워크 상태를 확인해 주세요.'
       : '잠시 후 다시 시도해 주세요.';
 
   @override
@@ -71,31 +73,10 @@ class _ProfileInfoViewState extends ConsumerState<ProfileInfoView> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(profileViewModelProvider);
+    final options = ref.watch(profileOptionsProvider);
     final viewModel = ref.read(profileViewModelProvider.notifier);
     final colors = context.colors;
     final textStyles = context.textStyles;
-
-    // 중복 확인 실패만 여기서 알린다. 저장 실패는 위에 쌓인 사진 화면이 알린다.
-    ref.listen(profileViewModelProvider, (previous, next) {
-      final failure = next.failure;
-      if (previous?.checkingNickname == true &&
-          !next.checkingNickname &&
-          failure != null) {
-        showAppDialog(
-          context,
-          title: '닉네임을 확인하지 못했어요',
-          message: ProfileInfoView._failureMessage(failure),
-          confirmLabel: '확인',
-        );
-      }
-    });
-
-    final nicknameMessage = state.nicknameHasForbiddenCharacter
-        ? ProfileInfoView._forbiddenCharacterMessage
-        : switch (state.nicknameCheck) {
-            final result? => ProfileInfoView._nicknameMessage(result),
-            null => null,
-          };
 
     return Scaffold(
       body: SafeArea(
@@ -145,66 +126,63 @@ class _ProfileInfoViewState extends ConsumerState<ProfileInfoView> {
                             hintText: '이름을 입력해 주세요.',
                             enabled: !state.saving,
                             invalid:
-                                nicknameMessage != null &&
-                                !state.nicknameAvailable,
+                                state.nicknameHasForbiddenCharacter ||
+                                (state.nicknameCheck != null &&
+                                    !state.nicknameAvailable),
                             textInputAction: TextInputAction.done,
                             onChanged: viewModel.changeNickname,
                           ),
-                          if (nicknameMessage != null)
-                            Text(
-                              nicknameMessage,
-                              key: ProfileInfoView.nicknameMessageKey,
-                              style: textStyles.caption1Regular.copyWith(
-                                color: state.nicknameAvailable
-                                    ? colors.statusPositive
-                                    : colors.statusDestructive,
-                              ),
-                            ),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: AppButton(
-                              key: ProfileInfoView.checkButtonKey,
-                              label: '중복 확인',
-                              variant: AppButtonVariant.weak,
-                              size: AppButtonSize.small,
-                              loading: state.checkingNickname,
-                              onPressed: state.canCheckNickname
-                                  ? viewModel.checkNickname
-                                  : null,
-                            ),
-                          ),
+                          ?_nicknameStatus(state, viewModel),
                         ],
                       ),
                       const SizedBox(height: AppSpacing.x8),
-                      _OptionSection(
-                        title: '선호 장르',
-                        hint: '여러개 선택할 수 있어요.',
-                        options: genreOptions,
-                        selectedCodes: state.genreCodes,
-                        onToggle: state.saving ? null : viewModel.toggleGenre,
-                        customSelected: state.genreCustomSelected,
-                        customValue: state.genreCustomName,
-                        customFieldKey: ProfileInfoView.genreCustomFieldKey,
-                        customController: _genreCustomName,
-                        customHint: '장르를 입력해 주세요.',
-                        onCustomChanged: viewModel.changeGenreCustomName,
-                      ),
-                      const SizedBox(height: AppSpacing.x8),
-                      _OptionSection(
-                        title: '연주 포지션',
-                        hint: '우리 팀 포지션을 모두 선택해 주세요.',
-                        options: positionOptions,
-                        selectedCodes: state.positionCodes,
-                        onToggle: state.saving
-                            ? null
-                            : viewModel.togglePosition,
-                        customSelected: state.positionCustomSelected,
-                        customValue: state.positionCustomName,
-                        customFieldKey: ProfileInfoView.positionCustomFieldKey,
-                        customController: _positionCustomName,
-                        customHint: '포지션을 입력해 주세요.',
-                        onCustomChanged: viewModel.changePositionCustomName,
-                      ),
+                      ...switch (options) {
+                        AsyncData(value: final options) => [
+                          _OptionSection(
+                            title: '선호 장르',
+                            hint: '여러개 선택할 수 있어요.',
+                            options: options.genres,
+                            selectedCodes: state.genreCodes,
+                            onToggle: state.saving
+                                ? null
+                                : viewModel.toggleGenre,
+                            customSelected: state.genreCustomSelected,
+                            customValue: state.genreCustomName,
+                            customFieldKey: ProfileInfoView.genreCustomFieldKey,
+                            customController: _genreCustomName,
+                            customHint: '장르를 입력해 주세요.',
+                            onCustomChanged: viewModel.changeGenreCustomName,
+                          ),
+                          const SizedBox(height: AppSpacing.x8),
+                          _OptionSection(
+                            title: '연주 포지션',
+                            hint: '우리 팀 포지션을 모두 선택해 주세요.',
+                            options: options.positions,
+                            selectedCodes: state.positionCodes,
+                            onToggle: state.saving
+                                ? null
+                                : viewModel.togglePosition,
+                            customSelected: state.positionCustomSelected,
+                            customValue: state.positionCustomName,
+                            customFieldKey:
+                                ProfileInfoView.positionCustomFieldKey,
+                            customController: _positionCustomName,
+                            customHint: '포지션을 입력해 주세요.',
+                            onCustomChanged: viewModel.changePositionCustomName,
+                          ),
+                        ],
+                        AsyncError() => [
+                          _OptionsError(
+                            onRetry: () =>
+                                ref.invalidate(profileOptionsProvider),
+                          ),
+                        ],
+                        _ => [
+                          const Center(
+                            child: CircularProgressIndicator.adaptive(),
+                          ),
+                        ],
+                      },
                     ],
                   ),
                 ),
@@ -236,6 +214,76 @@ class _ProfileInfoViewState extends ConsumerState<ProfileInfoView> {
           ),
         ),
       ),
+    );
+  }
+
+  /// 닉네임 아래 한 줄: 허용하지 않는 문자 → 확인 중 → 확인 실패(누르면 다시) → 확인 결과.
+  /// 아무것도 없으면 null (줄을 비운다).
+  Widget? _nicknameStatus(ProfileState state, ProfileViewModel viewModel) {
+    final colors = context.colors;
+    final style = context.textStyles.caption1Regular;
+    Text line(String message, Color color) => Text(
+      message,
+      key: ProfileInfoView.nicknameMessageKey,
+      style: style.copyWith(color: color),
+    );
+
+    if (state.nicknameHasForbiddenCharacter) {
+      return line(
+        ProfileInfoView._forbiddenCharacterMessage,
+        colors.statusDestructive,
+      );
+    }
+    if (state.checkingNickname) {
+      return line('확인하고 있어요', colors.labelAlternative);
+    }
+    if (state.nicknameCheckFailure case final failure?) {
+      return InkWell(
+        onTap: viewModel.checkNickname,
+        child: line(
+          '닉네임을 확인하지 못했어요. ${ProfileInfoView._failureMessage(failure)} '
+          '(눌러서 다시 확인)',
+          colors.statusDestructive,
+        ),
+      );
+    }
+    if (state.nicknameCheck case final result?) {
+      return line(
+        ProfileInfoView._nicknameMessage(result),
+        state.nicknameAvailable
+            ? colors.statusPositive
+            : colors.statusDestructive,
+      );
+    }
+    return null;
+  }
+}
+
+/// 장르·포지션 선택지를 받지 못했다. 다시 받을 수 있게 한다.
+class _OptionsError extends StatelessWidget {
+  const _OptionsError({required this.onRetry});
+
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      spacing: AppSpacing.x3,
+      children: [
+        Text(
+          '장르·포지션 목록을 불러오지 못했어요.',
+          style: context.textStyles.body1Medium.copyWith(
+            color: context.colors.labelAlternative,
+          ),
+        ),
+        AppButton(
+          key: ProfileInfoView.optionsRetryKey,
+          label: '다시 시도',
+          variant: AppButtonVariant.weak,
+          size: AppButtonSize.small,
+          onPressed: onRetry,
+        ),
+      ],
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -30,11 +32,15 @@ abstract class ProfileState with _$ProfileState {
   const factory ProfileState({
     @Default('') String nickname,
 
-    /// [nickname]의 "중복 확인" 결과. 닉네임을 고치면 null(다시 확인해야 함).
+    /// [nickname]의 확인 결과. 닉네임을 고치면 null(입력이 멈추면 다시 확인한다).
     NicknameCheckResult? nicknameCheck,
 
-    /// 중복 확인 중. 버튼은 다시 눌리지 않는다.
+    /// 지금 [nickname]을 서버에 확인하는 중.
     @Default(false) bool checkingNickname,
+
+    /// 지금 [nickname]을 확인하지 못한 이유 (연결 실패 등). 화면은 입력칸 아래에 보이고
+    /// 누르면 다시 확인한다. 저장 실패([failure])와 따로 둔다.
+    ProfileFailureReason? nicknameCheckFailure,
 
     /// 고른 순서대로.
     @Default(<String>[]) List<String> genreCodes,
@@ -54,7 +60,7 @@ abstract class ProfileState with _$ProfileState {
     /// 저장 중. 버튼은 로딩으로 보이고 다시 눌리지 않는다.
     @Default(false) bool saving,
 
-    /// 마지막 확인·저장이 실패한 이유. 화면은 이 값이 생길 때 안내를 띄운다.
+    /// 마지막 저장이 실패한 이유. 화면은 이 값이 생길 때 안내를 띄운다.
     ProfileFailureReason? failure,
   }) = _ProfileState;
 
@@ -63,11 +69,11 @@ abstract class ProfileState with _$ProfileState {
   /// 입력하자마자 "한글, 영문, 숫자만 쓸 수 있어요"를 보일지.
   bool get nicknameHasForbiddenCharacter => hasForbiddenCharacter(nickname);
 
+  /// 아직 확인 결과가 없고, 바로 막을 문자도 없다.
   bool get canCheckNickname =>
       nickname.isNotEmpty &&
       !nicknameHasForbiddenCharacter &&
-      nicknameCheck == null &&
-      !checkingNickname;
+      nicknameCheck == null;
 
   bool get nicknameAvailable => nicknameCheck == NicknameCheckResult.available;
 
@@ -88,19 +94,43 @@ abstract class ProfileState with _$ProfileState {
 }
 
 class ProfileViewModel extends Notifier<ProfileState> {
-  @override
-  ProfileState build() => const ProfileState();
+  /// 입력이 이만큼 멈추면 닉네임을 확인한다. 글자마다 서버에 묻지 않게 한다.
+  static const nicknameCheckDelay = Duration(milliseconds: 500);
 
-  /// 닉네임을 고치면 이전 확인 결과는 버린다.
-  void changeNickname(String value) {
-    if (state.saving || value == state.nickname) return;
-    state = state.copyWith(nickname: value, nicknameCheck: null, failure: null);
+  Timer? _nicknameCheckTimer;
+
+  @override
+  ProfileState build() {
+    ref.onDispose(() => _nicknameCheckTimer?.cancel());
+    return const ProfileState();
   }
 
-  /// "중복 확인". 길이·문자가 틀리면 서버에 묻지 않고 바로 결과를 정한다.
+  /// 닉네임을 고치면 이전 확인 결과는 버리고, 입력이 [nicknameCheckDelay]만큼 멈추면
+  /// 다시 확인한다. 허용하지 않는 문자가 있으면 확인하지 않는다 (화면이 바로 안내한다).
+  void changeNickname(String value) {
+    if (state.saving || value == state.nickname) return;
+    _nicknameCheckTimer?.cancel();
+    state = state.copyWith(
+      nickname: value,
+      nicknameCheck: null,
+      checkingNickname: false,
+      nicknameCheckFailure: null,
+    );
+    if (!state.canCheckNickname) return;
+    _nicknameCheckTimer = Timer(
+      nicknameCheckDelay,
+      () => unawaited(checkNickname()),
+    );
+  }
+
+  /// 닉네임 확인. 입력이 멈추면 저절로 불리고, 확인하지 못했을 때 다시 누르면 불린다.
+  /// 길이·문자가 틀리면 서버에 묻지 않고 바로 결과를 정한다.
   /// 확인하는 사이 닉네임을 고쳤으면 늦게 온 결과는 버린다.
   Future<void> checkNickname() async {
-    if (!state.canCheckNickname || state.saving) return;
+    _nicknameCheckTimer?.cancel();
+    if (!state.canCheckNickname || state.checkingNickname || state.saving) {
+      return;
+    }
     final nickname = state.nickname;
     if (!hasValidNicknameLength(nickname)) {
       state = state.copyWith(nicknameCheck: NicknameCheckResult.invalidLength);
@@ -113,7 +143,7 @@ class ProfileViewModel extends Notifier<ProfileState> {
       );
       return;
     }
-    state = state.copyWith(checkingNickname: true, failure: null);
+    state = state.copyWith(checkingNickname: true, nicknameCheckFailure: null);
     NicknameCheckResult? result;
     ProfileFailureReason? failure;
     try {
@@ -123,11 +153,12 @@ class ProfileViewModel extends Notifier<ProfileState> {
     } on ProfileFailure catch (error) {
       failure = error.reason;
     }
-    if (!ref.mounted) return;
+    // 그 사이 닉네임을 고쳤다: 새 닉네임은 새 타이머가 확인한다.
+    if (!ref.mounted || state.nickname != nickname) return;
     state = state.copyWith(
       checkingNickname: false,
-      nicknameCheck: state.nickname == nickname ? result : null,
-      failure: failure,
+      nicknameCheck: result,
+      nicknameCheckFailure: failure,
     );
   }
 

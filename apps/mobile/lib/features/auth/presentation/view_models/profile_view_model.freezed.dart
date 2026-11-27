@@ -15,14 +15,16 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ProfileState implements DiagnosticableTreeMixin {
 
- String get nickname;/// [nickname]의 "중복 확인" 결과. 닉네임을 고치면 null(다시 확인해야 함).
- NicknameCheckResult? get nicknameCheck;/// 중복 확인 중. 버튼은 다시 눌리지 않는다.
- bool get checkingNickname;/// 고른 순서대로.
+ String get nickname;/// [nickname]의 확인 결과. 닉네임을 고치면 null(입력이 멈추면 다시 확인한다).
+ NicknameCheckResult? get nicknameCheck;/// 지금 [nickname]을 서버에 확인하는 중.
+ bool get checkingNickname;/// 지금 [nickname]을 확인하지 못한 이유 (연결 실패 등). 화면은 입력칸 아래에 보이고
+/// 누르면 다시 확인한다. 저장 실패([failure])와 따로 둔다.
+ ProfileFailureReason? get nicknameCheckFailure;/// 고른 순서대로.
  List<String> get genreCodes; String get genreCustomName; List<String> get positionCodes; String get positionCustomName;/// 고른 프로필 사진. 없으면 기본 이미지 (건너뛰기).
  PickedPhoto? get photo;/// 사진 선택기가 열려 있다. 다시 열리지 않는다.
  bool get pickingPhoto;/// 마지막 사진 고르기가 실패한 이유. 화면은 이 값이 생길 때 안내를 띄운다.
  PhotoPickProblem? get photoProblem;/// 저장 중. 버튼은 로딩으로 보이고 다시 눌리지 않는다.
- bool get saving;/// 마지막 확인·저장이 실패한 이유. 화면은 이 값이 생길 때 안내를 띄운다.
+ bool get saving;/// 마지막 저장이 실패한 이유. 화면은 이 값이 생길 때 안내를 띄운다.
  ProfileFailureReason? get failure;
 /// Create a copy of ProfileState
 /// with the given fields replaced by the non-null parameter values.
@@ -36,26 +38,26 @@ void debugFillProperties(DiagnosticPropertiesBuilder properties) {
   final _this = this as ProfileState;
   properties
     ..add(DiagnosticsProperty('type', 'ProfileState'))
-    ..add(DiagnosticsProperty('nickname', _this.nickname))..add(DiagnosticsProperty('nicknameCheck', _this.nicknameCheck))..add(DiagnosticsProperty('checkingNickname', _this.checkingNickname))..add(DiagnosticsProperty('genreCodes', _this.genreCodes))..add(DiagnosticsProperty('genreCustomName', _this.genreCustomName))..add(DiagnosticsProperty('positionCodes', _this.positionCodes))..add(DiagnosticsProperty('positionCustomName', _this.positionCustomName))..add(DiagnosticsProperty('photo', _this.photo))..add(DiagnosticsProperty('pickingPhoto', _this.pickingPhoto))..add(DiagnosticsProperty('photoProblem', _this.photoProblem))..add(DiagnosticsProperty('saving', _this.saving))..add(DiagnosticsProperty('failure', _this.failure));
+    ..add(DiagnosticsProperty('nickname', _this.nickname))..add(DiagnosticsProperty('nicknameCheck', _this.nicknameCheck))..add(DiagnosticsProperty('checkingNickname', _this.checkingNickname))..add(DiagnosticsProperty('nicknameCheckFailure', _this.nicknameCheckFailure))..add(DiagnosticsProperty('genreCodes', _this.genreCodes))..add(DiagnosticsProperty('genreCustomName', _this.genreCustomName))..add(DiagnosticsProperty('positionCodes', _this.positionCodes))..add(DiagnosticsProperty('positionCustomName', _this.positionCustomName))..add(DiagnosticsProperty('photo', _this.photo))..add(DiagnosticsProperty('pickingPhoto', _this.pickingPhoto))..add(DiagnosticsProperty('photoProblem', _this.photoProblem))..add(DiagnosticsProperty('saving', _this.saving))..add(DiagnosticsProperty('failure', _this.failure));
 }
 
 @override
 bool operator ==(Object other) {
   final _this = this as ProfileState;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileState&&(identical(other.nickname, _this.nickname) || other.nickname == _this.nickname)&&(identical(other.nicknameCheck, _this.nicknameCheck) || other.nicknameCheck == _this.nicknameCheck)&&(identical(other.checkingNickname, _this.checkingNickname) || other.checkingNickname == _this.checkingNickname)&&const DeepCollectionEquality().equals(other.genreCodes, _this.genreCodes)&&(identical(other.genreCustomName, _this.genreCustomName) || other.genreCustomName == _this.genreCustomName)&&const DeepCollectionEquality().equals(other.positionCodes, _this.positionCodes)&&(identical(other.positionCustomName, _this.positionCustomName) || other.positionCustomName == _this.positionCustomName)&&(identical(other.photo, _this.photo) || other.photo == _this.photo)&&(identical(other.pickingPhoto, _this.pickingPhoto) || other.pickingPhoto == _this.pickingPhoto)&&(identical(other.photoProblem, _this.photoProblem) || other.photoProblem == _this.photoProblem)&&(identical(other.saving, _this.saving) || other.saving == _this.saving)&&(identical(other.failure, _this.failure) || other.failure == _this.failure));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProfileState&&(identical(other.nickname, _this.nickname) || other.nickname == _this.nickname)&&(identical(other.nicknameCheck, _this.nicknameCheck) || other.nicknameCheck == _this.nicknameCheck)&&(identical(other.checkingNickname, _this.checkingNickname) || other.checkingNickname == _this.checkingNickname)&&(identical(other.nicknameCheckFailure, _this.nicknameCheckFailure) || other.nicknameCheckFailure == _this.nicknameCheckFailure)&&const DeepCollectionEquality().equals(other.genreCodes, _this.genreCodes)&&(identical(other.genreCustomName, _this.genreCustomName) || other.genreCustomName == _this.genreCustomName)&&const DeepCollectionEquality().equals(other.positionCodes, _this.positionCodes)&&(identical(other.positionCustomName, _this.positionCustomName) || other.positionCustomName == _this.positionCustomName)&&(identical(other.photo, _this.photo) || other.photo == _this.photo)&&(identical(other.pickingPhoto, _this.pickingPhoto) || other.pickingPhoto == _this.pickingPhoto)&&(identical(other.photoProblem, _this.photoProblem) || other.photoProblem == _this.photoProblem)&&(identical(other.saving, _this.saving) || other.saving == _this.saving)&&(identical(other.failure, _this.failure) || other.failure == _this.failure));
 }
 
 
 @override
 int get hashCode {
   final _this = this as ProfileState;
-  return Object.hash(runtimeType,_this.nickname,_this.nicknameCheck,_this.checkingNickname,const DeepCollectionEquality().hash(_this.genreCodes),_this.genreCustomName,const DeepCollectionEquality().hash(_this.positionCodes),_this.positionCustomName,_this.photo,_this.pickingPhoto,_this.photoProblem,_this.saving,_this.failure);
+  return Object.hash(runtimeType,_this.nickname,_this.nicknameCheck,_this.checkingNickname,_this.nicknameCheckFailure,const DeepCollectionEquality().hash(_this.genreCodes),_this.genreCustomName,const DeepCollectionEquality().hash(_this.positionCodes),_this.positionCustomName,_this.photo,_this.pickingPhoto,_this.photoProblem,_this.saving,_this.failure);
 }
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
   final _this = this as ProfileState;
-  return 'ProfileState(nickname: ${_this.nickname}, nicknameCheck: ${_this.nicknameCheck}, checkingNickname: ${_this.checkingNickname}, genreCodes: ${_this.genreCodes}, genreCustomName: ${_this.genreCustomName}, positionCodes: ${_this.positionCodes}, positionCustomName: ${_this.positionCustomName}, photo: ${_this.photo}, pickingPhoto: ${_this.pickingPhoto}, photoProblem: ${_this.photoProblem}, saving: ${_this.saving}, failure: ${_this.failure})';
+  return 'ProfileState(nickname: ${_this.nickname}, nicknameCheck: ${_this.nicknameCheck}, checkingNickname: ${_this.checkingNickname}, nicknameCheckFailure: ${_this.nicknameCheckFailure}, genreCodes: ${_this.genreCodes}, genreCustomName: ${_this.genreCustomName}, positionCodes: ${_this.positionCodes}, positionCustomName: ${_this.positionCustomName}, photo: ${_this.photo}, pickingPhoto: ${_this.pickingPhoto}, photoProblem: ${_this.photoProblem}, saving: ${_this.saving}, failure: ${_this.failure})';
 }
 
 
@@ -66,7 +68,7 @@ abstract mixin class $ProfileStateCopyWith<$Res>  {
   factory $ProfileStateCopyWith(ProfileState value, $Res Function(ProfileState) _then) = _$ProfileStateCopyWithImpl;
 @useResult
 $Res call({
- String nickname, NicknameCheckResult? nicknameCheck, bool checkingNickname, List<String> genreCodes, String genreCustomName, List<String> positionCodes, String positionCustomName, PickedPhoto? photo, bool pickingPhoto, PhotoPickProblem? photoProblem, bool saving, ProfileFailureReason? failure
+ String nickname, NicknameCheckResult? nicknameCheck, bool checkingNickname, ProfileFailureReason? nicknameCheckFailure, List<String> genreCodes, String genreCustomName, List<String> positionCodes, String positionCustomName, PickedPhoto? photo, bool pickingPhoto, PhotoPickProblem? photoProblem, bool saving, ProfileFailureReason? failure
 });
 
 
@@ -83,12 +85,13 @@ class _$ProfileStateCopyWithImpl<$Res>
 
 /// Create a copy of ProfileState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? nickname = null,Object? nicknameCheck = freezed,Object? checkingNickname = null,Object? genreCodes = null,Object? genreCustomName = null,Object? positionCodes = null,Object? positionCustomName = null,Object? photo = freezed,Object? pickingPhoto = null,Object? photoProblem = freezed,Object? saving = null,Object? failure = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? nickname = null,Object? nicknameCheck = freezed,Object? checkingNickname = null,Object? nicknameCheckFailure = freezed,Object? genreCodes = null,Object? genreCustomName = null,Object? positionCodes = null,Object? positionCustomName = null,Object? photo = freezed,Object? pickingPhoto = null,Object? photoProblem = freezed,Object? saving = null,Object? failure = freezed,}) {
   return _then(ProfileState(
 nickname: null == nickname ? _self.nickname : nickname // ignore: cast_nullable_to_non_nullable
 as String,nicknameCheck: freezed == nicknameCheck ? _self.nicknameCheck : nicknameCheck // ignore: cast_nullable_to_non_nullable
 as NicknameCheckResult?,checkingNickname: null == checkingNickname ? _self.checkingNickname : checkingNickname // ignore: cast_nullable_to_non_nullable
-as bool,genreCodes: null == genreCodes ? _self.genreCodes : genreCodes // ignore: cast_nullable_to_non_nullable
+as bool,nicknameCheckFailure: freezed == nicknameCheckFailure ? _self.nicknameCheckFailure : nicknameCheckFailure // ignore: cast_nullable_to_non_nullable
+as ProfileFailureReason?,genreCodes: null == genreCodes ? _self.genreCodes : genreCodes // ignore: cast_nullable_to_non_nullable
 as List<String>,genreCustomName: null == genreCustomName ? _self.genreCustomName : genreCustomName // ignore: cast_nullable_to_non_nullable
 as String,positionCodes: null == positionCodes ? _self.positionCodes : positionCodes // ignore: cast_nullable_to_non_nullable
 as List<String>,positionCustomName: null == positionCustomName ? _self.positionCustomName : positionCustomName // ignore: cast_nullable_to_non_nullable
@@ -182,10 +185,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String nickname,  NicknameCheckResult? nicknameCheck,  bool checkingNickname,  List<String> genreCodes,  String genreCustomName,  List<String> positionCodes,  String positionCustomName,  PickedPhoto? photo,  bool pickingPhoto,  PhotoPickProblem? photoProblem,  bool saving,  ProfileFailureReason? failure)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String nickname,  NicknameCheckResult? nicknameCheck,  bool checkingNickname,  ProfileFailureReason? nicknameCheckFailure,  List<String> genreCodes,  String genreCustomName,  List<String> positionCodes,  String positionCustomName,  PickedPhoto? photo,  bool pickingPhoto,  PhotoPickProblem? photoProblem,  bool saving,  ProfileFailureReason? failure)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProfileState() when $default != null:
-return $default(_that.nickname,_that.nicknameCheck,_that.checkingNickname,_that.genreCodes,_that.genreCustomName,_that.positionCodes,_that.positionCustomName,_that.photo,_that.pickingPhoto,_that.photoProblem,_that.saving,_that.failure);case _:
+return $default(_that.nickname,_that.nicknameCheck,_that.checkingNickname,_that.nicknameCheckFailure,_that.genreCodes,_that.genreCustomName,_that.positionCodes,_that.positionCustomName,_that.photo,_that.pickingPhoto,_that.photoProblem,_that.saving,_that.failure);case _:
   return orElse();
 
 }
@@ -203,10 +206,10 @@ return $default(_that.nickname,_that.nicknameCheck,_that.checkingNickname,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String nickname,  NicknameCheckResult? nicknameCheck,  bool checkingNickname,  List<String> genreCodes,  String genreCustomName,  List<String> positionCodes,  String positionCustomName,  PickedPhoto? photo,  bool pickingPhoto,  PhotoPickProblem? photoProblem,  bool saving,  ProfileFailureReason? failure)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String nickname,  NicknameCheckResult? nicknameCheck,  bool checkingNickname,  ProfileFailureReason? nicknameCheckFailure,  List<String> genreCodes,  String genreCustomName,  List<String> positionCodes,  String positionCustomName,  PickedPhoto? photo,  bool pickingPhoto,  PhotoPickProblem? photoProblem,  bool saving,  ProfileFailureReason? failure)  $default,) {final _that = this;
 switch (_that) {
 case _ProfileState():
-return $default(_that.nickname,_that.nicknameCheck,_that.checkingNickname,_that.genreCodes,_that.genreCustomName,_that.positionCodes,_that.positionCustomName,_that.photo,_that.pickingPhoto,_that.photoProblem,_that.saving,_that.failure);case _:
+return $default(_that.nickname,_that.nicknameCheck,_that.checkingNickname,_that.nicknameCheckFailure,_that.genreCodes,_that.genreCustomName,_that.positionCodes,_that.positionCustomName,_that.photo,_that.pickingPhoto,_that.photoProblem,_that.saving,_that.failure);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -223,10 +226,10 @@ return $default(_that.nickname,_that.nicknameCheck,_that.checkingNickname,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String nickname,  NicknameCheckResult? nicknameCheck,  bool checkingNickname,  List<String> genreCodes,  String genreCustomName,  List<String> positionCodes,  String positionCustomName,  PickedPhoto? photo,  bool pickingPhoto,  PhotoPickProblem? photoProblem,  bool saving,  ProfileFailureReason? failure)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String nickname,  NicknameCheckResult? nicknameCheck,  bool checkingNickname,  ProfileFailureReason? nicknameCheckFailure,  List<String> genreCodes,  String genreCustomName,  List<String> positionCodes,  String positionCustomName,  PickedPhoto? photo,  bool pickingPhoto,  PhotoPickProblem? photoProblem,  bool saving,  ProfileFailureReason? failure)?  $default,) {final _that = this;
 switch (_that) {
 case _ProfileState() when $default != null:
-return $default(_that.nickname,_that.nicknameCheck,_that.checkingNickname,_that.genreCodes,_that.genreCustomName,_that.positionCodes,_that.positionCustomName,_that.photo,_that.pickingPhoto,_that.photoProblem,_that.saving,_that.failure);case _:
+return $default(_that.nickname,_that.nicknameCheck,_that.checkingNickname,_that.nicknameCheckFailure,_that.genreCodes,_that.genreCustomName,_that.positionCodes,_that.positionCustomName,_that.photo,_that.pickingPhoto,_that.photoProblem,_that.saving,_that.failure);case _:
   return null;
 
 }
@@ -238,14 +241,17 @@ return $default(_that.nickname,_that.nicknameCheck,_that.checkingNickname,_that.
 
 
 class _ProfileState extends ProfileState with DiagnosticableTreeMixin {
-  const _ProfileState({this.nickname = '', this.nicknameCheck, this.checkingNickname = false,  List<String> genreCodes = const <String>[], this.genreCustomName = '',  List<String> positionCodes = const <String>[], this.positionCustomName = '', this.photo, this.pickingPhoto = false, this.photoProblem, this.saving = false, this.failure}): _genreCodes = genreCodes,_positionCodes = positionCodes,super._();
+  const _ProfileState({this.nickname = '', this.nicknameCheck, this.checkingNickname = false, this.nicknameCheckFailure,  List<String> genreCodes = const <String>[], this.genreCustomName = '',  List<String> positionCodes = const <String>[], this.positionCustomName = '', this.photo, this.pickingPhoto = false, this.photoProblem, this.saving = false, this.failure}): _genreCodes = genreCodes,_positionCodes = positionCodes,super._();
   
 
 @override@JsonKey() final  String nickname;
-/// [nickname]의 "중복 확인" 결과. 닉네임을 고치면 null(다시 확인해야 함).
+/// [nickname]의 확인 결과. 닉네임을 고치면 null(입력이 멈추면 다시 확인한다).
 @override final  NicknameCheckResult? nicknameCheck;
-/// 중복 확인 중. 버튼은 다시 눌리지 않는다.
+/// 지금 [nickname]을 서버에 확인하는 중.
 @override@JsonKey() final  bool checkingNickname;
+/// 지금 [nickname]을 확인하지 못한 이유 (연결 실패 등). 화면은 입력칸 아래에 보이고
+/// 누르면 다시 확인한다. 저장 실패([failure])와 따로 둔다.
+@override final  ProfileFailureReason? nicknameCheckFailure;
 /// 고른 순서대로.
  final  List<String> _genreCodes;
 /// 고른 순서대로.
@@ -272,7 +278,7 @@ class _ProfileState extends ProfileState with DiagnosticableTreeMixin {
 @override final  PhotoPickProblem? photoProblem;
 /// 저장 중. 버튼은 로딩으로 보이고 다시 눌리지 않는다.
 @override@JsonKey() final  bool saving;
-/// 마지막 확인·저장이 실패한 이유. 화면은 이 값이 생길 때 안내를 띄운다.
+/// 마지막 저장이 실패한 이유. 화면은 이 값이 생길 때 안내를 띄운다.
 @override final  ProfileFailureReason? failure;
 
 /// Create a copy of ProfileState
@@ -286,23 +292,23 @@ _$ProfileStateCopyWith<_ProfileState> get copyWith => __$ProfileStateCopyWithImp
 void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     properties
     ..add(DiagnosticsProperty('type', 'ProfileState'))
-    ..add(DiagnosticsProperty('nickname', nickname))..add(DiagnosticsProperty('nicknameCheck', nicknameCheck))..add(DiagnosticsProperty('checkingNickname', checkingNickname))..add(DiagnosticsProperty('genreCodes', genreCodes))..add(DiagnosticsProperty('genreCustomName', genreCustomName))..add(DiagnosticsProperty('positionCodes', positionCodes))..add(DiagnosticsProperty('positionCustomName', positionCustomName))..add(DiagnosticsProperty('photo', photo))..add(DiagnosticsProperty('pickingPhoto', pickingPhoto))..add(DiagnosticsProperty('photoProblem', photoProblem))..add(DiagnosticsProperty('saving', saving))..add(DiagnosticsProperty('failure', failure));
+    ..add(DiagnosticsProperty('nickname', nickname))..add(DiagnosticsProperty('nicknameCheck', nicknameCheck))..add(DiagnosticsProperty('checkingNickname', checkingNickname))..add(DiagnosticsProperty('nicknameCheckFailure', nicknameCheckFailure))..add(DiagnosticsProperty('genreCodes', genreCodes))..add(DiagnosticsProperty('genreCustomName', genreCustomName))..add(DiagnosticsProperty('positionCodes', positionCodes))..add(DiagnosticsProperty('positionCustomName', positionCustomName))..add(DiagnosticsProperty('photo', photo))..add(DiagnosticsProperty('pickingPhoto', pickingPhoto))..add(DiagnosticsProperty('photoProblem', photoProblem))..add(DiagnosticsProperty('saving', saving))..add(DiagnosticsProperty('failure', failure));
 }
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileState&&(identical(other.nickname, nickname) || other.nickname == nickname)&&(identical(other.nicknameCheck, nicknameCheck) || other.nicknameCheck == nicknameCheck)&&(identical(other.checkingNickname, checkingNickname) || other.checkingNickname == checkingNickname)&&const DeepCollectionEquality().equals(other.genreCodes, _genreCodes)&&(identical(other.genreCustomName, genreCustomName) || other.genreCustomName == genreCustomName)&&const DeepCollectionEquality().equals(other.positionCodes, _positionCodes)&&(identical(other.positionCustomName, positionCustomName) || other.positionCustomName == positionCustomName)&&(identical(other.photo, photo) || other.photo == photo)&&(identical(other.pickingPhoto, pickingPhoto) || other.pickingPhoto == pickingPhoto)&&(identical(other.photoProblem, photoProblem) || other.photoProblem == photoProblem)&&(identical(other.saving, saving) || other.saving == saving)&&(identical(other.failure, failure) || other.failure == failure));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProfileState&&(identical(other.nickname, nickname) || other.nickname == nickname)&&(identical(other.nicknameCheck, nicknameCheck) || other.nicknameCheck == nicknameCheck)&&(identical(other.checkingNickname, checkingNickname) || other.checkingNickname == checkingNickname)&&(identical(other.nicknameCheckFailure, nicknameCheckFailure) || other.nicknameCheckFailure == nicknameCheckFailure)&&const DeepCollectionEquality().equals(other.genreCodes, _genreCodes)&&(identical(other.genreCustomName, genreCustomName) || other.genreCustomName == genreCustomName)&&const DeepCollectionEquality().equals(other.positionCodes, _positionCodes)&&(identical(other.positionCustomName, positionCustomName) || other.positionCustomName == positionCustomName)&&(identical(other.photo, photo) || other.photo == photo)&&(identical(other.pickingPhoto, pickingPhoto) || other.pickingPhoto == pickingPhoto)&&(identical(other.photoProblem, photoProblem) || other.photoProblem == photoProblem)&&(identical(other.saving, saving) || other.saving == saving)&&(identical(other.failure, failure) || other.failure == failure));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,nickname,nicknameCheck,checkingNickname,const DeepCollectionEquality().hash(_genreCodes),genreCustomName,const DeepCollectionEquality().hash(_positionCodes),positionCustomName,photo,pickingPhoto,photoProblem,saving,failure);
+    return Object.hash(runtimeType,nickname,nicknameCheck,checkingNickname,nicknameCheckFailure,const DeepCollectionEquality().hash(_genreCodes),genreCustomName,const DeepCollectionEquality().hash(_positionCodes),positionCustomName,photo,pickingPhoto,photoProblem,saving,failure);
 }
 
 @override
 String toString({ DiagnosticLevel minLevel = DiagnosticLevel.info }) {
-    return 'ProfileState(nickname: $nickname, nicknameCheck: $nicknameCheck, checkingNickname: $checkingNickname, genreCodes: $genreCodes, genreCustomName: $genreCustomName, positionCodes: $positionCodes, positionCustomName: $positionCustomName, photo: $photo, pickingPhoto: $pickingPhoto, photoProblem: $photoProblem, saving: $saving, failure: $failure)';
+    return 'ProfileState(nickname: $nickname, nicknameCheck: $nicknameCheck, checkingNickname: $checkingNickname, nicknameCheckFailure: $nicknameCheckFailure, genreCodes: $genreCodes, genreCustomName: $genreCustomName, positionCodes: $positionCodes, positionCustomName: $positionCustomName, photo: $photo, pickingPhoto: $pickingPhoto, photoProblem: $photoProblem, saving: $saving, failure: $failure)';
 }
 
 
@@ -313,7 +319,7 @@ abstract mixin class _$ProfileStateCopyWith<$Res> implements $ProfileStateCopyWi
   factory _$ProfileStateCopyWith(_ProfileState value, $Res Function(_ProfileState) _then) = __$ProfileStateCopyWithImpl;
 @override @useResult
 $Res call({
- String nickname, NicknameCheckResult? nicknameCheck, bool checkingNickname, List<String> genreCodes, String genreCustomName, List<String> positionCodes, String positionCustomName, PickedPhoto? photo, bool pickingPhoto, PhotoPickProblem? photoProblem, bool saving, ProfileFailureReason? failure
+ String nickname, NicknameCheckResult? nicknameCheck, bool checkingNickname, ProfileFailureReason? nicknameCheckFailure, List<String> genreCodes, String genreCustomName, List<String> positionCodes, String positionCustomName, PickedPhoto? photo, bool pickingPhoto, PhotoPickProblem? photoProblem, bool saving, ProfileFailureReason? failure
 });
 
 
@@ -330,12 +336,13 @@ class __$ProfileStateCopyWithImpl<$Res>
 
 /// Create a copy of ProfileState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? nickname = null,Object? nicknameCheck = freezed,Object? checkingNickname = null,Object? genreCodes = null,Object? genreCustomName = null,Object? positionCodes = null,Object? positionCustomName = null,Object? photo = freezed,Object? pickingPhoto = null,Object? photoProblem = freezed,Object? saving = null,Object? failure = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? nickname = null,Object? nicknameCheck = freezed,Object? checkingNickname = null,Object? nicknameCheckFailure = freezed,Object? genreCodes = null,Object? genreCustomName = null,Object? positionCodes = null,Object? positionCustomName = null,Object? photo = freezed,Object? pickingPhoto = null,Object? photoProblem = freezed,Object? saving = null,Object? failure = freezed,}) {
   return _then(_ProfileState(
 nickname: null == nickname ? _self.nickname : nickname // ignore: cast_nullable_to_non_nullable
 as String,nicknameCheck: freezed == nicknameCheck ? _self.nicknameCheck : nicknameCheck // ignore: cast_nullable_to_non_nullable
 as NicknameCheckResult?,checkingNickname: null == checkingNickname ? _self.checkingNickname : checkingNickname // ignore: cast_nullable_to_non_nullable
-as bool,genreCodes: null == genreCodes ? _self._genreCodes : genreCodes // ignore: cast_nullable_to_non_nullable
+as bool,nicknameCheckFailure: freezed == nicknameCheckFailure ? _self.nicknameCheckFailure : nicknameCheckFailure // ignore: cast_nullable_to_non_nullable
+as ProfileFailureReason?,genreCodes: null == genreCodes ? _self._genreCodes : genreCodes // ignore: cast_nullable_to_non_nullable
 as List<String>,genreCustomName: null == genreCustomName ? _self.genreCustomName : genreCustomName // ignore: cast_nullable_to_non_nullable
 as String,positionCodes: null == positionCodes ? _self._positionCodes : positionCodes // ignore: cast_nullable_to_non_nullable
 as List<String>,positionCustomName: null == positionCustomName ? _self.positionCustomName : positionCustomName // ignore: cast_nullable_to_non_nullable

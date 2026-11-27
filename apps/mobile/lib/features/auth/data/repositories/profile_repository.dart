@@ -3,6 +3,7 @@ import '../../models/next_step.dart';
 import '../../models/nickname_check_result.dart';
 import '../../models/profile_draft.dart';
 import '../../models/profile_failure.dart';
+import '../../models/profile_options.dart';
 import '../dto/profile_dto.dart';
 import '../services/profile_service.dart';
 
@@ -12,6 +13,19 @@ class ProfileRepository {
   ProfileRepository(this._service);
 
   final ProfileService _service;
+
+  /// 선택지는 서버 ENUM이라 거의 바뀌지 않는다. 앱 실행 중 한 번 받아 둔다 (명세 FE 참고).
+  ProfileOptions? _options;
+
+  /// 장르·포지션 선택지. 받은 적이 있으면 서버에 다시 묻지 않는다.
+  Future<ProfileOptions> fetchOptions() async {
+    if (_options case final options?) return options;
+    try {
+      return _options = (await _service.fetchCodes()).toModel();
+    } on AppException catch (error) {
+      throw ProfileFailure(_reasonOf(error), error);
+    }
+  }
 
   /// 결과는 참고용이다. 최종 판단은 [saveProfile]의 `nicknameTaken`.
   Future<NicknameCheckResult> checkNickname(String nickname) async {

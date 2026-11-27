@@ -1,20 +1,46 @@
 # 개인 프로필
 
-`GET /api/v1/users/nickname-availability` · `PUT /api/v1/users/me/profile` · `POST /api/v1/uploads/presigned-url`
+`GET /api/v1/codes` · `GET /api/v1/users/nickname-availability` · `PUT /api/v1/users/me/profile` · `POST /api/v1/uploads/presigned-url`
 
 - dev 서버: `https://dev-api.highfive-app.link` (Swagger `/swagger-ui/index.html`)
-- 사진 업로드(presigned URL)는 아직 동작하지 않는다. 지금은 `profileImageUrl`을 `null`로 보낸다.
+- 사진 업로드(presigned URL)는 아직 동작하지 않는다. 사진을 고르고 "다음"을 누르면 업로드 실패 안내가 뜨고, "건너뛰기"(`profileImageUrl: null`)는 저장된다.
 - 밴드 기능(JECT-71) 전이라 프로필 저장 후 `nextStep`은 항상 `BAND_START`다.
 - dev DB는 개발 중 초기화될 수 있다.
 
 BE 명세를 앱에서 쓰는 부분만 옮겼다. 명세가 바뀌면 이 파일과 프로필 DTO를 같이 고친다.
 
 - 호출 시점: 약관 동의 저장 응답(또는 로그인 응답)의 `nextStep`이 `PROFILE`일 때 온보딩 프로필 화면에서. 마이페이지 프로필 수정도 같은 API를 쓴다.
-- 순서: 닉네임·장르·포지션 화면에서 "중복 확인" 통과 → 사진 화면에서 사진을 고르면 업로드 URL 발급 → S3 업로드 → "다음"/"건너뛰기"에서 프로필을 한 번에 저장.
+- 순서: 정보 화면이 열리면 코드 목록을 받는다 → 닉네임 확인 통과, 장르·포지션 선택 → 사진 화면 "다음"(사진 있음: 업로드 URL 발급 → S3 업로드 → 저장) 또는 "건너뛰기"(바로 저장).
+
+## 코드 목록 `GET /api/v1/codes?types=GENRE,POSITION`
+
+정보 화면이 열릴 때 부른다. 칩에는 `name`을, 저장에는 `code`를 쓴다. 서버 ENUM이라 거의 바뀌지 않으므로 앱 실행 중 한 번 받아 저장소에 둔다 (`ProfileRepository.fetchOptions`). 못 받으면 칩 자리에 "다시 시도"를 보인다.
+
+| 위치 | 이름 | 값 |
+| --- | --- | --- |
+| Header | Authorization | `Bearer {accessToken}` |
+| Query | types | `GENRE,POSITION` |
+
+```json
+{
+  "status": 200,
+  "code": "COMMON_000",
+  "message": "요청이 성공했습니다.",
+  "data": {
+    "GENRE": [{ "code": "ROCK", "name": "록" }, { "code": "ETC", "name": "기타" }],
+    "POSITION": [{ "code": "VOCAL", "name": "보컬" }, { "code": "CUSTOM", "name": "직접입력" }]
+  }
+}
+```
+
+- 장르 `ETC`와 포지션 `GUITAR`는 둘 다 "기타"로 보인다. 앱은 code로 구분한다. Figma는 장르를 "직접입력"으로 그렸다 (디자이너 확인).
+- `ETC`·`CUSTOM`을 고르면 입력칸이 나온다 (`ProfileDraft.genreCustomCode`·`positionCustomCode`).
 
 ## 닉네임 사용 가능 여부 `GET /api/v1/users/nickname-availability`
 
-"중복 확인" 버튼을 눌렀을 때 부른다. 중복·형식 오류도 에러가 아니라 200 + `available: false`다.
+입력이 500ms 멈추면 저절로 부른다 (글자마다 부르지 않는다). 허용하지 않는 문자는 입력하자마자 안내하고 서버에 묻지 않으며, 길이가 틀리면 멈춘 뒤 서버에 묻지 않고 안내한다. 중복·형식 오류도 에러가 아니라 200 + `available: false`다.
+
+- 명세(회의 D2)와 Figma는 "중복 확인" 버튼을 눌러 부른다. 앱은 버튼 없이 입력하며 확인한다 (기획 확인).
 
 | 위치 | 이름 | 값 |
 | --- | --- | --- |
@@ -155,19 +181,10 @@ BE 명세를 앱에서 쓰는 부분만 옮겼다. 명세가 바뀌면 이 파�
 | 400 | COMMON_004 | 형식·용량 위반, 필드 누락 | 용량·형식 안내 후 다시 고르기 |
 | 401 | AUTH_002 | 액세스 토큰 만료 | 인터셉터가 재발급 후 다시 요청 |
 
-## 장르·포지션 코드
-
-서버에 코드 목록 API(`GET /api/v1/codes?types=GENRE,POSITION`)가 있지만 앱은 부르지 않고 아래 목록을 고정으로 둔다 (`features/auth/models/profile_options.dart`). 코드는 BE 명세 값, 표시 이름은 Figma를 따른다. 서버가 모르는 코드를 보내면 저장이 `COMMON_004`로 막히므로, 서버 목록이 바뀌면 이 표와 앱 목록을 같이 고친다.
-
-| 종류 | code | 화면 표시 |
-| --- | --- | --- |
-| 장르 | `ROCK` · `INDIE` · `METAL` · `PUNK` · `POP` · `JAZZ` · `ETC` | 록 · 인디 · 메탈 · 펑크 · 팝 · 재즈 · 직접입력 |
-| 포지션 | `VOCAL` · `GUITAR` · `BASS` · `DRUM` · `KEYBOARD` · `CUSTOM` | 보컬 · 기타 · 베이스 · 드럼 · 키보드 · 직접입력 |
-
-- 서버는 장르 `ETC`를 "기타"라고 부르지만 화면은 Figma대로 "직접입력"이다. 포지션 "기타"는 `GUITAR`(악기)라서 코드로 구분한다.
-
 ## 확인 필요
 
 - **최대 용량**: 기능명세서는 10MB("사진은 10MB까지 올릴 수 있어요"), 이 API는 5MB(제안). 어느 쪽인지 BE와 맞춘다.
-- **코드 목록 서버 제공 vs 앱 고정값** (회의 D4): 지금은 앱 고정값. 앱 고정으로 확정되면 BE가 코드 목록 API를 지운다.
+- **코드 목록 서버 제공** (회의 D4): 앱은 서버 목록을 쓴다. 이 API를 지우지 않도록 BE에 알린다.
+- **장르 "기타" 표시 이름**: 서버 `ETC`는 "기타", Figma는 "직접입력". 포지션 "기타"(`GUITAR`)와 겹쳐 보인다.
+- **닉네임 확인 시점**: 명세·Figma는 "중복 확인" 버튼, 앱은 입력하며 자동 확인 (버튼 없음).
 - **허용 문자 안내 문구**: 기능명세서 "한글, 영문, 숫자만 쓸 수 있어요" / API 명세 "사용할 수 있어요". 위 표는 기능명세서를 따랐다.

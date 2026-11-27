@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -34,12 +35,16 @@ class _FakeProfileRepository extends ProfileRepository {
   final Completer<NicknameCheckResult>? check;
   final Completer<NextStep>? save;
   final Object? saveError;
+
+  /// 있으면 닉네임 확인이 이것으로 실패한다.
+  Object? checkError;
   final checked = <String>[];
   final saved = <ProfileDraft>[];
 
   @override
   Future<NicknameCheckResult> checkNickname(String nickname) {
     checked.add(nickname);
+    if (checkError case final error?) return Future.error(error);
     return check?.future ?? Future.value(NicknameCheckResult.available);
   }
 
@@ -149,6 +154,96 @@ Future<ProviderContainer> _filled(
 }
 
 void main() {
+  group('입력하며 닉네임 확인', () {
+    const delay = ProfileViewModel.nicknameCheckDelay;
+    const tick = Duration(milliseconds: 1);
+
+    test('입력이 멈추면 마지막 닉네임만 한 번 확인한다', () async {
+      final repository = _FakeProfileRepository();
+      final container = await _container(repository);
+
+      fakeAsync((async) {
+        _viewModel(container)
+          ..changeNickname('두')
+          ..changeNickname('두현');
+        async.elapse(delay - tick);
+        expect(repository.checked, isEmpty);
+
+        async.elapse(tick);
+        expect(repository.checked, ['두현']);
+        expect(_state(container).nicknameAvailable, isTrue);
+      });
+    });
+
+    test('입력 중에 다시 쓰면 기다리는 시간이 처음부터 다시 시작된다', () async {
+      final repository = _FakeProfileRepository();
+      final container = await _container(repository);
+
+      fakeAsync((async) {
+        _viewModel(container).changeNickname('두현');
+        async.elapse(delay - tick);
+        _viewModel(container).changeNickname('두현이');
+        async.elapse(delay - tick);
+        expect(repository.checked, isEmpty);
+
+        async.elapse(tick);
+        expect(repository.checked, ['두현이']);
+      });
+    });
+
+    test('허용하지 않는 문자가 있으면 서버에 묻지 않는다', () async {
+      final repository = _FakeProfileRepository();
+      final container = await _container(repository);
+
+      fakeAsync((async) {
+        _viewModel(container).changeNickname('rock!');
+        async.elapse(delay * 2);
+
+        expect(repository.checked, isEmpty);
+        expect(_state(container).nicknameHasForbiddenCharacter, isTrue);
+      });
+    });
+
+    test('짧으면 멈춘 뒤 서버에 묻지 않고 길이 안내를 한다', () async {
+      final repository = _FakeProfileRepository();
+      final container = await _container(repository);
+
+      fakeAsync((async) {
+        _viewModel(container).changeNickname('두');
+        async.elapse(delay);
+
+        expect(repository.checked, isEmpty);
+        expect(
+          _state(container).nicknameCheck,
+          NicknameCheckResult.invalidLength,
+        );
+      });
+    });
+
+    test('확인하지 못하면 이유를 따로 담고, 다시 확인할 수 있다', () async {
+      final repository = _FakeProfileRepository()
+        ..checkError = const ProfileFailure(ProfileFailureReason.network);
+      final container = await _container(repository);
+
+      fakeAsync((async) {
+        _viewModel(container).changeNickname('두현');
+        async.elapse(delay);
+        expect(
+          _state(container).nicknameCheckFailure,
+          ProfileFailureReason.network,
+        );
+        expect(_state(container).failure, isNull);
+        expect(_state(container).checkingNickname, isFalse);
+
+        repository.checkError = null;
+        unawaited(_viewModel(container).checkNickname());
+        async.flushMicrotasks();
+        expect(_state(container).nicknameCheckFailure, isNull);
+        expect(_state(container).nicknameAvailable, isTrue);
+      });
+    });
+  });
+
   group('닉네임', () {
     test('허용하지 않는 문자가 있으면 바로 표시하고 확인할 수 없다', () async {
       final container = await _container(_FakeProfileRepository());

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:highfive/core/error/app_exception.dart';
+import 'package:highfive/features/auth/data/dto/codes_response_dto.dart';
 import 'package:highfive/features/auth/data/dto/nickname_availability_dto.dart';
 import 'package:highfive/features/auth/data/dto/profile_dto.dart';
 import 'package:highfive/features/auth/data/repositories/profile_repository.dart';
@@ -16,6 +17,17 @@ class _FakeProfileService extends ProfileService {
 
   final AppException? error;
   ProfileRequestDto? request;
+  int codesFetchCount = 0;
+
+  @override
+  Future<CodesResponseDto> fetchCodes() async {
+    codesFetchCount++;
+    if (error case final error?) throw error;
+    return const CodesResponseDto(
+      genres: [CodeDto(code: 'ROCK', name: '록')],
+      positions: [CodeDto(code: 'VOCAL', name: '보컬')],
+    );
+  }
 
   @override
   Future<NicknameAvailabilityDto> checkNickname(String nickname) async {
@@ -35,6 +47,40 @@ class _FakeProfileService extends ProfileService {
 }
 
 void main() {
+  test('선택지는 한 번만 받고 다음부터는 받아 둔 것을 돌려준다', () async {
+    final service = _FakeProfileService();
+    final repository = ProfileRepository(service);
+
+    final first = await repository.fetchOptions();
+    final second = await repository.fetchOptions();
+
+    expect(first.genres, [(code: 'ROCK', label: '록')]);
+    expect(first.positions, [(code: 'VOCAL', label: '보컬')]);
+    expect(second, same(first));
+    expect(service.codesFetchCount, 1);
+  });
+
+  test('선택지를 못 받으면 ProfileFailure로 던지고, 다음에 다시 받는다', () async {
+    final service = _FakeProfileService(const NetworkException());
+    final repository = ProfileRepository(service);
+
+    await expectLater(
+      repository.fetchOptions(),
+      throwsA(
+        isA<ProfileFailure>().having(
+          (failure) => failure.reason,
+          'reason',
+          ProfileFailureReason.network,
+        ),
+      ),
+    );
+    await expectLater(
+      repository.fetchOptions(),
+      throwsA(isA<ProfileFailure>()),
+    );
+    expect(service.codesFetchCount, 2);
+  });
+
   test('닉네임 확인 결과를 모델로 돌려준다', () async {
     final repository = ProfileRepository(_FakeProfileService());
 
