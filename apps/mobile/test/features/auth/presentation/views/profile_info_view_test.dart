@@ -48,10 +48,7 @@ Future<List<String>> _pump(
       ],
       child: MaterialApp(
         theme: AppTheme.light,
-        home: ProfileInfoView(
-          onBack: () => calls.add('back'),
-          onNext: () => calls.add('next'),
-        ),
+        home: ProfileInfoView(onNext: () => calls.add('next')),
       ),
     ),
   );
@@ -159,11 +156,10 @@ void main() {
     expect(find.byType(AppDialog), findsOneWidget);
   });
 
-  testWidgets('이전을 누르면 알린다', (tester) async {
-    final calls = await _pump(tester);
+  testWidgets('이전은 기획 확인 전이라 누를 수 없다', (tester) async {
+    await _pump(tester);
 
-    await tester.tap(find.text('이전'));
-
-    expect(calls, ['back']);
+    final back = tester.widget<AppButton>(find.widgetWithText(AppButton, '이전'));
+    expect(back.onPressed, isNull);
   });
 }

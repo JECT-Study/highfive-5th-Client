@@ -2,8 +2,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../../core/sdk/photo_picker.dart';
 import '../../models/next_step.dart';
 import '../../models/nickname_check_result.dart';
+import '../../models/photo_pick_problem.dart';
 import '../../models/profile_draft.dart';
 import '../../models/profile_failure.dart';
 import '../../models/profile_rules.dart';
@@ -37,6 +39,15 @@ abstract class ProfileState with _$ProfileState {
     @Default('') String genreCustomName,
     @Default(<String>[]) List<String> positionCodes,
     @Default('') String positionCustomName,
+
+    /// 고른 프로필 사진. 없으면 기본 이미지 (건너뛰기).
+    PickedPhoto? photo,
+
+    /// 사진 선택기가 열려 있다. 다시 열리지 않는다.
+    @Default(false) bool pickingPhoto,
+
+    /// 마지막 사진 고르기가 실패한 이유. 화면은 이 값이 생길 때 안내를 띄운다.
+    PhotoPickProblem? photoProblem,
 
     /// 저장 중. 버튼은 로딩으로 보이고 다시 눌리지 않는다.
     @Default(false) bool saving,
@@ -137,6 +148,40 @@ class ProfileViewModel extends Notifier<ProfileState> {
   void changePositionCustomName(String value) {
     if (state.saving) return;
     state = state.copyWith(positionCustomName: value);
+  }
+
+  /// 앨범·카메라에서 사진을 고른다. 취소하면 이전 사진을 그대로 둔다.
+  /// 10MB를 넘거나 받지 않는 형식이면 고르지 않은 것으로 하고 이유를 알린다.
+  Future<void> pickPhoto(PhotoSource source) async {
+    if (state.saving || state.pickingPhoto) return;
+    state = state.copyWith(pickingPhoto: true, photoProblem: null);
+    PickedPhoto? photo;
+    PhotoPickProblem? problem;
+    try {
+      photo = await ref.read(photoPickerProvider).pick(source);
+    } on PhotoAccessDenied catch (error) {
+      problem = error.source == PhotoSource.camera
+          ? PhotoPickProblem.cameraDenied
+          : PhotoPickProblem.albumDenied;
+    } on Exception catch (error) {
+      if (kDebugMode) debugPrint('[Profile] 사진 고르기 실패: $error');
+      problem = PhotoPickProblem.unknown;
+    }
+    if (photo != null) {
+      if (photo.sizeBytes > profilePhotoMaxBytes) {
+        problem = PhotoPickProblem.tooLarge;
+        photo = null;
+      } else if (photo.contentType == null) {
+        problem = PhotoPickProblem.unsupportedType;
+        photo = null;
+      }
+    }
+    if (!ref.mounted) return;
+    state = state.copyWith(
+      pickingPhoto: false,
+      photo: photo ?? state.photo,
+      photoProblem: problem,
+    );
   }
 
   /// 사진 화면의 "다음"·"건너뛰기". 정보가 다 맞지 않거나 저장 중이면 무시한다.

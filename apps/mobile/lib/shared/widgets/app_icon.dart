@@ -44,6 +44,7 @@ enum AppIcons {
   bookmark('assets/icons/bookmark.svg'), // Icon:bookmark (20, 켜짐·꺼짐은 색으로)
   lock('assets/icons/lock.svg'), // Icon: lock
   chevronLeft('assets/icons/chevron_left.svg'), // Icon:arrow (16)
+  camera('assets/icons/camera.svg'), // Camera (20, 프로필 사진 고르기)
   checkCircleLarge('assets/icons/check_circle_large.svg'); // Icon60Check (60)
 
   const AppIcons(this.asset, {this.keepsOwnColors = false});

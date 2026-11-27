@@ -4,13 +4,16 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:highfive/core/network/session_expiry.dart';
+import 'package:highfive/core/sdk/photo_picker.dart';
 import 'package:highfive/core/storage/secure_store.dart';
 import 'package:highfive/features/auth/data/repositories/profile_repository.dart';
 import 'package:highfive/features/auth/data/repositories/session_repository.dart';
 import 'package:highfive/features/auth/data/services/profile_service.dart';
 import 'package:highfive/features/auth/models/next_step.dart';
 import 'package:highfive/features/auth/models/nickname_check_result.dart';
+import 'package:highfive/features/auth/models/photo_pick_problem.dart';
 import 'package:highfive/features/auth/models/profile_draft.dart';
 import 'package:highfive/features/auth/models/profile_failure.dart';
 import 'package:highfive/features/auth/presentation/providers/profile_providers.dart';
@@ -44,7 +47,35 @@ class _FakeProfileRepository extends ProfileRepository {
   }
 }
 
-Future<ProviderContainer> _container(_FakeProfileRepository repository) async {
+/// 사진 선택기 대신 [result]를 돌려준다. [error]가 있으면 그것을 던진다.
+class _FakePhotoPicker extends PhotoPicker {
+  _FakePhotoPicker() : super(ImagePicker());
+
+  PickedPhoto? result;
+  Object? error;
+  final sources = <PhotoSource>[];
+
+  @override
+  Future<PickedPhoto?> pick(PhotoSource source) async {
+    sources.add(source);
+    if (error case final error?) throw error;
+    return result;
+  }
+}
+
+PickedPhoto _photo({
+  int sizeBytes = 1024,
+  String? contentType = 'image/jpeg',
+}) => PickedPhoto(
+  path: '/tmp/a.jpg',
+  sizeBytes: sizeBytes,
+  contentType: contentType,
+);
+
+Future<ProviderContainer> _container(
+  _FakeProfileRepository repository, [
+  _FakePhotoPicker? picker,
+]) async {
   FlutterSecureStorage.setMockInitialValues({
     SecureStore.accessTokenKey: 'a',
     SecureStore.nextStepKey: NextStep.profile.name,
@@ -52,6 +83,7 @@ Future<ProviderContainer> _container(_FakeProfileRepository repository) async {
   final container = ProviderContainer(
     overrides: [
       profileRepositoryProvider.overrideWithValue(repository),
+      photoPickerProvider.overrideWithValue(picker ?? _FakePhotoPicker()),
       sessionExpiryProvider.overrideWithValue(SessionExpiry()),
       sessionRepositoryProvider.overrideWithValue(
         SessionRepository(SecureStore(const FlutterSecureStorage())),
@@ -193,6 +225,73 @@ void main() {
       ]) {
         _viewModel(container).changePositionCustomName(value);
         expect(_state(container).canProceed, valid, reason: value);
+      }
+    });
+  });
+
+  group('사진', () {
+    test('고른 사진을 담는다', () async {
+      final picker = _FakePhotoPicker()..result = _photo();
+      final container = await _container(_FakeProfileRepository(), picker);
+
+      await _viewModel(container).pickPhoto(PhotoSource.camera);
+
+      expect(picker.sources, [PhotoSource.camera]);
+      expect(_state(container).photo?.path, '/tmp/a.jpg');
+      expect(_state(container).photoProblem, isNull);
+      expect(_state(container).pickingPhoto, isFalse);
+    });
+
+    test('취소하면 이전 사진을 그대로 둔다', () async {
+      final picker = _FakePhotoPicker()..result = _photo();
+      final container = await _container(_FakeProfileRepository(), picker);
+      await _viewModel(container).pickPhoto(PhotoSource.album);
+
+      picker.result = null;
+      await _viewModel(container).pickPhoto(PhotoSource.album);
+
+      expect(_state(container).photo, isNotNull);
+      expect(_state(container).photoProblem, isNull);
+    });
+
+    test('10MB를 넘거나 받지 않는 형식이면 고르지 않고 이유를 담는다', () async {
+      final picker = _FakePhotoPicker();
+      final container = await _container(_FakeProfileRepository(), picker);
+
+      for (final (photo, problem) in [
+        (_photo(sizeBytes: 10 * 1024 * 1024 + 1), PhotoPickProblem.tooLarge),
+        (_photo(contentType: null), PhotoPickProblem.unsupportedType),
+      ]) {
+        picker.result = photo;
+        await _viewModel(container).pickPhoto(PhotoSource.album);
+
+        expect(_state(container).photo, isNull);
+        expect(_state(container).photoProblem, problem);
+      }
+    });
+
+    test('딱 10MB는 올릴 수 있다', () async {
+      final picker = _FakePhotoPicker()
+        ..result = _photo(sizeBytes: 10 * 1024 * 1024);
+      final container = await _container(_FakeProfileRepository(), picker);
+
+      await _viewModel(container).pickPhoto(PhotoSource.album);
+
+      expect(_state(container).photo, isNotNull);
+    });
+
+    test('접근을 거부하면 카메라·앨범을 구분해 담는다', () async {
+      final picker = _FakePhotoPicker();
+      final container = await _container(_FakeProfileRepository(), picker);
+
+      for (final (source, problem) in [
+        (PhotoSource.camera, PhotoPickProblem.cameraDenied),
+        (PhotoSource.album, PhotoPickProblem.albumDenied),
+      ]) {
+        picker.error = PhotoAccessDenied(source);
+        await _viewModel(container).pickPhoto(source);
+
+        expect(_state(container).photoProblem, problem);
       }
     });
   });

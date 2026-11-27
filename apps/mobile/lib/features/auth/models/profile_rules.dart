@@ -13,6 +13,9 @@ const nicknameMinLength = 2;
 const nicknameMaxLength = 10;
 const customNameMaxLength = 10;
 
+/// 프로필 사진 최대 용량 (기능명세서 "사진 1장당 최대 10MB").
+const profilePhotoMaxBytes = 10 * 1024 * 1024;
+
 /// 공백·이모지·특수문자가 있다. 화면은 바로 "한글, 영문, 숫자만 쓸 수 있어요"를 보인다.
 bool hasForbiddenCharacter(String value) =>
     !_allowedWhileTyping.hasMatch(value);

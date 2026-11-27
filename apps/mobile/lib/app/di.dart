@@ -1,11 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/di/locator.dart';
 import '../core/network/auth_interceptor.dart';
 import '../core/network/dio_client.dart';
 import '../core/network/session_expiry.dart';
+import '../core/sdk/photo_picker.dart';
 import '../core/storage/secure_store.dart';
 import '../features/auth/data/repositories/auth_repository.dart';
 import '../features/auth/data/repositories/session_repository.dart';
@@ -62,5 +64,6 @@ void setupDi(AppEnv env) {
     ..registerLazySingleton(() => TermsService(getIt<Dio>()))
     ..registerLazySingleton(() => TermsRepository(getIt<TermsService>()))
     ..registerLazySingleton(() => ProfileService(getIt<Dio>()))
-    ..registerLazySingleton(() => ProfileRepository(getIt<ProfileService>()));
+    ..registerLazySingleton(() => ProfileRepository(getIt<ProfileService>()))
+    ..registerLazySingleton(() => PhotoPicker(ImagePicker()));
 }

@@ -22,13 +22,7 @@ import '../view_models/profile_view_model.dart';
 /// 색은 공통 토큰·위젯을 그대로 쓴다 (시안은 다크 팔레트, 앱은 아직 라이트 토큰만 있다).
 /// "다음"을 누르면 사진 화면이 이 화면 위에 쌓이고, 저장은 사진 화면에서 한 번에 한다.
 class ProfileInfoView extends ConsumerStatefulWidget {
-  const ProfileInfoView({
-    super.key,
-    required this.onBack,
-    required this.onNext,
-  });
-
-  final VoidCallback onBack;
+  const ProfileInfoView({super.key, required this.onNext});
 
   /// 정보를 다 채웠다. 라우터가 사진 화면을 위에 쌓는다.
   final VoidCallback onNext;
@@ -220,11 +214,12 @@ class _ProfileInfoViewState extends ConsumerState<ProfileInfoView> {
                 child: Row(
                   spacing: AppSpacing.x2_5,
                   children: [
-                    Expanded(
+                    // 앞 단계(약관 동의)로는 되돌릴 수 없다. 동작은 기획 확인 후 정하고 그때까지 막아 둔다.
+                    const Expanded(
                       child: AppButton(
                         label: '이전',
                         variant: AppButtonVariant.weak,
-                        onPressed: state.saving ? null : widget.onBack,
+                        onPressed: null,
                       ),
                     ),
                     Expanded(
