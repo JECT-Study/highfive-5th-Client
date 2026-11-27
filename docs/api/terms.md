@@ -28,7 +28,7 @@ BE 명세를 앱에서 쓰는 부분만 옮겼다. 명세가 바뀌면 이 파�
 | terms[].title | String | X | 화면에 보이는 제목 |
 | terms[].version | String | X | 약관 버전 |
 | terms[].required | Boolean | X | 필수 여부 |
-| terms[].contentUrl | String | X | 본문 페이지 주소. 상세 화면에서 WebView로 연다 |
+| terms[].contentUrl | String | O | 본문 페이지 주소. 상세 화면에서 WebView로 연다. 명세는 Null X지만 dev 서버는 `null`을 보낸다(본문 미정). 앱은 null·빈 값이면 "보기"를 숨긴다 |
 
 ```json
 {

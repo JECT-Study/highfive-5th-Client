@@ -15,10 +15,11 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ProfileState implements DiagnosticableTreeMixin {
 
- String get nickname;/// [nickname]의 확인 결과. 닉네임을 고치면 null(입력이 멈추면 다시 확인한다).
- NicknameCheckResult? get nicknameCheck;/// 지금 [nickname]을 서버에 확인하는 중.
- bool get checkingNickname;/// 지금 [nickname]을 확인하지 못한 이유 (연결 실패 등). 화면은 입력칸 아래에 보이고
-/// 누르면 다시 확인한다. 저장 실패([failure])와 따로 둔다.
+ String get nickname;/// [nickname]의 확인 결과. 형식 오류는 입력이 멈추면 검사기가,
+/// 중복 여부는 "중복 확인" 버튼으로 서버가 정한다. 닉네임을 고치면 null.
+ NicknameCheckResult? get nicknameCheck;/// "중복 확인"으로 [nickname]을 서버에 묻는 중. 버튼은 로딩으로 보이고 다시 눌리지 않는다.
+ bool get checkingNickname;/// "중복 확인"이 실패한 이유 (연결 실패 등). 화면은 입력칸 아래에 보이고, 버튼을 다시 누를 수 있다.
+/// 저장 실패([failure])와 따로 둔다.
  ProfileFailureReason? get nicknameCheckFailure;/// 고른 순서대로.
  List<String> get genreCodes; String get genreCustomName; List<String> get positionCodes; String get positionCustomName;/// 고른 프로필 사진. 없으면 기본 이미지 (건너뛰기).
  PickedPhoto? get photo;/// 사진 선택기가 열려 있다. 다시 열리지 않는다.
@@ -245,12 +246,13 @@ class _ProfileState extends ProfileState with DiagnosticableTreeMixin {
   
 
 @override@JsonKey() final  String nickname;
-/// [nickname]의 확인 결과. 닉네임을 고치면 null(입력이 멈추면 다시 확인한다).
+/// [nickname]의 확인 결과. 형식 오류는 입력이 멈추면 검사기가,
+/// 중복 여부는 "중복 확인" 버튼으로 서버가 정한다. 닉네임을 고치면 null.
 @override final  NicknameCheckResult? nicknameCheck;
-/// 지금 [nickname]을 서버에 확인하는 중.
+/// "중복 확인"으로 [nickname]을 서버에 묻는 중. 버튼은 로딩으로 보이고 다시 눌리지 않는다.
 @override@JsonKey() final  bool checkingNickname;
-/// 지금 [nickname]을 확인하지 못한 이유 (연결 실패 등). 화면은 입력칸 아래에 보이고
-/// 누르면 다시 확인한다. 저장 실패([failure])와 따로 둔다.
+/// "중복 확인"이 실패한 이유 (연결 실패 등). 화면은 입력칸 아래에 보이고, 버튼을 다시 누를 수 있다.
+/// 저장 실패([failure])와 따로 둔다.
 @override final  ProfileFailureReason? nicknameCheckFailure;
 /// 고른 순서대로.
  final  List<String> _genreCodes;

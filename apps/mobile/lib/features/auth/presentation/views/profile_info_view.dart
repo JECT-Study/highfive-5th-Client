@@ -19,7 +19,7 @@ import '../view_models/profile_view_model.dart';
 /// 온보딩 개인 프로필 1단계: 닉네임·선호 장르·연주 포지션
 /// (Figma `온보딩-프로필정보 입력1`, node `2216:139626`). docs/api/profile.md
 ///
-/// 닉네임은 입력이 멈추면 저절로 확인한다 (시안의 "중복 확인" 버튼은 두지 않는다).
+/// 닉네임 형식(글자·길이)은 입력이 멈추면 검사기가 보고, 중복 여부는 "중복 확인" 버튼으로 서버에 묻는다.
 /// 장르·포지션 칩은 서버 코드 목록(`GET /api/v1/codes`)으로 그린다.
 /// 색은 공통 토큰·위젯을 그대로 쓴다 (시안은 다크 팔레트, 앱은 아직 라이트 토큰만 있다).
 /// "다음"을 누르면 사진 화면이 이 화면 위에 쌓이고, 저장은 사진 화면에서 한 번에 한다.
@@ -30,6 +30,7 @@ class ProfileInfoView extends ConsumerStatefulWidget {
   final VoidCallback onNext;
 
   static const nicknameFieldKey = ValueKey('profile_nickname');
+  static const checkButtonKey = ValueKey('profile_check_nickname');
   static const nicknameMessageKey = ValueKey('profile_nickname_message');
   static const optionsRetryKey = ValueKey('profile_options_retry');
   static const genreCustomFieldKey = ValueKey('profile_genre_custom');
@@ -126,13 +127,25 @@ class _ProfileInfoViewState extends ConsumerState<ProfileInfoView> {
                             hintText: '이름을 입력해 주세요.',
                             enabled: !state.saving,
                             invalid:
-                                state.nicknameHasForbiddenCharacter ||
-                                (state.nicknameCheck != null &&
-                                    !state.nicknameAvailable),
+                                state.nicknameCheck != null &&
+                                !state.nicknameAvailable,
                             textInputAction: TextInputAction.done,
                             onChanged: viewModel.changeNickname,
                           ),
-                          ?_nicknameStatus(state, viewModel),
+                          ?_nicknameStatus(state),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: AppButton(
+                              key: ProfileInfoView.checkButtonKey,
+                              label: '중복 확인',
+                              variant: AppButtonVariant.weak,
+                              size: AppButtonSize.small,
+                              loading: state.checkingNickname,
+                              onPressed: state.canCheckNickname
+                                  ? viewModel.checkNickname
+                                  : null,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: AppSpacing.x8),
@@ -217,9 +230,9 @@ class _ProfileInfoViewState extends ConsumerState<ProfileInfoView> {
     );
   }
 
-  /// 닉네임 아래 한 줄: 허용하지 않는 문자 → 확인 중 → 확인 실패(누르면 다시) → 확인 결과.
+  /// 닉네임 아래 한 줄: 중복 확인 실패 → 형식 검사·중복 확인 결과.
   /// 아무것도 없으면 null (줄을 비운다).
-  Widget? _nicknameStatus(ProfileState state, ProfileViewModel viewModel) {
+  Widget? _nicknameStatus(ProfileState state) {
     final colors = context.colors;
     final style = context.textStyles.caption1Regular;
     Text line(String message, Color color) => Text(
@@ -228,23 +241,10 @@ class _ProfileInfoViewState extends ConsumerState<ProfileInfoView> {
       style: style.copyWith(color: color),
     );
 
-    if (state.nicknameHasForbiddenCharacter) {
-      return line(
-        ProfileInfoView._forbiddenCharacterMessage,
-        colors.statusDestructive,
-      );
-    }
-    if (state.checkingNickname) {
-      return line('확인하고 있어요', colors.labelAlternative);
-    }
     if (state.nicknameCheckFailure case final failure?) {
-      return InkWell(
-        onTap: viewModel.checkNickname,
-        child: line(
-          '닉네임을 확인하지 못했어요. ${ProfileInfoView._failureMessage(failure)} '
-          '(눌러서 다시 확인)',
-          colors.statusDestructive,
-        ),
+      return line(
+        '닉네임을 확인하지 못했어요. ${ProfileInfoView._failureMessage(failure)}',
+        colors.statusDestructive,
       );
     }
     if (state.nicknameCheck case final result?) {

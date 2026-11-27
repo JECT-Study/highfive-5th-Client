@@ -74,18 +74,24 @@ Future<List<String>> _pump(
 AppButton _next(WidgetTester tester) =>
     tester.widget<AppButton>(find.byKey(ProfileInfoView.nextButtonKey));
 
-/// 닉네임을 쓰고 입력이 멈춘 만큼 시간을 보낸다 (그 뒤 저절로 확인한다).
+/// 닉네임을 쓰고 입력이 멈춘 만큼 시간을 보낸다 (그 뒤 형식 검사기가 안내한다).
 Future<void> _typeNickname(WidgetTester tester, String nickname) async {
   await tester.enterText(
     find.byKey(ProfileInfoView.nicknameFieldKey),
     nickname,
   );
-  await tester.pump(ProfileViewModel.nicknameCheckDelay);
+  await tester.pump(ProfileViewModel.nicknameValidationDelay);
+}
+
+/// 닉네임을 쓰고 "중복 확인"을 누른다.
+Future<void> _checkNickname(WidgetTester tester, String nickname) async {
+  await _typeNickname(tester, nickname);
+  await tester.tap(find.byKey(ProfileInfoView.checkButtonKey));
   await tester.pumpAndSettle();
 }
 
-String _nicknameMessage(WidgetTester tester) =>
-    tester.widget<Text>(find.byKey(ProfileInfoView.nicknameMessageKey)).data!;
+AppButton _checkButton(WidgetTester tester) =>
+    tester.widget<AppButton>(find.byKey(ProfileInfoView.checkButtonKey));
 
 void main() {
   testWidgets('서버가 준 장르·포지션을 칩으로 보이고, 처음에는 다음을 누를 수 없다', (tester) async {
@@ -96,30 +102,41 @@ void main() {
     expect(_next(tester).onPressed, isNull);
   });
 
-  testWidgets('닉네임을 쓰고 멈추면 버튼 없이 저절로 확인한다', (tester) async {
+  testWidgets('형식이 맞는 닉네임을 써도 서버에 묻지 않고, 중복 확인을 눌러야 묻는다', (tester) async {
     final repository = _FakeProfileRepository();
     await _pump(tester, repository);
 
     await _typeNickname(tester, '두현');
+    expect(repository.checked, isEmpty);
+    expect(find.byKey(ProfileInfoView.nicknameMessageKey), findsNothing);
+    expect(_checkButton(tester).onPressed, isNotNull);
+
+    await tester.tap(find.byKey(ProfileInfoView.checkButtonKey));
+    await tester.pumpAndSettle();
 
     expect(repository.checked, ['두현']);
     expect(find.byKey(ProfileInfoView.nicknameMessageKey), findsOneWidget);
   });
 
-  testWidgets('허용하지 않는 문자를 쓰면 바로 안내하고 서버에 묻지 않는다', (tester) async {
-    final repository = _FakeProfileRepository();
-    await _pump(tester, repository);
+  testWidgets('허용하지 않는 문자는 입력이 멈추면 안내하고 중복 확인을 막는다', (tester) async {
+    await _pump(tester);
 
-    await _typeNickname(tester, 'rock!');
+    await tester.enterText(
+      find.byKey(ProfileInfoView.nicknameFieldKey),
+      'rock!',
+    );
+    await tester.pump();
+    expect(find.byKey(ProfileInfoView.nicknameMessageKey), findsNothing);
 
+    await tester.pump(ProfileViewModel.nicknameValidationDelay);
     expect(find.byKey(ProfileInfoView.nicknameMessageKey), findsOneWidget);
-    expect(repository.checked, isEmpty);
+    expect(_checkButton(tester).onPressed, isNull);
   });
 
   testWidgets('확인을 통과하고 장르·포지션을 고르면 다음으로 간다', (tester) async {
     final calls = await _pump(tester);
 
-    await _typeNickname(tester, '두현');
+    await _checkNickname(tester, '두현');
     await tester.tap(find.text('록'));
     await tester.pump();
     expect(_next(tester).onPressed, isNull);
@@ -137,7 +154,7 @@ void main() {
       _FakeProfileRepository(result: NicknameCheckResult.duplicated),
     );
 
-    await _typeNickname(tester, '두현');
+    await _checkNickname(tester, '두현');
     await tester.tap(find.text('록'));
     await tester.tap(find.text('보컬'));
     await tester.pump();
@@ -148,7 +165,7 @@ void main() {
 
   testWidgets('직접입력을 고르면 입력칸이 나오고, 값을 채워야 다음으로 갈 수 있다', (tester) async {
     await _pump(tester);
-    await _typeNickname(tester, '두현');
+    await _checkNickname(tester, '두현');
     await tester.tap(find.text('록'));
     await tester.tap(find.text('보컬'));
     await tester.pump();
@@ -167,20 +184,19 @@ void main() {
     expect(_next(tester).onPressed, isNotNull);
   });
 
-  testWidgets('닉네임을 확인하지 못하면 아래에 알리고, 누르면 다시 확인한다', (tester) async {
+  testWidgets('중복 확인이 실패하면 아래에 알리고, 버튼을 다시 누를 수 있다', (tester) async {
     final repository = _FakeProfileRepository(
       checkError: const ProfileFailure(ProfileFailureReason.network),
     );
     await _pump(tester, repository);
 
-    await _typeNickname(tester, '두현');
-    final failed = _nicknameMessage(tester);
+    await _checkNickname(tester, '두현');
+    expect(find.byKey(ProfileInfoView.nicknameMessageKey), findsOneWidget);
 
-    await tester.tap(find.byKey(ProfileInfoView.nicknameMessageKey));
+    await tester.tap(find.byKey(ProfileInfoView.checkButtonKey));
     await tester.pumpAndSettle();
 
     expect(repository.checked, ['두현', '두현']);
-    expect(_nicknameMessage(tester), failed);
   });
 
   testWidgets('선택지를 못 받으면 다시 시도할 수 있다', (tester) async {

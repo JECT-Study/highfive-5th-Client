@@ -19,5 +19,5 @@ TermDto _$TermDtoFromJson(Map<String, dynamic> json) => TermDto(
   title: json['title'] as String,
   version: json['version'] as String,
   required: json['required'] as bool,
-  contentUrl: json['contentUrl'] as String,
+  contentUrl: json['contentUrl'] as String?,
 );

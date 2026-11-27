@@ -154,135 +154,136 @@ Future<ProviderContainer> _filled(
 }
 
 void main() {
-  group('입력하며 닉네임 확인', () {
-    const delay = ProfileViewModel.nicknameCheckDelay;
+  group('닉네임 형식 검사 (입력이 멈추면)', () {
+    const delay = ProfileViewModel.nicknameValidationDelay;
     const tick = Duration(milliseconds: 1);
 
-    test('입력이 멈추면 마지막 닉네임만 한 번 확인한다', () async {
-      final repository = _FakeProfileRepository();
-      final container = await _container(repository);
-
-      fakeAsync((async) {
-        _viewModel(container)
-          ..changeNickname('두')
-          ..changeNickname('두현');
-        async.elapse(delay - tick);
-        expect(repository.checked, isEmpty);
-
-        async.elapse(tick);
-        expect(repository.checked, ['두현']);
-        expect(_state(container).nicknameAvailable, isTrue);
-      });
-    });
-
-    test('입력 중에 다시 쓰면 기다리는 시간이 처음부터 다시 시작된다', () async {
-      final repository = _FakeProfileRepository();
-      final container = await _container(repository);
-
-      fakeAsync((async) {
-        _viewModel(container).changeNickname('두현');
-        async.elapse(delay - tick);
-        _viewModel(container).changeNickname('두현이');
-        async.elapse(delay - tick);
-        expect(repository.checked, isEmpty);
-
-        async.elapse(tick);
-        expect(repository.checked, ['두현이']);
-      });
-    });
-
-    test('허용하지 않는 문자가 있으면 서버에 묻지 않는다', () async {
+    test('입력이 멈춘 뒤에만 안내하고, 서버에는 묻지 않는다', () async {
       final repository = _FakeProfileRepository();
       final container = await _container(repository);
 
       fakeAsync((async) {
         _viewModel(container).changeNickname('rock!');
-        async.elapse(delay * 2);
+        async.elapse(delay - tick);
+        expect(_state(container).nicknameCheck, isNull);
 
+        async.elapse(tick);
+        expect(
+          _state(container).nicknameCheck,
+          NicknameCheckResult.invalidCharacter,
+        );
         expect(repository.checked, isEmpty);
-        expect(_state(container).nicknameHasForbiddenCharacter, isTrue);
       });
     });
 
-    test('짧으면 멈춘 뒤 서버에 묻지 않고 길이 안내를 한다', () async {
+    test('입력 중에 다시 쓰면 기다리는 시간이 처음부터 다시 시작된다', () async {
+      final container = await _container(_FakeProfileRepository());
+
+      fakeAsync((async) {
+        _viewModel(container).changeNickname('두');
+        async.elapse(delay - tick);
+        _viewModel(container).changeNickname('두 ');
+        async.elapse(delay - tick);
+        expect(_state(container).nicknameCheck, isNull);
+
+        async.elapse(tick);
+        expect(
+          _state(container).nicknameCheck,
+          NicknameCheckResult.invalidCharacter,
+        );
+      });
+    });
+
+    test('공백·특수문자·이모지·조합이 끝나지 않은 자음·모음은 글자 오류다', () async {
+      final container = await _container(_FakeProfileRepository());
+
+      fakeAsync((async) {
+        for (final nickname in ['두 현', 'rock!', '🎸', '두ㅎ']) {
+          _viewModel(container).changeNickname(nickname);
+          async.elapse(delay);
+          expect(
+            _state(container).nicknameCheck,
+            NicknameCheckResult.invalidCharacter,
+            reason: nickname,
+          );
+          expect(_state(container).canCheckNickname, isFalse);
+        }
+      });
+    });
+
+    test('2~10자가 아니면 길이 오류다', () async {
+      final container = await _container(_FakeProfileRepository());
+
+      fakeAsync((async) {
+        for (final nickname in ['두', '가나다라마바사아자차카']) {
+          _viewModel(container).changeNickname(nickname);
+          async.elapse(delay);
+          expect(
+            _state(container).nicknameCheck,
+            NicknameCheckResult.invalidLength,
+            reason: nickname,
+          );
+        }
+      });
+    });
+
+    test('형식이 맞으면 안내 없이 중복 확인을 누를 수 있게 된다', () async {
       final repository = _FakeProfileRepository();
       final container = await _container(repository);
 
       fakeAsync((async) {
-        _viewModel(container).changeNickname('두');
+        _viewModel(container).changeNickname('Rock2');
         async.elapse(delay);
 
+        expect(_state(container).nicknameCheck, isNull);
+        expect(_state(container).canCheckNickname, isTrue);
         expect(repository.checked, isEmpty);
-        expect(
-          _state(container).nicknameCheck,
-          NicknameCheckResult.invalidLength,
-        );
-      });
-    });
-
-    test('확인하지 못하면 이유를 따로 담고, 다시 확인할 수 있다', () async {
-      final repository = _FakeProfileRepository()
-        ..checkError = const ProfileFailure(ProfileFailureReason.network);
-      final container = await _container(repository);
-
-      fakeAsync((async) {
-        _viewModel(container).changeNickname('두현');
-        async.elapse(delay);
-        expect(
-          _state(container).nicknameCheckFailure,
-          ProfileFailureReason.network,
-        );
-        expect(_state(container).failure, isNull);
-        expect(_state(container).checkingNickname, isFalse);
-
-        repository.checkError = null;
-        unawaited(_viewModel(container).checkNickname());
-        async.flushMicrotasks();
-        expect(_state(container).nicknameCheckFailure, isNull);
-        expect(_state(container).nicknameAvailable, isTrue);
       });
     });
   });
 
-  group('닉네임', () {
-    test('허용하지 않는 문자가 있으면 바로 표시하고 확인할 수 없다', () async {
-      final container = await _container(_FakeProfileRepository());
-
-      for (final nickname in ['두 현', 'rock!', '🎸']) {
-        _viewModel(container).changeNickname(nickname);
-        expect(_state(container).nicknameHasForbiddenCharacter, isTrue);
-        expect(_state(container).canCheckNickname, isFalse);
-      }
-    });
-
-    test('한글 조합 중인 자음·모음은 안내하지 않지만 확인하면 서버에 묻지 않고 막는다', () async {
+  group('중복 확인 (버튼)', () {
+    test('형식이 틀리면 누를 수 없고 서버에 묻지 않는다', () async {
       final repository = _FakeProfileRepository();
       final container = await _container(repository);
+      _viewModel(container).changeNickname('두');
 
-      _viewModel(container).changeNickname('두ㅎ');
-      expect(_state(container).nicknameHasForbiddenCharacter, isFalse);
+      await _viewModel(container).checkNickname();
+
+      expect(_state(container).canCheckNickname, isFalse);
+      expect(repository.checked, isEmpty);
+    });
+
+    test('누르면 서버에 묻고 결과를 담는다', () async {
+      final repository = _FakeProfileRepository();
+      final container = await _container(repository);
+      _viewModel(container).changeNickname('두현');
+
+      await _viewModel(container).checkNickname();
+
+      expect(repository.checked, ['두현']);
+      expect(_state(container).nicknameAvailable, isTrue);
+      expect(_state(container).canCheckNickname, isFalse);
+    });
+
+    test('확인하지 못하면 이유를 따로 담고, 다시 누를 수 있다', () async {
+      final repository = _FakeProfileRepository()
+        ..checkError = const ProfileFailure(ProfileFailureReason.network);
+      final container = await _container(repository);
+      _viewModel(container).changeNickname('두현');
 
       await _viewModel(container).checkNickname();
       expect(
-        _state(container).nicknameCheck,
-        NicknameCheckResult.invalidCharacter,
+        _state(container).nicknameCheckFailure,
+        ProfileFailureReason.network,
       );
-      expect(repository.checked, isEmpty);
-    });
+      expect(_state(container).failure, isNull);
+      expect(_state(container).canCheckNickname, isTrue);
 
-    test('2~10자가 아니면 서버에 묻지 않고 길이 오류로 둔다', () async {
-      final repository = _FakeProfileRepository();
-      final container = await _container(repository);
-
-      for (final nickname in ['두', '가나다라마바사아자차카']) {
-        _viewModel(container).changeNickname(nickname);
-        await _viewModel(container).checkNickname();
-        expect(
-          _state(container).nicknameCheck,
-          NicknameCheckResult.invalidLength,
-        );
-      }
-      expect(repository.checked, isEmpty);
+      repository.checkError = null;
+      await _viewModel(container).checkNickname();
+      expect(_state(container).nicknameCheckFailure, isNull);
+      expect(_state(container).nicknameAvailable, isTrue);
     });
 
     test('확인을 통과한 뒤 닉네임을 고치면 다시 확인해야 한다', () async {

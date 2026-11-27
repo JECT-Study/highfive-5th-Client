@@ -42,13 +42,17 @@ class TermDto {
   final String version;
   final bool required;
 
-  /// 본문 페이지 주소. 비어 있으면 앱은 "보기"를 숨긴다.
-  final String contentUrl;
+  /// 본문 페이지 주소. 없거나(null) 비어 있으면 앱은 "보기"를 숨긴다.
+  /// 명세는 null이 아니라고 하지만 dev 서버는 null을 보낸다 (본문 미정).
+  final String? contentUrl;
 
   Term toModel() => Term(
     id: id,
     title: title,
     required: required,
-    contentUrl: contentUrl.isEmpty ? null : contentUrl,
+    contentUrl: switch (contentUrl) {
+      final url? when url.isNotEmpty => url,
+      _ => null,
+    },
   );
 }

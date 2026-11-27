@@ -32,14 +32,15 @@ abstract class ProfileState with _$ProfileState {
   const factory ProfileState({
     @Default('') String nickname,
 
-    /// [nickname]의 확인 결과. 닉네임을 고치면 null(입력이 멈추면 다시 확인한다).
+    /// [nickname]의 확인 결과. 형식 오류는 입력이 멈추면 검사기가,
+    /// 중복 여부는 "중복 확인" 버튼으로 서버가 정한다. 닉네임을 고치면 null.
     NicknameCheckResult? nicknameCheck,
 
-    /// 지금 [nickname]을 서버에 확인하는 중.
+    /// "중복 확인"으로 [nickname]을 서버에 묻는 중. 버튼은 로딩으로 보이고 다시 눌리지 않는다.
     @Default(false) bool checkingNickname,
 
-    /// 지금 [nickname]을 확인하지 못한 이유 (연결 실패 등). 화면은 입력칸 아래에 보이고
-    /// 누르면 다시 확인한다. 저장 실패([failure])와 따로 둔다.
+    /// "중복 확인"이 실패한 이유 (연결 실패 등). 화면은 입력칸 아래에 보이고, 버튼을 다시 누를 수 있다.
+    /// 저장 실패([failure])와 따로 둔다.
     ProfileFailureReason? nicknameCheckFailure,
 
     /// 고른 순서대로.
@@ -66,14 +67,11 @@ abstract class ProfileState with _$ProfileState {
 
   const ProfileState._();
 
-  /// 입력하자마자 "한글, 영문, 숫자만 쓸 수 있어요"를 보일지.
-  bool get nicknameHasForbiddenCharacter => hasForbiddenCharacter(nickname);
-
-  /// 아직 확인 결과가 없고, 바로 막을 문자도 없다.
+  /// "중복 확인"을 누를 수 있다: 형식이 맞고, 아직 서버 결과가 없고, 묻는 중도 아니다.
   bool get canCheckNickname =>
-      nickname.isNotEmpty &&
-      !nicknameHasForbiddenCharacter &&
-      nicknameCheck == null;
+      validateNickname(nickname) == null &&
+      nicknameCheck == null &&
+      !checkingNickname;
 
   bool get nicknameAvailable => nicknameCheck == NicknameCheckResult.available;
 
@@ -94,55 +92,49 @@ abstract class ProfileState with _$ProfileState {
 }
 
 class ProfileViewModel extends Notifier<ProfileState> {
-  /// 입력이 이만큼 멈추면 닉네임을 확인한다. 글자마다 서버에 묻지 않게 한다.
-  static const nicknameCheckDelay = Duration(milliseconds: 500);
+  /// 입력이 이만큼 멈추면 닉네임 형식을 검사한다. 한글을 조합하는 중이나
+  /// 글자마다 안내가 깜빡이지 않게 한다.
+  static const nicknameValidationDelay = Duration(milliseconds: 500);
 
-  Timer? _nicknameCheckTimer;
+  Timer? _nicknameValidationTimer;
 
   @override
   ProfileState build() {
-    ref.onDispose(() => _nicknameCheckTimer?.cancel());
+    ref.onDispose(() => _nicknameValidationTimer?.cancel());
     return const ProfileState();
   }
 
-  /// 닉네임을 고치면 이전 확인 결과는 버리고, 입력이 [nicknameCheckDelay]만큼 멈추면
-  /// 다시 확인한다. 허용하지 않는 문자가 있으면 확인하지 않는다 (화면이 바로 안내한다).
+  /// 닉네임을 고치면 이전 결과는 버리고, 입력이 [nicknameValidationDelay]만큼 멈추면
+  /// 형식(글자·길이)을 검사한다. 서버에는 묻지 않는다 ("중복 확인" 버튼이 [checkNickname]).
   void changeNickname(String value) {
     if (state.saving || value == state.nickname) return;
-    _nicknameCheckTimer?.cancel();
+    _nicknameValidationTimer?.cancel();
     state = state.copyWith(
       nickname: value,
       nicknameCheck: null,
       checkingNickname: false,
       nicknameCheckFailure: null,
     );
-    if (!state.canCheckNickname) return;
-    _nicknameCheckTimer = Timer(
-      nicknameCheckDelay,
-      () => unawaited(checkNickname()),
+    if (value.isEmpty) return;
+    _nicknameValidationTimer = Timer(
+      nicknameValidationDelay,
+      _validateNickname,
     );
   }
 
-  /// 닉네임 확인. 입력이 멈추면 저절로 불리고, 확인하지 못했을 때 다시 누르면 불린다.
-  /// 길이·문자가 틀리면 서버에 묻지 않고 바로 결과를 정한다.
+  /// 형식이 틀렸으면 이유를 담는다. 맞으면 그대로 둔다 ("중복 확인"을 누를 수 있다).
+  void _validateNickname() {
+    if (!ref.mounted || state.nicknameCheck != null) return;
+    final problem = validateNickname(state.nickname);
+    if (problem != null) state = state.copyWith(nicknameCheck: problem);
+  }
+
+  /// "중복 확인". 형식이 맞을 때만 서버에 묻는다.
   /// 확인하는 사이 닉네임을 고쳤으면 늦게 온 결과는 버린다.
   Future<void> checkNickname() async {
-    _nicknameCheckTimer?.cancel();
-    if (!state.canCheckNickname || state.checkingNickname || state.saving) {
-      return;
-    }
+    if (!state.canCheckNickname || state.saving) return;
+    _nicknameValidationTimer?.cancel();
     final nickname = state.nickname;
-    if (!hasValidNicknameLength(nickname)) {
-      state = state.copyWith(nicknameCheck: NicknameCheckResult.invalidLength);
-      return;
-    }
-    if (!isValidNickname(nickname)) {
-      // 조합이 끝나지 않은 자음·모음이 남았다.
-      state = state.copyWith(
-        nicknameCheck: NicknameCheckResult.invalidCharacter,
-      );
-      return;
-    }
     state = state.copyWith(checkingNickname: true, nicknameCheckFailure: null);
     NicknameCheckResult? result;
     ProfileFailureReason? failure;
@@ -153,7 +145,7 @@ class ProfileViewModel extends Notifier<ProfileState> {
     } on ProfileFailure catch (error) {
       failure = error.reason;
     }
-    // 그 사이 닉네임을 고쳤다: 새 닉네임은 새 타이머가 확인한다.
+    // 그 사이 닉네임을 고쳤다: 이 결과는 옛 닉네임 것이다.
     if (!ref.mounted || state.nickname != nickname) return;
     state = state.copyWith(
       checkingNickname: false,
