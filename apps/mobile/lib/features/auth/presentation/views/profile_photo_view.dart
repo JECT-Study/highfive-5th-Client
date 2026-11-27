@@ -151,8 +151,7 @@ class ProfilePhotoView extends ConsumerWidget {
                           key: submitButtonKey,
                           label: photo == null ? '건너뛰기' : '다음',
                           loading: state.saving,
-                          // 사진을 고른 뒤 "다음"은 업로드를 붙이면서 연결한다.
-                          onPressed: photo == null ? viewModel.save : null,
+                          onPressed: viewModel.save,
                         ),
                       ),
                     ],
@@ -213,6 +212,10 @@ class ProfilePhotoView extends ConsumerWidget {
       ProfileFailureReason.nicknameTaken => (
         '이미 사용 중인 닉네임이에요',
         '닉네임을 다시 정해 주세요.',
+      ),
+      ProfileFailureReason.photoUploadFailed => (
+        '사진을 올리지 못했어요',
+        '사진은 10MB까지 올릴 수 있어요. 다시 시도해 주세요.',
       ),
       ProfileFailureReason.invalidInput => ('저장하지 못했어요', '입력한 정보를 다시 확인해 주세요.'),
       ProfileFailureReason.network => (

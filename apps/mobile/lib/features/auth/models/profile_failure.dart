@@ -6,6 +6,9 @@ enum ProfileFailureReason {
   /// 저장하는 사이 다른 사람이 같은 닉네임을 가져갔다 (`USER_001`). 닉네임을 다시 고른다.
   nicknameTaken,
 
+  /// 사진을 올리지 못했다. 용량을 안내하고 다시 시도하게 한다 (기능명세서).
+  photoUploadFailed,
+
   /// 서버 검증에 걸렸다 (`COMMON_004`). 앱이 같은 규칙으로 막으므로 정상이면 안 온다.
   invalidInput,
 

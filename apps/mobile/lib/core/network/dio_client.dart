@@ -18,3 +18,13 @@ Dio createDio({required String baseUrl}) {
   }
   return dio;
 }
+
+/// 파일 저장소(S3)에 presigned URL로 직접 올리는 Dio. 주소에 서명이 들어 있으므로
+/// 토큰 인터셉터를 붙이지 않고(명세: Authorization 헤더 없음) 로그도 찍지 않는다.
+Dio createStorageDio() => Dio(
+  BaseOptions(
+    connectTimeout: const Duration(seconds: 10),
+    sendTimeout: const Duration(seconds: 60),
+    receiveTimeout: const Duration(seconds: 20),
+  ),
+);

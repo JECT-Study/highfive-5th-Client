@@ -18,6 +18,8 @@ import '../features/auth/data/services/google_auth_service.dart';
 import '../features/auth/data/services/kakao_auth_service.dart';
 import '../features/auth/data/services/profile_service.dart';
 import '../features/auth/data/services/terms_service.dart';
+import '../features/uploads/data/repositories/upload_repository.dart';
+import '../features/uploads/data/services/upload_service.dart';
 import 'env.dart';
 
 /// 앱 공통 객체를 생성·연결한다. 앱 시작 시 한 번만 호출한다.
@@ -65,5 +67,9 @@ void setupDi(AppEnv env) {
     ..registerLazySingleton(() => TermsRepository(getIt<TermsService>()))
     ..registerLazySingleton(() => ProfileService(getIt<Dio>()))
     ..registerLazySingleton(() => ProfileRepository(getIt<ProfileService>()))
-    ..registerLazySingleton(() => PhotoPicker(ImagePicker()));
+    ..registerLazySingleton(() => PhotoPicker(ImagePicker()))
+    ..registerLazySingleton(
+      () => UploadService(getIt<Dio>(), createStorageDio()),
+    )
+    ..registerLazySingleton(() => UploadRepository(getIt<UploadService>()));
 }

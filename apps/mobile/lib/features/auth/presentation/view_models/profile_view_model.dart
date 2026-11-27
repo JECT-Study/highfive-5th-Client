@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 import '../../../../core/sdk/photo_picker.dart';
+import '../../../uploads/models/upload_failure.dart';
+import '../../../uploads/models/upload_purpose.dart';
 import '../../models/next_step.dart';
 import '../../models/nickname_check_result.dart';
 import '../../models/photo_pick_problem.dart';
@@ -184,29 +186,42 @@ class ProfileViewModel extends Notifier<ProfileState> {
     );
   }
 
+  /// 이미 올린 사진 (파일 경로 → 저장소 주소). 사진은 올렸는데 저장이 실패해
+  /// 다시 누르면 같은 사진을 또 올리지 않는다.
+  ({String path, String url})? _uploaded;
+
   /// 사진 화면의 "다음"·"건너뛰기". 정보가 다 맞지 않거나 저장 중이면 무시한다.
+  /// 사진을 골랐으면 먼저 저장소에 올리고, 받은 주소로 프로필을 저장한다.
   /// 성공하면 세션의 `nextStep`이 바뀌고 라우터가 밴드 시작 화면으로 옮긴다.
-  Future<void> save({String? profileImageUrl}) async {
+  Future<void> save() async {
     final current = state;
     if (current.saving || !current.canProceed) return;
     state = current.copyWith(saving: true, failure: null);
-    final draft = ProfileDraft(
-      nickname: current.nickname,
-      genreCodes: current.genreCodes,
-      genreCustomName: current.genreCustomName,
-      positionCodes: current.positionCodes,
-      positionCustomName: current.positionCustomName,
-      profileImageUrl: profileImageUrl,
-    );
     final session = ref.read(sessionProvider.notifier);
     ProfileFailureReason? failure;
     try {
+      final draft = ProfileDraft(
+        nickname: current.nickname,
+        genreCodes: current.genreCodes,
+        genreCustomName: current.genreCustomName,
+        positionCodes: current.positionCodes,
+        positionCustomName: current.positionCustomName,
+        // 사진이 없으면 기다리지 않고 바로 저장한다 (건너뛰기 → 기본 이미지).
+        profileImageUrl: switch (current.photo) {
+          final photo? => await _uploadPhoto(photo),
+          null => null,
+        },
+      );
       final nextStep = await ref
           .read(profileRepositoryProvider)
           .saveProfile(draft);
       await session.updateNextStep(nextStep);
     } on ProfileFailure catch (error) {
       failure = error.reason;
+    } on UploadFailure catch (error) {
+      failure = error.reason == UploadFailureReason.network
+          ? ProfileFailureReason.network
+          : ProfileFailureReason.photoUploadFailed;
     } on Exception catch (error) {
       if (kDebugMode) debugPrint('[Profile] 저장 실패: $error');
       failure = ProfileFailureReason.unknown;
@@ -230,6 +245,28 @@ class ProfileViewModel extends Notifier<ProfileState> {
           ? NicknameCheckResult.duplicated
           : state.nicknameCheck,
     );
+  }
+
+  /// 사진을 저장소에 올리고 주소를 돌려준다. [pickPhoto]가 형식을 거른 사진만 담으므로
+  /// [PickedPhoto.contentType]이 비어 있으면 올리지 않는다.
+  Future<String> _uploadPhoto(PickedPhoto photo) async {
+    if (_uploaded case (:final path, :final url) when path == photo.path) {
+      return url;
+    }
+    final contentType = photo.contentType;
+    if (contentType == null) {
+      throw const UploadFailure(UploadFailureReason.rejected);
+    }
+    final url = await ref
+        .read(uploadRepositoryProvider)
+        .uploadImage(
+          purpose: UploadPurpose.userProfile,
+          path: photo.path,
+          sizeBytes: photo.sizeBytes,
+          contentType: contentType,
+        );
+    _uploaded = (path: photo.path, url: url);
+    return url;
   }
 
   static List<String> _toggle(List<String> codes, String code) =>

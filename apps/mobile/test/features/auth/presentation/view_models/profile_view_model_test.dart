@@ -20,6 +20,10 @@ import 'package:highfive/features/auth/presentation/providers/profile_providers.
 import 'package:highfive/features/auth/presentation/providers/session_providers.dart';
 import 'package:highfive/features/auth/presentation/view_models/profile_view_model.dart';
 import 'package:highfive/features/auth/presentation/view_models/session_view_model.dart';
+import 'package:highfive/features/uploads/data/repositories/upload_repository.dart';
+import 'package:highfive/features/uploads/data/services/upload_service.dart';
+import 'package:highfive/features/uploads/models/upload_failure.dart';
+import 'package:highfive/features/uploads/models/upload_purpose.dart';
 
 /// 서버 대신 확인·저장 결과를 돌려주고 받은 요청을 기록한다.
 /// [check]·[save]가 있으면 응답 시점을 테스트가 정하고, [saveError]가 있으면 저장이 실패한다.
@@ -72,9 +76,32 @@ PickedPhoto _photo({
   contentType: contentType,
 );
 
+/// 저장소 대신 [fileUrl]을 돌려주고 올린 파일 경로를 기록한다. [error]가 있으면 실패한다.
+class _FakeUploadRepository extends UploadRepository {
+  _FakeUploadRepository() : super(UploadService(Dio(), Dio()));
+
+  Object? error;
+  final uploaded = <String>[];
+
+  static const fileUrl = 'https://cdn.test/users/12/profile/a.jpg';
+
+  @override
+  Future<String> uploadImage({
+    required UploadPurpose purpose,
+    required String path,
+    required int sizeBytes,
+    required String contentType,
+  }) async {
+    uploaded.add(path);
+    if (error case final error?) throw error;
+    return fileUrl;
+  }
+}
+
 Future<ProviderContainer> _container(
   _FakeProfileRepository repository, [
   _FakePhotoPicker? picker,
+  _FakeUploadRepository? upload,
 ]) async {
   FlutterSecureStorage.setMockInitialValues({
     SecureStore.accessTokenKey: 'a',
@@ -84,6 +111,9 @@ Future<ProviderContainer> _container(
     overrides: [
       profileRepositoryProvider.overrideWithValue(repository),
       photoPickerProvider.overrideWithValue(picker ?? _FakePhotoPicker()),
+      uploadRepositoryProvider.overrideWithValue(
+        upload ?? _FakeUploadRepository(),
+      ),
       sessionExpiryProvider.overrideWithValue(SessionExpiry()),
       sessionRepositoryProvider.overrideWithValue(
         SessionRepository(SecureStore(const FlutterSecureStorage())),
@@ -104,8 +134,12 @@ ProfileViewModel _viewModel(ProviderContainer container) =>
     container.read(profileViewModelProvider.notifier);
 
 /// 닉네임 확인을 통과하고 장르·포지션을 하나씩 고른 상태.
-Future<ProviderContainer> _filled(_FakeProfileRepository repository) async {
-  final container = await _container(repository);
+Future<ProviderContainer> _filled(
+  _FakeProfileRepository repository, [
+  _FakePhotoPicker? picker,
+  _FakeUploadRepository? upload,
+]) async {
+  final container = await _container(repository, picker, upload);
   _viewModel(container)
     ..changeNickname('두현')
     ..toggleGenre('ROCK')
@@ -306,20 +340,83 @@ void main() {
       expect(repository.saved, isEmpty);
     });
 
-    test('입력과 사진 주소를 보내고, 성공하면 세션의 nextStep이 바뀐다', () async {
+    test('사진이 없으면 올리지 않고 null로 저장한다', () async {
       final repository = _FakeProfileRepository();
-      final container = await _filled(repository);
+      final upload = _FakeUploadRepository();
+      final container = await _filled(repository, null, upload);
 
-      await _viewModel(container).save(profileImageUrl: 'https://cdn.test/a');
+      await _viewModel(container).save();
 
+      expect(upload.uploaded, isEmpty);
+      expect(repository.saved.single.profileImageUrl, isNull);
+    });
+
+    test('사진을 먼저 올리고 받은 주소로 저장하면 세션의 nextStep이 바뀐다', () async {
+      final repository = _FakeProfileRepository();
+      final upload = _FakeUploadRepository();
+      final container = await _filled(
+        repository,
+        _FakePhotoPicker()..result = _photo(),
+        upload,
+      );
+      await _viewModel(container).pickPhoto(PhotoSource.album);
+
+      await _viewModel(container).save();
+
+      expect(upload.uploaded, ['/tmp/a.jpg']);
       expect(repository.saved.single.nickname, '두현');
       expect(repository.saved.single.genreCodes, ['ROCK']);
       expect(repository.saved.single.positionCodes, ['VOCAL']);
-      expect(repository.saved.single.profileImageUrl, 'https://cdn.test/a');
+      expect(
+        repository.saved.single.profileImageUrl,
+        _FakeUploadRepository.fileUrl,
+      );
       expect(
         container.read(sessionProvider).value!.nextStep,
         NextStep.bandStart,
       );
+    });
+
+    test('사진을 못 올리면 저장하지 않고 이유를 담는다', () async {
+      for (final (reason, expected) in [
+        (UploadFailureReason.rejected, ProfileFailureReason.photoUploadFailed),
+        (UploadFailureReason.unknown, ProfileFailureReason.photoUploadFailed),
+        (UploadFailureReason.network, ProfileFailureReason.network),
+      ]) {
+        final repository = _FakeProfileRepository();
+        final container = await _filled(
+          repository,
+          _FakePhotoPicker()..result = _photo(),
+          _FakeUploadRepository()..error = UploadFailure(reason),
+        );
+        await _viewModel(container).pickPhoto(PhotoSource.album);
+
+        await _viewModel(container).save();
+
+        expect(repository.saved, isEmpty);
+        expect(_state(container).failure, expected, reason: '$reason');
+        expect(_state(container).saving, isFalse);
+      }
+    });
+
+    test('사진은 올렸는데 저장이 실패해 다시 누르면 같은 사진을 또 올리지 않는다', () async {
+      final upload = _FakeUploadRepository();
+      final failing = _FakeProfileRepository(
+        saveError: const ProfileFailure(ProfileFailureReason.network),
+      );
+      final container = await _filled(
+        failing,
+        _FakePhotoPicker()..result = _photo(),
+        upload,
+      );
+      await _viewModel(container).pickPhoto(PhotoSource.album);
+
+      await _viewModel(container).save();
+      await _viewModel(container).save();
+
+      expect(failing.saved, hasLength(2));
+      expect(upload.uploaded, hasLength(1));
+      expect(failing.saved.last.profileImageUrl, _FakeUploadRepository.fileUrl);
     });
 
     test('저장 중에는 다시 눌러도 한 번만 보내고 입력도 바뀌지 않는다', () async {

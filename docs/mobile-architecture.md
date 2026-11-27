@@ -33,6 +33,8 @@ lib/
 │   │   ├── secure_store.dart        (있음) FlutterSecureStorage 래퍼 + 키 상수 (토큰)
 │   │   └── prefs_store.dart         SharedPreferencesAsync 래퍼 + 키 상수 (설정)
 │   ├── sdk/                         소셜 로그인·지도·푸시·QR 스캔 SDK 래퍼 (각 1파일)
+│   │   ├── photo_picker.dart        (있음) 앨범·카메라 사진 고르기 (image_picker)
+│   │   └── app_settings.dart        (있음) 이 앱의 iOS 설정 화면 열기 (거부한 권한 다시 켜기)
 │   └── webview/app_bridge.dart      웹 → 앱 명령 수신·검증 (출처·명령·버전)
 │
 ├── shared/                          공통 UI. 도메인 모델·데이터를 모른다 (값만 받아 그린다)
@@ -63,6 +65,7 @@ lib/
 └── features/
     └── <feature>/                   auth · bands · performances · recruitments · venues
         │                            · ticketing · payments · settlements · chat
+        │                            · uploads (사진을 저장소에 올리기. 개인·밴드 프로필이 repositories를 같이 쓴다)
         ├── models/                  도메인 모델. 화면이 쓰는 모양
         │   ├── performance.dart           freezed 클래스
         │   └── performance_status.dart    enum
