@@ -6,6 +6,8 @@ import '../features/auth/models/next_step.dart';
 import '../features/auth/models/session.dart';
 import '../features/auth/presentation/view_models/session_view_model.dart';
 import '../features/auth/presentation/views/login_view.dart';
+import '../features/auth/presentation/views/profile_info_view.dart';
+import '../features/auth/presentation/views/profile_photo_view.dart';
 import '../features/auth/presentation/views/splash_view.dart';
 import '../features/auth/presentation/views/terms_detail_view.dart';
 import '../features/chat/presentation/views/chat_list_view.dart';
@@ -24,14 +26,22 @@ const _signedOutRoutes = {AppRoutes.login, AppRoutes.signup};
 bool _isTermsDetail(String location) =>
     location.startsWith('${AppRoutes.terms}/');
 
+/// 온보딩 개인 프로필 두 화면. 프로필을 만들기 전(`nextStep` profile)에만 연다.
+const _profileRoutes = {
+  AppRoutes.onboardingProfile,
+  AppRoutes.onboardingProfilePhoto,
+};
+
 /// 세션 상태에 맞는 경로. 그대로 두면 null.
 ///
 /// - 세션을 읽는 중 → 스플래시
 /// - 로그인 안 됨(복원 실패 포함) → 로그인 전 화면만, 나머지는 로그인으로
 /// - 로그인 됨 + 약관 동의 전(`nextStep` terms) → 로그인 화면에 머문다. 약관 동의 시트는 로그인 화면이 띄우고,
 ///   약관 상세는 그 위에 쌓인다. 나머지는 로그인으로
-/// - 로그인 됨 → 스플래시·로그인 전 화면·약관 상세에 있으면 홈으로
-/// 프로필·밴드 시작 단계는 그 화면이 생길 때 추가한다. 그 전까지는 홈으로 간다.
+/// - 로그인 됨 + 프로필 만들기 전(`nextStep` profile) → 프로필 정보·사진 화면만, 나머지는 프로필 정보로
+/// - 로그인 됨 → 스플래시·로그인 전 화면·약관 상세·프로필 화면에 있으면 홈으로
+///   (프로필을 저장하면 세션이 바뀌어 사진 화면에서 나간다)
+/// 밴드 시작 단계는 그 화면이 생길 때 추가한다. 그 전까지는 홈으로 간다.
 String? sessionRedirect(AsyncValue<Session?> session, String location) {
   // dev 위젯 모음은 로그인과 상관없이 연다 (dev flavor 라우터에만 등록된다).
   if (location == AppRoutes.devWidgets) return null;
@@ -47,9 +57,15 @@ String? sessionRedirect(AsyncValue<Session?> session, String location) {
         ? null
         : AppRoutes.login;
   }
+  if (session.value!.nextStep == NextStep.profile) {
+    return _profileRoutes.contains(location)
+        ? null
+        : AppRoutes.onboardingProfile;
+  }
   if (location == AppRoutes.splash ||
       _signedOutRoutes.contains(location) ||
-      _isTermsDetail(location)) {
+      _isTermsDetail(location) ||
+      _profileRoutes.contains(location)) {
     return AppRoutes.home;
   }
   return null;
@@ -86,6 +102,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => LoginView(
           onViewTerm: (term) => context.push(AppRoutes.termsDetailOf(term.id)),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.onboardingProfile,
+        // push: 사진 화면을 정보 화면 위에 쌓아 두 화면이 같은 입력을 본다.
+        builder: (context, state) => ProfileInfoView(
+          onNext: () => context.push(AppRoutes.onboardingProfilePhoto),
+        ),
+        routes: [
+          GoRoute(
+            path: 'photo',
+            builder: (context, state) =>
+                ProfilePhotoView(onBack: () => context.pop()),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.termsDetail,

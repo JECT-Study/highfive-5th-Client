@@ -131,11 +131,52 @@ void main() {
       expect(sessionRedirect(signedIn, AppRoutes.splash), AppRoutes.home);
       expect(sessionRedirect(signedIn, AppRoutes.login), AppRoutes.home);
       expect(sessionRedirect(signedIn, AppRoutes.recruit), isNull);
-      expect(sessionRedirect(signedIn, AppRoutes.onboardingProfile), isNull);
       expect(
         sessionRedirect(signedIn, AppRoutes.termsDetailOf(1)),
         AppRoutes.home,
       );
+    });
+
+    test('프로필을 만들기 전이면 프로필 정보·사진 화면만 허용하고 나머지는 프로필 정보로 보낸다', () {
+      const needsProfile = AsyncData<Session?>(
+        Session(accessToken: 'a', nextStep: NextStep.profile),
+      );
+      expect(
+        sessionRedirect(needsProfile, AppRoutes.onboardingProfile),
+        isNull,
+      );
+      expect(
+        sessionRedirect(needsProfile, AppRoutes.onboardingProfilePhoto),
+        isNull,
+      );
+      for (final location in [
+        AppRoutes.splash,
+        AppRoutes.login,
+        AppRoutes.home,
+        AppRoutes.termsDetailOf(1),
+      ]) {
+        expect(
+          sessionRedirect(needsProfile, location),
+          AppRoutes.onboardingProfile,
+          reason: location,
+        );
+      }
+    });
+
+    test('프로필을 저장한 뒤(밴드 시작·홈)에는 프로필 화면에서 홈으로 보낸다', () {
+      for (final nextStep in [NextStep.bandStart, NextStep.home]) {
+        final done = AsyncData<Session?>(
+          Session(accessToken: 'a', nextStep: nextStep),
+        );
+        expect(
+          sessionRedirect(done, AppRoutes.onboardingProfile),
+          AppRoutes.home,
+        );
+        expect(
+          sessionRedirect(done, AppRoutes.onboardingProfilePhoto),
+          AppRoutes.home,
+        );
+      }
     });
 
     test('약관 동의 전이면 로그인 화면과 약관 상세만 허용하고 나머지는 로그인으로 보낸다', () {

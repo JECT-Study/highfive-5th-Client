@@ -15,6 +15,8 @@ abstract final class AppRoutes {
   static String termsDetailOf(int termId) => '/terms/$termId';
   static const signup = '/signup';
   static const onboardingProfile = '/onboarding/profile';
+  // 프로필 사진. 프로필 정보 입력 위에 쌓는다 (push).
+  static const onboardingProfilePhoto = '/onboarding/profile/photo';
   static const onboardingBandNew = '/onboarding/band/new';
   static const onboardingBandJoin = '/onboarding/band/join';
 
