@@ -9,10 +9,12 @@ import '../core/network/session_expiry.dart';
 import '../core/storage/secure_store.dart';
 import '../features/auth/data/repositories/auth_repository.dart';
 import '../features/auth/data/repositories/session_repository.dart';
+import '../features/auth/data/repositories/profile_repository.dart';
 import '../features/auth/data/repositories/terms_repository.dart';
 import '../features/auth/data/services/auth_service.dart';
 import '../features/auth/data/services/google_auth_service.dart';
 import '../features/auth/data/services/kakao_auth_service.dart';
+import '../features/auth/data/services/profile_service.dart';
 import '../features/auth/data/services/terms_service.dart';
 import 'env.dart';
 
@@ -58,5 +60,7 @@ void setupDi(AppEnv env) {
       ),
     )
     ..registerLazySingleton(() => TermsService(getIt<Dio>()))
-    ..registerLazySingleton(() => TermsRepository(getIt<TermsService>()));
+    ..registerLazySingleton(() => TermsRepository(getIt<TermsService>()))
+    ..registerLazySingleton(() => ProfileService(getIt<Dio>()))
+    ..registerLazySingleton(() => ProfileRepository(getIt<ProfileService>()));
 }
