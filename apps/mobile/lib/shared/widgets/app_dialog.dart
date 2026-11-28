@@ -14,6 +14,8 @@ Future<bool> showAppDialog(
   String? message,
   String? cancelLabel,
   Widget? icon,
+  Widget? notice,
+  Widget? content,
   bool destructive = false,
 }) async {
   final result = await showDialog<bool>(
@@ -23,6 +25,8 @@ Future<bool> showAppDialog(
       title: title,
       message: message,
       icon: icon,
+      notice: notice,
+      content: content,
       confirmLabel: confirmLabel,
       cancelLabel: cancelLabel,
       destructive: destructive,
@@ -41,6 +45,8 @@ class AppDialog extends StatelessWidget {
     this.message,
     this.cancelLabel,
     this.icon,
+    this.notice,
+    this.content,
     this.destructive = false,
   });
 
@@ -50,6 +56,12 @@ class AppDialog extends StatelessWidget {
   final String? cancelLabel;
   final Widget? icon;
 
+  /// V3 Notice 자리. 안내 띠 등 받은 위젯을 가운데 최대 280 폭으로 둔다.
+  final Widget? notice;
+
+  /// V3 Slot2. 변경 요약·추가 입력 등 받은 내용을 제목 묶음 아래에 둔다.
+  final Widget? content;
+
   /// 확인 버튼을 danger(빨간 바탕)로 보인다.
   final bool destructive;
 
@@ -57,6 +69,18 @@ class AppDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final textStyles = context.textStyles;
+    final titleWidget = Text(
+      title,
+      textAlign: TextAlign.center,
+      style: textStyles.title1Bold.copyWith(color: colors.labelNormal),
+    );
+    final messageWidget = message == null
+        ? null
+        : Text(
+            message!,
+            textAlign: TextAlign.center,
+            style: textStyles.body1Medium.copyWith(color: colors.labelNeutral),
+          );
     return Dialog(
       backgroundColor: colors.backgroundNormal,
       surfaceTintColor: colors.backgroundNormal,
@@ -77,21 +101,30 @@ class AppDialog extends StatelessWidget {
             spacing: AppDialogTokens.gap,
             children: [
               ?icon,
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: textStyles.title1Bold.copyWith(
-                  color: colors.labelNormal,
+              if (notice != null || content != null)
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: AppDialogTokens.contentGap,
+                  children: [
+                    titleWidget,
+                    ?messageWidget,
+                    if (notice != null)
+                      Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: AppDialogTokens.noticeWidth,
+                          ),
+                          child: notice,
+                        ),
+                      ),
+                    ?content,
+                  ],
                 ),
-              ),
-              if (message != null)
-                Text(
-                  message!,
-                  textAlign: TextAlign.center,
-                  style: textStyles.body1Medium.copyWith(
-                    color: colors.labelNeutral,
-                  ),
-                ),
+              if (notice == null && content == null) ...[
+                titleWidget,
+                ?messageWidget,
+              ],
               Row(
                 spacing: AppDialogTokens.buttonGap,
                 children: [

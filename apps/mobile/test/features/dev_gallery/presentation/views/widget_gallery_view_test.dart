@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:highfive/app/app.dart';
 import 'package:highfive/app/env.dart';
 import 'package:highfive/app/providers.dart';
+import 'package:highfive/features/dev_gallery/presentation/views/sections/concert_gallery_section.dart';
 import 'package:highfive/features/dev_gallery/presentation/views/sections/gallery_item.dart';
 import 'package:highfive/features/dev_gallery/presentation/views/sections/qr_gallery_section.dart';
 import 'package:highfive/features/dev_gallery/presentation/views/widget_gallery_view.dart';
@@ -85,6 +86,29 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
-    expect(find.byType(GalleryFolderHeader), findsNWidgets(7));
+    expect(find.byType(GalleryFolderHeader), findsNWidgets(8));
+  });
+
+  testWidgets('concert 폴더는 라이트와 공연 다크를 각각 별도 테마로 보여준다', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: const WidgetGalleryView(initialFolder: 'concert'),
+      ),
+    );
+
+    expect(find.byType(ConcertGallerySection), findsOneWidget);
+    final light = tester.element(
+      find.byKey(const ValueKey('concert_gallery_light')),
+    );
+    final dark = tester.element(
+      find.byKey(const ValueKey('concert_gallery_dark')),
+    );
+    expect(Theme.of(light).brightness, Brightness.light);
+    expect(Theme.of(dark).brightness, Brightness.dark);
+    expect(
+      Theme.of(tester.element(find.byType(WidgetGalleryView))).brightness,
+      Brightness.light,
+    );
   });
 }

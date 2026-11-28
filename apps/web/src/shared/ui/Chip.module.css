@@ -3,9 +3,9 @@
   display: inline-flex;
   align-items: center;
   padding: var(--chip-padding);
-  border: 1px solid var(--color-line-strong);
+  border: 1px solid var(--color-control-border);
   border-radius: var(--chip-radius);
-  background: var(--color-background-normal);
+  background: var(--color-control-background);
   color: var(--color-label-normal);
   font: var(--text-body1-regular);
   white-space: nowrap;
@@ -13,7 +13,7 @@
 }
 
 .selected {
-  background: var(--color-label-normal);
-  border-color: var(--color-label-normal);
-  color: var(--color-static-white);
+  background: var(--color-selection-background);
+  border-color: var(--color-selection-background);
+  color: var(--color-selection-foreground);
 }

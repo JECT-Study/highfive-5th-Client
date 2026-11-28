@@ -11,6 +11,43 @@ Future<void> _pump(WidgetTester tester, Widget child) => tester.pumpWidget(
 );
 
 void main() {
+  for (final hasEvent in [false, true]) {
+    testWidgets('일정 표시 $hasEvent는 날짜 선택과 함께 전달한다', (tester) async {
+      var taps = 0;
+      final semantics = tester.ensureSemantics();
+      await _pump(
+        tester,
+        CalendarDayCell(
+          date: '12',
+          hasEvent: hasEvent,
+          selected: true,
+          onTap: () => taps++,
+        ),
+      );
+
+      await tester.tap(find.byType(CalendarDayCell));
+
+      expect(taps, 1);
+      expect(
+        find.byKey(const ValueKey('calendarDay_event')),
+        hasEvent ? findsOneWidget : findsNothing,
+      );
+      if (hasEvent) {
+        final event = tester.getRect(
+          find.byKey(const ValueKey('calendarDay_event')),
+        );
+        final day = tester.getRect(find.byType(CalendarDayCell));
+        expect(event.size, const Size(4, 4));
+        expect(event.top - day.top, 32);
+        expect(
+          tester.getSemantics(find.byType(CalendarDayCell)).value,
+          '일정 있음',
+        );
+      }
+      semantics.dispose();
+    });
+  }
+
   testWidgets('날짜 칸을 누르면 onTap을 부른다', (tester) async {
     var taps = 0;
     await _pump(tester, CalendarDayCell(date: '12', onTap: () => taps++));

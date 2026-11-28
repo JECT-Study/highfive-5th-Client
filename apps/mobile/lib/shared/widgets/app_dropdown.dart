@@ -26,10 +26,10 @@ class AppDropdown extends StatelessWidget {
     return Semantics(
       button: true,
       child: Material(
-        color: colors.backgroundNormal,
+        color: colors.controlBackground,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppInputTokens.radius),
-          side: BorderSide(color: colors.lineStrong),
+          side: BorderSide(color: colors.controlBorder),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(

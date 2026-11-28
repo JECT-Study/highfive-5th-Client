@@ -110,6 +110,9 @@ class AppButton extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: loading ? null : onPressed,
+            highlightColor: variant == AppButtonVariant.fill
+                ? colors.actionPressed
+                : null,
             child: SizedBox(
               height: metrics.height,
               child: Padding(
@@ -232,8 +235,8 @@ class _ButtonStyle {
     }
     return switch (variant) {
       AppButtonVariant.fill => _ButtonStyle(
-        background: colors.labelStrong,
-        foreground: colors.staticWhite,
+        background: colors.actionFill,
+        foreground: colors.actionForeground,
         text: text,
       ),
       AppButtonVariant.danger => _ButtonStyle(

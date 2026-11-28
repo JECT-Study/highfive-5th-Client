@@ -24,4 +24,31 @@ abstract final class AppTheme {
     textTheme: AppTextStyles.standard.toTextTheme(),
     extensions: [AppColors.light, AppTextStyles.standard],
   );
+
+  /// V3 공연 화면에서 Theme(data: AppTheme.concertDark, child: ...)로만 적용한다.
+  /// MaterialApp.darkTheme·themeMode에는 연결하지 않는다.
+  static final concertDark = light.copyWith(
+    colorScheme: light.colorScheme.copyWith(
+      brightness: Brightness.dark,
+      primary: AppColors.concertDark.actionFill,
+      onPrimary: AppColors.concertDark.actionForeground,
+      secondary: AppColors.concertDark.actionSecondary,
+      onSecondary: AppColors.concertDark.staticWhite,
+      surface: AppColors.concertDark.backgroundNormal,
+      onSurface: AppColors.concertDark.labelNormal,
+      error: AppColors.concertDark.statusDestructive,
+    ),
+    scaffoldBackgroundColor: AppColors.concertDark.backgroundNormal,
+    iconTheme: light.iconTheme.copyWith(
+      color: AppColors.concertDark.labelNormal,
+    ),
+    primaryIconTheme: light.primaryIconTheme.copyWith(
+      color: AppColors.concertDark.labelNormal,
+    ),
+    textTheme: light.textTheme.apply(
+      bodyColor: AppColors.concertDark.labelNormal,
+      displayColor: AppColors.concertDark.labelNormal,
+    ),
+    extensions: [AppColors.concertDark, AppTextStyles.standard],
+  );
 }

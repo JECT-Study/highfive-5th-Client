@@ -32,6 +32,24 @@
   text-align: center;
 }
 
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  gap: var(--dialog-content-gap);
+}
+
+.notice {
+  align-self: center;
+  width: 100%;
+  max-width: var(--dialog-notice-width);
+}
+
+.slot {
+  width: 100%;
+}
+
 .actions {
   display: flex;
   gap: var(--dialog-button-gap);

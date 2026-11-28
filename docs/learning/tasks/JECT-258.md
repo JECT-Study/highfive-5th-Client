@@ -1,9 +1,62 @@
-# JECT-258 디자인 시스템 v4 대조와 반영
+# JECT-258 디자인 시스템 대조와 COMPONENT V3 후속
+
+## 후속 현재 상태 (2026-11-26)
+
+- 작업 위치: `.worktrees/JECT-258`, `feat/JECT-258-concert-dark-components`, 기준 `origin/develop` `2f420c5`. 부모가 만든 워크트리를 그대로 사용했다. 이전 PR #11은 머지된 상태이며, 이번 변경은 아직 커밋하지 않았다.
+- 허용 범위: 확인된 COMPONENT V3 재사용 컴포넌트·공연 테마·공통 웹 토큰/컴포넌트·갤러리·자동 테스트·문서. Jira 쓰기는 부모 담당이다. 커밋·푸시·PR·배포는 하지 않는다. 다른 워크트리는 수정하지 않았다.
+- 사용자 지시 변경: UI QA는 사용자가 직접 진행한다. 에이전트는 기기·브라우저·스크린샷 QA를 시작하지 않았고 자동 위젯 테스트·정적 검사·웹 빌드만 실행했다. 시각 수용 여부·사용자 이해는 미확인이다.
+
+### 기준과 구현
+
+컴포넌트는 페이지 `881:3898`, V3 배너 `1061:40813` 아래 공통 `1061:36797`·공연페이지 `1060:6106`·팝업 `1915:13425`를 따른다. V2 `1979:12105`와 후보 `1988:14018`은 제외했다.
+
+| 확인된 master/variant | 실제 코드 |
+| --- | --- |
+| Input set `724:3663` 서브텍스트 `1959:20282` | 앱 `AppTextField.subtext`, 웹 `TextField subtext`; 56 높이·17 행 높이·4 간격 |
+| 같은 set 2Fill `1701:13048` | `variant=search`와 기존 prefix/suffix 합성; 간격 8·Medium, 삭제는 호출자 |
+| Dialog `1681:12975` | 앱·웹 notice/content 슬롯. AppNotice 글자·여백 재정의 지원. 기존 슬롯 없는 모양 보존 |
+| 일정있음 `1959:19911` | CalendarDayCell.hasEvent; 4 점·top 32·선택과 독립·일정 semantics |
+| SummaryBox `2014:19752` | 기존 QrListCard.summary / 웹 SummaryBox. 16/14 여백, 3줄 303 × 108 |
+| ProgressCard 판매 마감 `2014:20680` / 판매 중 `2014:20681` | 기존 ticketSales·info·actions로 두 예시 합성, 중복 카드/enum 추가 없음 |
+| Dark 팔레트 `2218:149494` / 공연 화면 `2217:123929` | AppColors.concertDark·AppTheme.concertDark / data-theme=concert-dark |
+
+V3 Input 인스턴스 `1060:6495`의 내부 노드가 원본 Fill `654:5754`와 일치하는 계보를 확인했다. 원본 set이 별도 `디자인시스템_v4` 페이지에 있다는 이유로 V2를 채택한 것이 아니다. V3 팝업에는 “다이얼로그로 통합. 기존거는 v.2에..”라고 적혀 있다. 기존 ShowConfirmPopup은 보존하고 V2 popup을 새로 구현하지 않았다.
+
+### 선택 이유와 한계
+
+- 라이트는 기존 버튼 black·칩 #171719·입력 white/D9D9D9를 각 역할 기본값으로 유지했다. 다크에서만 라임 action/selection과 surface control로 바꾼다. 전역 OS 다크 연동은 하지 않았다.
+- Theme는 ColorScheme·textTheme·IconTheme·기존 ThemeExtension을 함께 바꾼다. 단순 배경 교체로 아이콘이 검게 남는 문제를 막는다. 공식 API의 Theme/ThemeData.copyWith 원리와 로컬 코드·위젯 테스트 결과를 구분했다.
+- SummaryBox는 새 행 렌더러를 복제하지 않고 QrListCard의 여백만 바꾼다. 회귀 테스트가 제한된 부모 안에서 Column이 600 높이로 늘어나는 것을 잡아 mainAxisSize.min으로 원인을 고쳤다.
+- 기본 입력창 47·간격 10과 슬롯 없는 Dialog 간격은 유지한다. 보조행은 helperText와 바깥 테두리, 검색형은 기존 아이콘 슬롯을 쓴다.
+- 팔레트 Destructive #D64146와 실제 화면 삭제 글자 #FF5A5F가 다르다. 현재는 팔레트 기준이다. 분홍·파랑·inverse의 별도 다크 명세는 임의로 만들지 않았다.
+- get_design_context는 핵심 Input·Dialog·일정·Dark에서 성공했다. SummaryBox·ProfileNotice·판매 카드의 추가 원문 재조회는 MCP metadata timeout으로 실패했다. SummaryBox는 이미 확인한 좌표와 기존 QR 카드의 의미 색을 합성했다.
+
+### 검증
+
+- 수정 전: subtext·variant·notice·hasEvent·concertDark·QrListCard.summary가 없어 새 계약 테스트가 실패했다. 웹도 안내·보조행 미표시로 실패했다.
+- 앱: 전체 위젯/단위 테스트 **255개 통과**. import 방향 검사 OK(139 files). format 통과. 한글 경로의 알려진 analyze 문제를 피해 영문 임시 복사본에서 `fvm flutter analyze` → **No issues found**.
+- 웹: format·lint·typecheck·테스트 **15개**·build 통과.
+- 기기·브라우저·스크린샷 QA: 사용자 지시로 미실행. 자동 위젯 테스트는 UI 세션이나 시각 수용 판정을 대신하지 않는다.
+
+### 직접 확인 / 장애 시 순서
+
+개발 빌드에서 DEV 띠 길게 → concert V3. 라이트/공연 다크 각각에서 보조행 입력 유지 → 검색 지우기 → 일정 있는 날짜 선택 → 다이얼로그의 안내·SummaryBox·확인/취소 결과 → 판매 중/마감 합성을 확인한다. `/dev/widgets?folder=concert`도 같은 폴더다. 폴더 바깥이 다크로 바뀌지 않아야 한다.
+
+문제가 있으면 `concert_gallery_section.dart`의 호출 인자 → 해당 shared 위젯 → AppColors/AppTheme의 역할 → `docs/design-tokens.md` 7절과 Figma 순으로 확인한다. 서비스·토큰 저장·서버 쓰기 경로는 이번 변경에 없다.
+
+### 부모 전달용 남은 범위
+
+- 공연 master의 출처는 확인했으나 별도 스타일·데이터·행동 계약이 더 필요한 항목: ProfileNotice `2034:15430`(AppNotice 합성 후보), PhotoList `2034:15467`(photo/video), LineupCell `2034:16185`, PlayList `2075:17309`(추가/추가됨/리스트/편집), PaymentStatus `2086:17775`, 입금확인 `1338:8348`의 입장 상태 매핑. 이번에는 임의의 독립 UI를 추가하지 않았다.
+- 관객웹 라이브러리(후보 영역과 구분): PinInput `2014:16694`, SetlistCard `2014:20862`, InfoTable `2175:27095`, InfoBox `2175:27352`, StatusBadge `2188:24937`, TicketSummary `2188:24948`, InfoRow `2188:24984`, KeyValue `2188:25000`, QRTicket `2188:25010`, QRPanel `2188:25050`, ContactCard `2188:25065`, PasswordResult `2188:25076`. 이 목록으로 전체 관객웹 화면을 추가하지 않았다. Jira 갱신은 부모가 판단한다.
+
+---
+
+아래는 이전 PR #11에 포함된 1차 작업의 작성 당시 기록이다.
 
 작성일: 2026-11-26. 작업 위치: `.worktrees/JECT-258`, 브랜치 `feat/JECT-258-design-system-v4`
 (origin/develop `4ace55e`에서 시작).
 
-## 현재 상태
+## 1차 작업 당시 상태
 
 - 현재 단계: 구현, 로컬 검증, 앱·웹 렌더링 확인까지 마쳤다. 커밋·푸시·PR·Jira 쓰기는 요청받지 않아 하지 않았다.
 - 허용 범위: 앱·웹 컴포넌트·토큰 코드, `docs/design-tokens.md`, 테스트, 렌더링 QA, 이 기록. JECT-149 워크트리는 건드리지 않았다.

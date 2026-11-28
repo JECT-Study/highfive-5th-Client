@@ -23,6 +23,7 @@ import '../../../../shared/widgets/app_text_area.dart';
 import '../../../../shared/widgets/app_text_field.dart';
 import '../../../../shared/widgets/app_top_bar.dart';
 import 'sections/common_gallery_section.dart';
+import 'sections/concert_gallery_section.dart';
 import 'sections/gallery_item.dart';
 import 'sections/home_gallery_section.dart';
 import 'sections/list_gallery_section.dart';
@@ -50,6 +51,7 @@ enum _GalleryFolder {
   generic('범용', 'shared/widgets/', '공통 · Button · Icon'),
   message('message', 'shared/widgets/message/', '메시지'),
   show('show', 'shared/widgets/show/', '공연페이지'),
+  concert('concert V3', 'shared/widgets/show/', 'COMPONENT V3 · 공연 Dark'),
   qr('qr', 'shared/widgets/qr/', 'QR'),
   home('home', 'shared/widgets/home/', '홈'),
   onboarding('onboarding', 'shared/widgets/onboarding/', '온보딩'),
@@ -150,6 +152,7 @@ class _WidgetGalleryViewState extends State<WidgetGalleryView> {
           ShowGallerySection(),
           ShowScheduleTicketGallerySection(),
         ],
+        _GalleryFolder.concert => const [ConcertGallerySection()],
         _GalleryFolder.qr => const [QrGallerySection()],
         _GalleryFolder.home => const [HomeGallerySection()],
         _GalleryFolder.onboarding => const [OnboardingGallerySection()],

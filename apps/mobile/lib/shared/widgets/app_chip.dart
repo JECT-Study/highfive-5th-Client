@@ -28,9 +28,15 @@ class AppChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final background = selected ? colors.labelNormal : colors.backgroundNormal;
-    final foreground = selected ? colors.staticWhite : colors.labelNormal;
-    final borderColor = selected ? colors.labelNormal : colors.lineStrong;
+    final background = selected
+        ? colors.selectionBackground
+        : colors.controlBackground;
+    final foreground = selected
+        ? colors.selectionForeground
+        : colors.labelNormal;
+    final borderColor = selected
+        ? colors.selectionBackground
+        : colors.controlBorder;
 
     return Semantics(
       button: true,

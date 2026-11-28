@@ -21,6 +21,28 @@ function renderDialog() {
 }
 
 describe('Dialog', () => {
+  it('안내·내용 슬롯 안의 행동은 바깥 취소를 일으키지 않는다', () => {
+    const onContent = vi.fn();
+    const onCancel = vi.fn();
+    render(
+      <Dialog
+        open
+        title="공연 변경"
+        confirmLabel="변경"
+        notice={<span>참여 팀에게 알림</span>}
+        content={<button onClick={onContent}>변경 내용</button>}
+        onConfirm={() => {}}
+        onCancel={onCancel}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '변경 내용' }));
+
+    expect(screen.getByText('참여 팀에게 알림')).toBeDefined();
+    expect(onContent).toHaveBeenCalledTimes(1);
+    expect(onCancel).not.toHaveBeenCalled();
+  });
+
   it('확인을 누르면 onConfirm만 부른다', () => {
     const { onConfirm, onCancel } = renderDialog();
 

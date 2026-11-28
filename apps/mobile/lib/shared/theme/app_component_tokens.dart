@@ -42,8 +42,11 @@ abstract final class AppButtonTokens {
 /// Input (Figma `Input`).
 abstract final class AppInputTokens {
   static const height = 47.0;
+  static const subtextHeight = 56.0;
+  static const subtextLineHeight = 17.0;
   static const paddingX = 14.0;
   static const gap = 10.0;
+  static const searchGap = 8.0;
   static const radius = AppRadius.md;
 }
 
@@ -119,6 +122,8 @@ abstract final class AppDialogTokens {
   static const paddingX = 10.0;
   static const paddingBottom = 10.0;
   static const gap = 20.0;
+  static const contentGap = 10.0;
+  static const noticeWidth = 280.0;
   static const buttonGap = 8.0;
   static const radius = AppRadius.xxl;
 }

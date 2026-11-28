@@ -86,8 +86,12 @@
 }
 
 .fill {
-  background: var(--color-label-strong);
-  color: var(--color-static-white);
+  background: var(--color-action-fill);
+  color: var(--color-action-foreground);
+}
+
+.fill:active:not(:disabled) {
+  background: var(--color-action-pressed);
 }
 
 .weak {

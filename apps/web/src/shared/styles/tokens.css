@@ -51,6 +51,15 @@
   --color-blue-600: var(--blue-600);
   --color-blue-700: var(--blue-700);
   --color-gray-800: var(--gray-800);
+  /* 컨트롤 역할. 라이트의 기존 버튼·칩 값을 각각 유지한다. */
+  --color-action-fill: var(--color-label-strong);
+  --color-action-foreground: var(--color-static-white);
+  --color-action-pressed: var(--color-label-strong);
+  --color-action-secondary: var(--color-blue-500);
+  --color-selection-background: var(--color-label-normal);
+  --color-selection-foreground: var(--color-static-white);
+  --color-control-background: var(--color-background-normal);
+  --color-control-border: var(--color-line-strong);
 
   --space-0-5: 2px;
   --space-1: 4px;
@@ -102,8 +111,12 @@
   --button-loader-dot-size: 6px;
   --button-loader-dot-gap: 8px;
   --input-height: 47px;
+  --input-subtext-height: 56px;
+  --input-subtext-line-height: 17px;
+  --input-subtext-gap: 4px;
   --input-padding-x: 14px;
   --input-gap: 10px;
+  --input-search-gap: 8px;
   --input-radius: var(--radius-md);
   --chip-padding: 8px 12px;
   --chip-radius: var(--radius-full);
@@ -128,6 +141,12 @@
   --dialog-width: 323px;
   --dialog-padding: 30px 10px 10px;
   --dialog-gap: 20px;
+  --dialog-content-gap: 10px;
+  --dialog-notice-width: 280px;
+  --summary-padding-x: 16px;
+  --summary-padding-y: 14px;
+  --summary-gap: 10px;
+  --summary-row-height: 20px;
   --dialog-button-gap: 8px;
   --dialog-radius: var(--radius-xxl);
   --form-section-gap: 8px;
@@ -157,4 +176,54 @@
   --text-caption1-regular: 400 var(--font-size-caption1) / 1.4 var(--font-family);
   --text-tag1: 600 var(--font-size-tag) / normal var(--font-family);
   --text-tag2: 500 var(--font-size-tag) / normal var(--font-family);
+}
+
+/* Figma 2218:149494 / 공연 프레임 2217:123929. OS 설정과 연결하지 않는 명시적 범위. */
+[data-theme='concert-dark'] {
+  --concert-neutral-50: #eaeaeb;
+  --concert-neutral-200: #a09fa2;
+  --concert-neutral-300: #747477;
+  --concert-neutral-400: #59595d;
+  --concert-neutral-600: #2c2b2f;
+  --concert-neutral-700: #222125;
+  --concert-neutral-800: #1a1a1d;
+  --concert-neutral-900: #141416;
+  --concert-primary: #c4fd5e;
+  --concert-primary-pressed: #afe744;
+  --concert-on-primary: #0b0712;
+  --concert-secondary: #a045e0;
+  --color-label-normal: var(--concert-neutral-50);
+  --color-label-strong: var(--concert-neutral-50);
+  --color-label-neutral: var(--concert-neutral-200);
+  --color-label-alternative: var(--concert-neutral-200);
+  --color-label-assistive: var(--concert-neutral-300);
+  --color-label-disable: var(--concert-neutral-400);
+  --color-background-normal: var(--concert-neutral-900);
+  --color-background-alternative: var(--concert-neutral-700);
+  --color-background-warning: #f1e1e1;
+  --color-interaction-inactive: var(--concert-neutral-400);
+  --color-interaction-disable: var(--concert-neutral-800);
+  --color-line-normal: var(--concert-neutral-600);
+  --color-line-neutral: var(--concert-neutral-600);
+  --color-line-alternative: var(--concert-neutral-700);
+  --color-line-strong: var(--concert-neutral-400);
+  --color-fill-normal: var(--concert-neutral-700);
+  --color-fill-strong: var(--concert-neutral-600);
+  --color-fill-alternative: var(--concert-neutral-700);
+  --color-status-positive: var(--concert-primary);
+  --color-status-cautionary: #ffb547;
+  --color-status-destructive: #d64146;
+  --color-gray-800: var(--concert-neutral-50);
+  --color-action-fill: var(--concert-primary);
+  --color-action-foreground: var(--concert-on-primary);
+  --color-action-pressed: var(--concert-primary-pressed);
+  --color-action-secondary: var(--concert-secondary);
+  --color-selection-background: var(--concert-primary);
+  --color-selection-foreground: var(--concert-on-primary);
+  --color-control-background: var(--concert-neutral-700);
+  --color-control-border: var(--concert-neutral-700);
+
+  color-scheme: dark;
+  background: var(--color-background-normal);
+  color: var(--color-label-normal);
 }

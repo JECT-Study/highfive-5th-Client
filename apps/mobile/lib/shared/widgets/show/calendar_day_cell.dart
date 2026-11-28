@@ -13,6 +13,7 @@ class CalendarDayCell extends StatelessWidget {
     required String this.date,
     this.today = false,
     this.selected = false,
+    this.hasEvent = false,
     this.onTap,
   });
 
@@ -21,14 +22,20 @@ class CalendarDayCell extends StatelessWidget {
     : date = null,
       today = false,
       selected = false,
+      hasEvent = false,
       onTap = null;
 
   static const _size = 44.0; // Figma: Day 44 × 44 (누르는 영역도 44)
+  static const _eventSize = 4.0;
+  static const _eventTop = 32.0;
 
   /// 날짜 숫자. 빈 칸이면 null.
   final String? date;
   final bool today;
   final bool selected;
+
+  /// V3 `일정있음`(1959:19911). 오늘·선택 상태와 별개로 일정 점을 보인다.
+  final bool hasEvent;
   final VoidCallback? onTap;
 
   @override
@@ -62,6 +69,7 @@ class CalendarDayCell extends StatelessWidget {
       button: true,
       enabled: onTap != null,
       selected: selected,
+      value: hasEvent ? '일정 있음' : null,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
@@ -72,7 +80,28 @@ class CalendarDayCell extends StatelessWidget {
           decoration: circle == null
               ? null
               : BoxDecoration(color: circle, shape: BoxShape.circle),
-          child: Text(date, maxLines: 1, style: text),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Center(child: Text(date, maxLines: 1, style: text)),
+              if (hasEvent)
+                Positioned(
+                  top: _eventTop,
+                  left: (_size - _eventSize) / 2 + 1,
+                  child: Container(
+                    key: const ValueKey('calendarDay_event'),
+                    width: _eventSize,
+                    height: _eventSize,
+                    decoration: BoxDecoration(
+                      color: today && selected
+                          ? colors.staticWhite
+                          : colors.labelNormal,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

@@ -20,6 +20,22 @@ abstract final class _Palette {
   static const black = Color(0xFF000000);
 }
 
+/// Figma 2218:149494. 컴포넌트는 이 팔레트 대신 context.colors의 역할을 쓴다.
+abstract final class _ConcertPalette {
+  static const neutral50 = Color(0xFFEAEAEB);
+  static const neutral200 = Color(0xFFA09FA2);
+  static const neutral300 = Color(0xFF747477);
+  static const neutral400 = Color(0xFF59595D);
+  static const neutral600 = Color(0xFF2C2B2F);
+  static const neutral700 = Color(0xFF222125);
+  static const neutral800 = Color(0xFF1A1A1D);
+  static const neutral900 = Color(0xFF141416);
+  static const primary = Color(0xFFC4FD5E);
+  static const primaryPressed = Color(0xFFAFE744);
+  static const onPrimary = Color(0xFF0B0712);
+  static const secondary = Color(0xFFA045E0);
+}
+
 /// 의미(semantic) 색 토큰. 이름은 Figma Semantic 이름을 camelCase로 옮긴 것.
 /// 위젯은 `context.colors.labelNormal`처럼 이것만 쓰고 hex 값이나 `Colors.*`를 직접 쓰지 않는다.
 /// Figma Semantic 값이 Primitive에 없으면 여기에 값을 그대로 둔다.
@@ -63,6 +79,14 @@ class AppColors extends ThemeExtension<AppColors> {
     required this.blue600,
     required this.blue700,
     required this.gray800,
+    required this.actionFill,
+    required this.actionForeground,
+    required this.actionPressed,
+    required this.actionSecondary,
+    required this.selectionBackground,
+    required this.selectionForeground,
+    required this.controlBackground,
+    required this.controlBorder,
   });
 
   static const light = AppColors(
@@ -103,6 +127,49 @@ class AppColors extends ThemeExtension<AppColors> {
     blue600: _Palette.blue600, // Primary-Blue/600
     blue700: _Palette.blue700, // Primary-Blue/700
     gray800: _Palette.gray800, // Neutral/Gray-800 (아이콘 기본색)
+    actionFill: _Palette.black,
+    actionForeground: _Palette.white,
+    actionPressed: _Palette.black,
+    actionSecondary: _Palette.blue500,
+    selectionBackground: Color(0xFF171719),
+    selectionForeground: _Palette.white,
+    controlBackground: _Palette.white,
+    controlBorder: Color(0xFFD9D9D9),
+  );
+
+  /// 공연 범위에서만 명시적으로 사용한다. OS 다크 모드와 연결하지 않는다.
+  /// 다크 명세에 없는 분홍·파랑·inverse 값은 기존 값을 보존한다.
+  static final concertDark = light.copyWith(
+    labelNormal: _ConcertPalette.neutral50,
+    labelStrong: _ConcertPalette.neutral50,
+    labelNeutral: _ConcertPalette.neutral200,
+    labelAlternative: _ConcertPalette.neutral200,
+    labelAssistive: _ConcertPalette.neutral300,
+    labelDisable: _ConcertPalette.neutral400,
+    backgroundNormal: _ConcertPalette.neutral900,
+    backgroundAlternative: _ConcertPalette.neutral700,
+    backgroundWarning: const Color(0xFFF1E1E1),
+    interactionInactive: _ConcertPalette.neutral400,
+    interactionDisable: _ConcertPalette.neutral800,
+    lineNormal: _ConcertPalette.neutral600,
+    lineNeutral: _ConcertPalette.neutral600,
+    lineAlternative: _ConcertPalette.neutral700,
+    lineStrong: _ConcertPalette.neutral400,
+    fillNormal: _ConcertPalette.neutral700,
+    fillStrong: _ConcertPalette.neutral600,
+    fillAlternative: _ConcertPalette.neutral700,
+    statusPositive: _ConcertPalette.primary,
+    statusCautionary: const Color(0xFFFFB547),
+    statusDestructive: const Color(0xFFD64146),
+    gray800: _ConcertPalette.neutral50,
+    actionFill: _ConcertPalette.primary,
+    actionForeground: _ConcertPalette.onPrimary,
+    actionPressed: _ConcertPalette.primaryPressed,
+    actionSecondary: _ConcertPalette.secondary,
+    selectionBackground: _ConcertPalette.primary,
+    selectionForeground: _ConcertPalette.onPrimary,
+    controlBackground: _ConcertPalette.neutral700,
+    controlBorder: _ConcertPalette.neutral700,
   );
 
   final Color labelNormal;
@@ -142,6 +209,14 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color blue600;
   final Color blue700;
   final Color gray800;
+  final Color actionFill;
+  final Color actionForeground;
+  final Color actionPressed;
+  final Color actionSecondary;
+  final Color selectionBackground;
+  final Color selectionForeground;
+  final Color controlBackground;
+  final Color controlBorder;
 
   @override
   AppColors copyWith({
@@ -182,6 +257,14 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? blue600,
     Color? blue700,
     Color? gray800,
+    Color? actionFill,
+    Color? actionForeground,
+    Color? actionPressed,
+    Color? actionSecondary,
+    Color? selectionBackground,
+    Color? selectionForeground,
+    Color? controlBackground,
+    Color? controlBorder,
   }) {
     return AppColors(
       labelNormal: labelNormal ?? this.labelNormal,
@@ -222,6 +305,14 @@ class AppColors extends ThemeExtension<AppColors> {
       blue600: blue600 ?? this.blue600,
       blue700: blue700 ?? this.blue700,
       gray800: gray800 ?? this.gray800,
+      actionFill: actionFill ?? this.actionFill,
+      actionForeground: actionForeground ?? this.actionForeground,
+      actionPressed: actionPressed ?? this.actionPressed,
+      actionSecondary: actionSecondary ?? this.actionSecondary,
+      selectionBackground: selectionBackground ?? this.selectionBackground,
+      selectionForeground: selectionForeground ?? this.selectionForeground,
+      controlBackground: controlBackground ?? this.controlBackground,
+      controlBorder: controlBorder ?? this.controlBorder,
     );
   }
 
@@ -302,6 +393,30 @@ class AppColors extends ThemeExtension<AppColors> {
       blue600: Color.lerp(blue600, other.blue600, t)!,
       blue700: Color.lerp(blue700, other.blue700, t)!,
       gray800: Color.lerp(gray800, other.gray800, t)!,
+      actionFill: Color.lerp(actionFill, other.actionFill, t)!,
+      actionForeground: Color.lerp(
+        actionForeground,
+        other.actionForeground,
+        t,
+      )!,
+      actionPressed: Color.lerp(actionPressed, other.actionPressed, t)!,
+      actionSecondary: Color.lerp(actionSecondary, other.actionSecondary, t)!,
+      selectionBackground: Color.lerp(
+        selectionBackground,
+        other.selectionBackground,
+        t,
+      )!,
+      selectionForeground: Color.lerp(
+        selectionForeground,
+        other.selectionForeground,
+        t,
+      )!,
+      controlBackground: Color.lerp(
+        controlBackground,
+        other.controlBackground,
+        t,
+      )!,
+      controlBorder: Color.lerp(controlBorder, other.controlBorder, t)!,
     );
   }
 }

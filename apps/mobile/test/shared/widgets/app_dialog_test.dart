@@ -27,6 +27,45 @@ Future<void> _pumpLauncher(WidgetTester tester, ValueChanged<bool> onResult) =>
     );
 
 void main() {
+  testWidgets('안내·내용 슬롯을 전달해도 확인 결과를 돌려준다', (tester) async {
+    bool? result;
+    var contentTaps = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () async => result = await showAppDialog(
+                context,
+                title: '공연 변경',
+                confirmLabel: '변경',
+                cancelLabel: '취소',
+                notice: const Text('참여 팀에게 알림'),
+                content: TextButton(
+                  onPressed: () => contentTaps++,
+                  child: const Text('변경 내용'),
+                ),
+              ),
+              child: const Text('열기'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('열기'));
+    await tester.pumpAndSettle();
+    expect(find.text('참여 팀에게 알림'), findsOneWidget);
+    await tester.tap(find.text('변경 내용'));
+    expect(contentTaps, 1);
+    await tester.tap(find.text('변경'));
+    await tester.pumpAndSettle();
+
+    expect(result, isTrue);
+    expect(find.byType(AppDialog), findsNothing);
+  });
+
   testWidgets('확인을 누르면 true를 돌려준다', (tester) async {
     bool? result;
     await _pumpLauncher(tester, (v) => result = v);

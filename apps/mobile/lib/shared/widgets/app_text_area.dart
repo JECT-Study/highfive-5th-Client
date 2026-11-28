@@ -46,7 +46,7 @@ class _AppTextAreaState extends State<AppTextArea> {
     final border = OutlineInputBorder(
       borderRadius: BorderRadius.circular(AppTextAreaTokens.radius),
       borderSide: BorderSide(
-        color: enabled ? colors.lineStrong : colors.interactionDisable,
+        color: enabled ? colors.controlBorder : colors.interactionDisable,
       ),
     );
     // 글자 수 줄 높이만큼 아래 여백을 더 둔다.
@@ -84,7 +84,7 @@ class _AppTextAreaState extends State<AppTextArea> {
                 ),
                 filled: true,
                 fillColor: enabled
-                    ? colors.backgroundNormal
+                    ? colors.controlBackground
                     : colors.interactionDisable,
                 contentPadding: EdgeInsets.fromLTRB(
                   AppTextAreaTokens.padding,

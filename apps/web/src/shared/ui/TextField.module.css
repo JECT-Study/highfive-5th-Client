@@ -5,8 +5,8 @@
   gap: var(--input-gap);
   height: var(--input-height);
   padding: 0 var(--input-padding-x);
-  background: var(--color-background-normal);
-  border: 1px solid var(--color-line-strong);
+  background: var(--color-control-background);
+  border: 1px solid var(--color-control-border);
   border-radius: var(--input-radius);
 }
 
@@ -34,6 +34,42 @@
   display: inline-flex;
   flex: none;
   align-items: center;
+}
+
+.withSubtext {
+  height: var(--input-subtext-height);
+}
+
+.valueGroup {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--input-subtext-gap);
+}
+
+.valueGroup .input {
+  flex: none;
+  width: 100%;
+  line-height: var(--input-subtext-line-height);
+}
+
+.subtext {
+  overflow: hidden;
+  color: var(--color-label-neutral);
+  font: var(--text-body1-regular);
+  line-height: var(--input-subtext-line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search {
+  gap: var(--input-search-gap);
+}
+
+.search .input {
+  color: var(--color-label-strong);
+  font: var(--text-body1-medium);
 }
 
 /* 오류 색은 포커스 중에도 유지한다 (.field:focus-within 뒤에 둔다) */

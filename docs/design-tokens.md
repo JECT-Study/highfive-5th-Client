@@ -110,7 +110,7 @@ Pink·Blue는 Figma에서 둘 다 Primary다. Gray-800은 Figma Icon 컴포넌�
 | blue.700 | `blue700` | `--color-blue-700` |
 | gray.800 | `gray800` | `--color-gray-800` |
 
-다크 모드 전용 값(Figma Background/Elevated, Transparent)은 다크 모드를 넣을 때 추가한다.
+공연 전용 다크 팔레트는 아래 7절처럼 명시적으로 범위를 지정해 쓴다. 앱 전역·OS 연동 다크 모드는 아직 추가하지 않았다.
 
 ### 간격 (이름의 숫자 × 4 = 값)
 
@@ -372,7 +372,7 @@ Figma 아이콘이 없어 Material 아이콘으로 대신한 곳: `ShowActionRow
 - 버튼 Mini 좌우 여백: Default 8, Disabled 10 → 8.
 - Toggle은 Figma가 그림(SVG)이라 치수를 읽어 맞춘 바탕 채운 모양이다. 켜짐/꺼짐 색만 Figma(label.strong / label.assistive)와 같다.
 - BottomSheet 그림자(`0 4 10` 8%)는 v3 Elevation에 없어 넣지 않았다. 뒷 배경을 material.dimmer로 어둡게 해 구분된다.
-- 입력창 뒤 아이콘 칸: Weak(`654:5752`)만 오른쪽 5, Error·Fill/서브텍스트·지우기 아이콘(`1501:10747`·`1959:20282`·`1701:13048`)은 15 → 15. 2Fill의 검색 아이콘↔글자는 8(다른 variant 10) → 10.
+- 입력창 뒤 아이콘 칸: Weak(`654:5752`)만 오른쪽 5, Error·Fill/서브텍스트·지우기 아이콘(`1501:10747`·`1959:20282`·`1701:13048`)은 15 → 15. 2Fill은 `variant=search`의 간격 8, 기본 입력창은 10으로 구분한다.
 
 #### v4 대조 (2026-11-26)
 
@@ -396,11 +396,11 @@ Figma `디자인` 파일 `디자인시스템_v4` 페이지(`107:315`)의 `디자
 - 타이포그래피 표(`1502:11314`) 라벨과 샘플이 실제 스타일과 다르다. Caption-1(SB) 행 라벨 Regular, Caption-1(R) 행 라벨 SemiBold, 캡션 행간 auto(실제 140%). 샘플 연결은 Caption-1(M) 행→`Caption/1(SB)`, Caption-1(R) 행→`Caption/1(M)`, Title-1(B) 행→`Title/2(SB)`, Tag-2 행→`Tag/1(SB)`. 코드는 컴포넌트가 쓰는 실제 스타일(예: `Caption/1(R)` Regular 400 · 140%)을 따른다.
 - Head(B)를 텍스트 스타일로 등록할지.
 
-코드에 아직 없는 v4 항목:
+1차 대조에서 남겼던 항목의 현재 상태:
 
-- Input `Fill/서브텍스트`(`1959:20282`, 높이 56, 값 아래 `상세주소` 한 줄 Label/Neutral). 글자에 스타일이 연결되지 않아 값을 확인한 뒤 추가한다.
-- Input `2Fill`(`1701:13048`, 검색 아이콘 + 지우기 20)은 지금 `prefix`·`suffix`로 만든다.
-- 밴드 합동공연 Dark(`2218:149494`, `밴드 합동공연/Dark/*` 변수)는 다크 화면을 만들 때 추가한다. Lime·Purple·Glow·Primary·Secondary 일부는 변수가 없다.
+- Input `Fill/서브텍스트`(`1959:20282`)는 `AppTextField.subtext` / `TextField subtext`로 구현했다. 높이 56, 두 행의 높이 17, 간격 4다.
+- Input `2Fill`(`1701:13048`)은 `variant=search`와 기존 `prefix`·`suffix`로 만든다. 검색·삭제 동작은 호출자가 연결한다.
+- 밴드 합동공연 Dark(`2218:149494`)는 `AppTheme.concertDark`와 `[data-theme='concert-dark']`로 범위를 지정한다. 구현에 쓰지 않는 Lime·Purple·Glow 원시 단계와 별도 Accent는 추가하지 않았다.
 - Accent(Background·Foreground)는 색상 프레임에 이름만 있고 값이 없다.
 
 #### Figma 화면과 어긋난 값 (디자이너 확인 필요)
@@ -474,7 +474,61 @@ Container(
 
 ## 6. 아직 없는 것 (필요해질 때 같은 절차로 추가)
 
-- 다크 모드 (`AppColors.dark`, `@media (prefers-color-scheme: dark)`). 밴드 합동공연 Dark 팔레트는 Figma `2218:149494`
+- 앱 전역·OS 연동 다크 모드. 공연에만 적용하는 명시적 범위는 7절에 있다.
 - 애니메이션 시간
 - 여러 조각으로 그려진 Figma 아이콘(menu, bell, bookmark, lock, camera 등). 쓸 때 Figma에서 SVG로 내보내 `assets/icons/`와 `AppIcons`에 추가
 - 영역별 컴포넌트는 들어가 있다. 화면을 만들 때 Figma와 다시 맞춘다
+
+## 7. COMPONENT V3 후속 구현 (2026-11-26)
+
+컴포넌트 기준은 `와이어프레임 New/컴포넌트` 페이지 `881:3898`의 배너 `1061:40813` **컴포넌트 건들ㄴㄴ V.3** 아래 라이브러리다. 배너 자체는 master가 아니다. 실제 기준은 공통 `1061:36797`, 공연페이지 `1060:6106`, 팝업 `1915:13425`의 master·variant다. `컴포넌트 V.2`(`1979:12105`)와 `컴포넌트화 필요 요소`(`1988:14018`)는 구현 기준에서 제외한다.
+
+V3 공통 Input 인스턴스 `1060:6495`의 내부 노드 `654:5486`·`1902:11101`·`1372:20236`이 원본 Fill `654:5754`와 일치한다. 같은 set `724:3663`의 서브텍스트·2Fill을 따른다. 원본 set이 `디자인시스템_v4` 페이지에 있어도 V2 영역을 별도로 채택한 것이 아니다.
+
+### 구현과 합성
+
+| V3 근거 | 앱 | 웹 / 동작 |
+| --- | --- | --- |
+| `1959:20282` Fill/서브텍스트 | `AppTextField(subtext: ...)` | `TextField subtext`; `aria-describedby` 연결 |
+| `1701:13048` 2Fill | `AppTextFieldVariant.search` + prefix/suffix | `variant="search"`; 간격 8, Body-1(M), label.strong. 삭제 동작은 호출자 |
+| `1681:12975` Dialog | `notice`·`content`와 `showAppDialog` 전달 | `Dialog notice/content`; Notice 최대 280, 내용 간격 10 |
+| `1959:19911` 일정있음 | `CalendarDayCell.hasEvent` | 지름 4, 위에서 32에 점. 선택·오늘과 독립, 화면 읽기에 일정 유무 전달 |
+| `2014:19752` SummaryBox | `QrListCard.summary` | `SummaryBox`의 dl/dt/dd. 좌우 16·위아래 14, 줄 사이 10, 세 줄 예시 303 × 108 |
+| `2014:20680` 판매 마감 / `2014:20681` 판매 중 | 기존 `ShowProgressCard.ticketSales` + info/actions | 별도 카드·단계를 중복 추가하지 않고 갤러리에 두 합성 예시 |
+
+기본 입력창은 높이 47·간격 10을 유지한다. 서브텍스트는 안쪽 TextField의 helperText와 두 행 전체를 감싸는 테두리로 구현했다. 슬롯 없는 기존 Dialog의 간격도 유지한다. `AppNotice`는 Dialog 인스턴스가 요구하는 글자·여백을 `textStyle`·`padding`으로 재정의할 수 있고, 기본 Notice에는 영향이 없다.
+
+### 공연 전용 테마
+
+앱은 `Theme(data: AppTheme.concertDark, child: child)`로 감싼다. `MaterialApp.darkTheme`·`themeMode`는 바꾸지 않는다. 웹은 필요한 조상에 `data-theme="concert-dark"`를 준다. `prefers-color-scheme`으로 켜지지 않는다.
+
+팔레트 `2218:149494`의 semantic 및 원시 회색 값과 실제 공연정보수정 프레임 `2217:123929`의 컨트롤을 근거로 삼았다. 아래 역할은 앱·웹에 같은 값을 둔다.
+
+| 역할 | 라이트 | 공연 다크 |
+| --- | --- | --- |
+| actionFill / actionForeground | `#000000` / `#FFFFFF` | `#C4FD5E` / `#0B0712` |
+| actionPressed | `#000000` | `#AFE744` |
+| actionSecondary | `#2F97FF` | `#A045E0` |
+| selectionBackground / Foreground | `#171719` / `#FFFFFF` | `#C4FD5E` / `#0B0712` |
+| controlBackground / Border | `#FFFFFF` / `#D9D9D9` | `#222125` / `#222125` |
+| labelNormal / Strong | 기존 값 유지 | `#EAEAEB` |
+| labelNeutral / Alternative | 기존 값 유지 | `#A09FA2` |
+| labelAssistive / Disable | 기존 값 유지 | `#747477` / `#59595D` |
+| backgroundNormal / Alternative | 기존 값 유지 | `#141416` / `#222125` |
+| interactionDisable | 기존 값 유지 | `#1A1A1D` |
+| lineNormal·Neutral / Strong | 기존 값 유지 | `#2C2B2F` / `#59595D` |
+| fillNormal·Alternative / Strong | 기존 값 유지 | `#222125` / `#2C2B2F` |
+| statusPositive / Cautionary / Destructive | 기존 값 유지 | `#C4FD5E` / `#FFB547` / `#D64146` |
+| backgroundWarning | `#FFE7E7` | `#F1E1E1` |
+
+다크 Label/Alternative·Fill 등의 기존 코드 역할은 확인된 Label/Neutral·표면 단계로 대응시킨 값이며, 별도 Figma 변수를 만들었다는 뜻은 아니다. 다크 명세가 없는 분홍·파랑·inverse 값은 유지한다. 따라서 달력의 기존 분홍 선택 상태를 근거 없이 라임으로 바꾸지 않는다. `AppButton`, `AppChip`, 입력창·드롭다운·여러 줄 입력·Stepper는 컨트롤 역할을 읽는다.
+
+확인 필요: 실제 다크 프레임의 삭제 글자는 `#FF5A5F`, 팔레트의 Destructive는 `#D64146`이다. 현재는 팔레트를 따랐다. SummaryBox는 기존 QR 카드의 의미 색·말줄임을 공유하며 치수 차이만 반영했다. 추가 master의 디자인 원문 재조회는 MCP timeout으로 막혀 있어 독립 색·동작 계약이 확인되지 않은 PhotoList·PlayList·PaymentStatus 등은 임의로 구현하지 않았다.
+
+### 갤러리와 사용자 검수
+
+개발 빌드의 DEV 띠를 길게 누른 뒤 **concert V3** 폴더를 고른다. 초기 경로 인자는 `/dev/widgets?folder=concert`다. 라이트와 공연 다크에 실제 입력·삭제·장르/날짜 선택·팀 수 변경·내용 슬롯 다이얼로그를 각각 둔다.
+
+Layout: 기존 갤러리 ListView가 스크롤 하나를 맡고 두 테마 예시를 세로로 배치한다. 프리뷰 안에서만 Theme를 바꾸며 폴더 선택 칩과 다른 화면은 라이트로 유지한다. 확인 행동은 입력·선택 후 다이얼로그 결과를 받는 것이며 시안에 없는 제품 화면이나 쓰기 요청은 추가하지 않는다.
+
+사용자 요청에 따라 에이전트의 시뮬레이터·브라우저·스크린샷 QA는 실행하지 않았다. 자동 위젯 테스트는 보조행·삭제·슬롯 결과·일정 표시·테마 범위·SummaryBox 치수와 320 폭에서 전체 갤러리의 overflow 유무를 확인한다. 실제 폰트·색·터치 느낌과 Figma 시각 일치는 사용자가 직접 확인한다.

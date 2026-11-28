@@ -38,7 +38,8 @@ class AppStepper extends StatelessWidget {
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        border: Border.all(color: colors.lineStrong),
+        color: colors.controlBackground,
+        border: Border.all(color: colors.controlBorder),
         borderRadius: BorderRadius.circular(AppStepperTokens.radius),
       ),
       child: Row(

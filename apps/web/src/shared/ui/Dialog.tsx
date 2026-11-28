@@ -7,6 +7,8 @@ type DialogProps = {
   title: string;
   message?: ReactNode;
   icon?: ReactNode;
+  readonly notice?: ReactNode;
+  readonly content?: ReactNode;
   confirmLabel: string;
   /** 없으면 확인 버튼 하나만 보인다 */
   cancelLabel?: string;
@@ -26,6 +28,8 @@ export function Dialog({
   title,
   message,
   icon,
+  notice,
+  content,
   confirmLabel,
   cancelLabel,
   destructive = false,
@@ -45,6 +49,15 @@ export function Dialog({
 
   if (!open) return null;
 
+  const heading = (
+    <>
+      <h2 id={titleId} className={styles.title}>
+        {title}
+      </h2>
+      {message && <p className={styles.message}>{message}</p>}
+    </>
+  );
+
   return (
     <div className={styles.backdrop} onClick={onCancel}>
       <div
@@ -55,10 +68,15 @@ export function Dialog({
         onClick={(event) => event.stopPropagation()}
       >
         {icon}
-        <h2 id={titleId} className={styles.title}>
-          {title}
-        </h2>
-        {message && <p className={styles.message}>{message}</p>}
+        {notice != null || content != null ? (
+          <div className={styles.content}>
+            {heading}
+            {notice != null && <div className={styles.notice}>{notice}</div>}
+            {content != null && <div className={styles.slot}>{content}</div>}
+          </div>
+        ) : (
+          heading
+        )}
         <div className={styles.actions}>
           {cancelLabel && (
             <Button variant="weak" onClick={onCancel}>
