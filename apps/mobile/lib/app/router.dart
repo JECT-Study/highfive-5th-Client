@@ -12,6 +12,7 @@ import '../features/chat/presentation/views/chat_list_view.dart';
 import '../features/dev_gallery/presentation/views/widget_gallery_view.dart';
 import '../features/home/presentation/views/home_view.dart';
 import '../features/my_page/presentation/views/my_page_view.dart';
+import '../features/performances/presentation/views/concert_band_profile_view.dart';
 import '../features/performances/presentation/views/concert_detail_view.dart';
 import '../features/recruitments/presentation/views/recruitment_list_view.dart';
 import 'main_shell.dart';
@@ -69,7 +70,7 @@ bool hasRoutePath(RouteConfiguration configuration, String path) {
 }
 
 /// 주소의 공연 ID. 10진수 양의 정수만 받는다(`int.tryParse`는 `0xC` 같은 16진수도 받는다). 아니면 null.
-int? _concertIdFrom(String showId) =>
+int? _positiveIdFrom(String showId) =>
     RegExp(r'^[1-9][0-9]*$').hasMatch(showId) ? int.tryParse(showId) : null;
 
 /// 공연 페이지(`/shows/:showId`). 하단 탭 밖에 등록해 탭 바 없이 전체 화면으로 연다 (Figma 정보탭).
@@ -90,11 +91,45 @@ GoRoute concertShowRoute() => GoRoute(
         if (!didPop) goHome();
       },
       child: ConcertDetailView(
-        concertId: _concertIdFrom(showId),
+        concertId: _positiveIdFrom(showId),
         onBack: () => context.canPop() ? context.pop() : goHome(),
         onEdit: canEdit
             ? () => context.push(AppRoutes.showEditOf(showId))
             : null,
+        onBandTap:
+            hasRoutePath(GoRouter.of(context).configuration, AppRoutes.showBand)
+            ? (bandId) => context.push(AppRoutes.showBandOf(showId, '$bandId'))
+            : null,
+      ),
+    );
+  },
+);
+
+/// 참여 밴드에서 push하는 읽기 전용 프로필. 직접 연 주소도 닫으면 공연 정보로 돌아간다.
+GoRoute concertBandRoute() => GoRoute(
+  path: AppRoutes.showBand,
+  builder: (context, state) {
+    final showId = state.pathParameters['showId']!;
+    final concertId = _positiveIdFrom(showId);
+    void close() {
+      if (context.canPop()) {
+        context.pop();
+      } else {
+        context.go(
+          concertId == null ? AppRoutes.home : AppRoutes.showOf(showId),
+        );
+      }
+    }
+
+    return PopScope(
+      canPop: context.canPop(),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) close();
+      },
+      child: ConcertBandProfileView(
+        concertId: concertId,
+        bandId: _positiveIdFrom(state.pathParameters['bandId']!),
+        onClose: close,
       ),
     );
   },
@@ -183,6 +218,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       // 고정 하위 경로(`/shows/new`)는 이보다 먼저 등록한다. 아니면 `new`가 showId로 잡힌다.
       concertShowRoute(),
+      concertBandRoute(),
     ],
   );
   ref.onDispose(() {

@@ -62,6 +62,10 @@ abstract final class AppRoutes {
   static const showSetlist = '/shows/:showId/setlist/:bandId';
   static String showSetlistOf(String showId, String bandId) =>
       '/shows/$showId/setlist/$bandId';
+  // 정보 탭 참여 밴드에서 여는 밴드 프로필 (읽기 전용). 밴드 기능의 /bands/:bandId 화면이 생기면 그쪽으로 옮긴다.
+  static const showBand = '/shows/:showId/bands/:bandId';
+  static String showBandOf(String showId, String bandId) =>
+      '/shows/$showId/bands/$bandId';
   static const showRoles = '/shows/:showId/roles';
   static String showRolesOf(String showId) => '/shows/$showId/roles';
   static const showAccountOwner = '/shows/:showId/account-owner';

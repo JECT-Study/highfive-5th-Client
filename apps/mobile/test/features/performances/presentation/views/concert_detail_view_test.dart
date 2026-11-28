@@ -113,10 +113,18 @@ void main() {
       hasLength(ConcertPageTab.values.length),
     );
     expect(find.byType(ConcertInfoTab), findsOneWidget);
-    expect(find.byType(ShowHeaderInfoRow), findsNWidgets(3));
     expect(
-      find.byType(ShowTeamAvatar),
-      findsNWidgets(FakeConcertParticipantsRepository.sample.length),
+      tester
+          .widgetList<ShowHeaderInfoRow>(find.byType(ShowHeaderInfoRow))
+          .map((row) => row.value),
+      ['2026.12.20 (일)', '미정', '홍대 롤링홀', '500,000원'],
+    );
+    expect(
+      tester
+          .widgetList<ShowTeamAvatar>(find.byType(ShowTeamAvatar))
+          .where((avatar) => !avatar.recruiting)
+          .map((avatar) => avatar.name),
+      FakeConcertParticipantsRepository.sample.map((team) => team.name),
     );
   });
 
@@ -229,7 +237,13 @@ void main() {
     ]) {
       final repository = _ControlledParticipantsRepository();
       await _pump(tester, participants: repository);
-      expect(find.byType(ShowTeamAvatar), findsNWidgets(2));
+      expect(
+        tester
+            .widgetList<ShowTeamAvatar>(find.byType(ShowTeamAvatar))
+            .where((avatar) => !avatar.recruiting)
+            .length,
+        2,
+      );
 
       repository.respond = () => Future.error(error);
       _container(tester).invalidate(concertParticipantsProvider(12));
@@ -270,22 +284,38 @@ void main() {
     );
     final response = Completer<List<ConcertParticipant>>();
     repository.respond = () => response.future;
-    await tester.tap(retry);
-    await tester.pump();
+    Future<void> tapVisible(Finder target) async {
+      await tester.ensureVisible(target);
+      await tester.pump();
+      await tester.tap(target);
+      await tester.pump();
+    }
+
+    await tapVisible(retry);
     expect(repository.calls, 2);
 
-    await tester.tap(_tab(ConcertPageTab.feed));
+    // 아래쪽 오류 버튼으로 스크롤하면 위쪽 sliver는 캐시 밖으로 빠질 수 있다.
+    // 위치를 먼저 복원하고 프레임을 그린 뒤 탭의 실제 hit target을 찾는다.
+    tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position
+        .jumpTo(0);
     await tester.pump();
-    await tester.tap(_tab(ConcertPageTab.info));
-    await tester.pump();
+    await tapVisible(_tab(ConcertPageTab.feed));
+    await tapVisible(_tab(ConcertPageTab.info));
 
     expect(tester.widget<AppButton>(retry).loading, isTrue);
-    await tester.tap(retry);
-    await tester.pump();
+    await tapVisible(retry);
     expect(repository.calls, 2);
     response.complete(FakeConcertParticipantsRepository.sample);
     await tester.pump();
-    expect(find.byType(ShowTeamAvatar), findsNWidgets(2));
+    expect(
+      tester
+          .widgetList<ShowTeamAvatar>(find.byType(ShowTeamAvatar))
+          .where((avatar) => !avatar.recruiting)
+          .length,
+      2,
+    );
   });
 
   testWidgets('탭을 누르면 같은 화면에서 정보·피드·일정 내용이 바뀐다', (tester) async {

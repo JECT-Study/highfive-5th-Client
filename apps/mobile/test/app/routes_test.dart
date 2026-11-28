@@ -26,6 +26,7 @@ void main() {
       AppRoutes.showScheduleNew: AppRoutes.showScheduleNewOf('s1'),
       AppRoutes.showSchedule: AppRoutes.showScheduleOf('s1', 'sc1'),
       AppRoutes.showSetlist: AppRoutes.showSetlistOf('s1', 'b1'),
+      AppRoutes.showBand: AppRoutes.showBandOf('s1', 'b1'),
       AppRoutes.showRoles: AppRoutes.showRolesOf('s1'),
       AppRoutes.showAccountOwner: AppRoutes.showAccountOwnerOf('s1'),
       AppRoutes.showEntry: AppRoutes.showEntryOf('s1'),

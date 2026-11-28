@@ -31,13 +31,25 @@ class ConcertParticipantDto {
   final bool isHost;
   final ConcertParticipantBandDto band;
 
-  ConcertParticipant toModel() =>
-      ConcertParticipant(bandId: band.bandId, name: band.name, isHost: isHost);
+  ConcertParticipant toModel() => ConcertParticipant(
+    bandId: band.bandId,
+    name: band.name,
+    isHost: isHost,
+    profileImageUrl: band.profileImageUrl,
+    genres: List.unmodifiable(band.genres),
+    memberCount: band.memberCount,
+  );
 }
 
 @JsonSerializable(createToJson: false)
 class ConcertParticipantBandDto {
-  const ConcertParticipantBandDto({required this.bandId, required this.name});
+  const ConcertParticipantBandDto({
+    required this.bandId,
+    required this.name,
+    required this.profileImageUrl,
+    required this.genres,
+    required this.memberCount,
+  });
 
   factory ConcertParticipantBandDto.fromJson(Map<String, dynamic> json) =>
       _$ConcertParticipantBandDtoFromJson(json);
@@ -46,6 +58,13 @@ class ConcertParticipantBandDto {
   @JsonKey(fromJson: _integer)
   final int bandId;
   final String name;
+
+  @JsonKey(required: true)
+  final String? profileImageUrl;
+  @JsonKey(required: true, disallowNullValue: true)
+  final List<String> genres;
+  @JsonKey(required: true, disallowNullValue: true, fromJson: _integer)
+  final int memberCount;
 }
 
 int _integer(Object json) => json as int;

@@ -33,7 +33,21 @@ class FakeConcertParticipantsRepository
   /// 공연 12의 참여 밴드. 주최 밴드 3은 라인업 명세 예시 그대로다(공연 상세의 `hostBandId`·`myBandIds`와 같다).
   /// 두 번째 팀은 합류 1팀(`recruitment.joinedTeamCount`)을 보이려고 만든 합성 데이터로, 실제 밴드가 아니다.
   static const sample = [
-    ConcertParticipant(bandId: 3, name: '새벽세시', isHost: true),
-    ConcertParticipant(bandId: 9001, name: '오프비트', isHost: false),
+    ConcertParticipant(
+      bandId: 3,
+      name: '새벽세시',
+      isHost: true,
+      profileImageUrl: null,
+      genres: ['ROCK', 'INDIE'],
+      memberCount: 4,
+    ),
+    ConcertParticipant(
+      bandId: 9001,
+      name: '오프비트',
+      isHost: false,
+      profileImageUrl: null,
+      genres: ['ROCK'],
+      memberCount: 4,
+    ),
   ];
 }
