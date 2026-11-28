@@ -6,6 +6,7 @@ import '../../../../shared/utils/date_format.dart';
 import '../../../../shared/widgets/show/show_header.dart';
 import '../../models/concert_detail.dart';
 import '../../models/concert_status.dart';
+import '../../models/concert_genre_label.dart';
 
 /// 합동공연 페이지 위쪽 머리 (Figma `Header` Property 1 = true, 2217:122770).
 /// 공연 상세를 [ShowHeader.compact]의 값으로 옮긴다. 정보 수정 버튼은 [onEdit]이 없으면 비활성이다.
@@ -72,7 +73,7 @@ class _ConcertPageHeaderState extends State<ConcertPageHeader> {
       statusLabel: _statusLabel(detail.status),
       // Figma `D - 30`. 공연 당일·지난 공연의 표기는 시안에 없어 보이지 않는다.
       dDayLabel: daysLeft != null && daysLeft > 0 ? 'D - $daysLeft' : null,
-      genres: detail.genres.map((code) => _genreNames[code]).nonNulls.toList(),
+      genres: detail.genres.map(concertGenreLabel).nonNulls.toList(),
       poster: posterUrl == null ? null : NetworkImage(posterUrl),
       editLabel: '정보 수정',
       onEdit: widget.onEdit,
@@ -88,16 +89,4 @@ String? _statusLabel(ConcertStatus status) => switch (status) {
   ConcertStatus.salePaused => '판매 중지',
   ConcertStatus.saleClosed => '판매 마감',
   ConcertStatus.unknown => null,
-};
-
-/// 코드 목록 초안(`GET /api/v1/codes?types=GENRE`) 예시의 표시 이름. 코드 목록 API를 연결하면 그 값으로 바꾼다.
-/// 목록에 없는 코드는 보이지 않는다.
-const _genreNames = {
-  'ROCK': '록',
-  'INDIE': '인디',
-  'METAL': '메탈',
-  'PUNK': '펑크',
-  'POP': '팝',
-  'JAZZ': '재즈',
-  'ETC': '기타',
 };

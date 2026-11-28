@@ -16,7 +16,8 @@ T _$identity<T>(T value) => value;
 mixin _$ConcertParticipant {
 
  int get bandId; String get name;/// 주최 팀인지 (`teams[].isHost`). 대표자 권한(`ConcertPermissions`)과는 다르다.
- bool get isHost;
+ bool get isHost; String? get profileImageUrl; List<String> get genres;/// 이전의 최소 참여자 projection에는 없는 값. 모르면 0명으로 바꾸지 않고 숨긴다.
+ int? get memberCount;
 /// Create a copy of ConcertParticipant
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,20 +29,20 @@ $ConcertParticipantCopyWith<ConcertParticipant> get copyWith => _$ConcertPartici
 @override
 bool operator ==(Object other) {
   final _this = this as ConcertParticipant;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ConcertParticipant&&(identical(other.bandId, _this.bandId) || other.bandId == _this.bandId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.isHost, _this.isHost) || other.isHost == _this.isHost));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ConcertParticipant&&(identical(other.bandId, _this.bandId) || other.bandId == _this.bandId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.isHost, _this.isHost) || other.isHost == _this.isHost)&&(identical(other.profileImageUrl, _this.profileImageUrl) || other.profileImageUrl == _this.profileImageUrl)&&const DeepCollectionEquality().equals(other.genres, _this.genres)&&(identical(other.memberCount, _this.memberCount) || other.memberCount == _this.memberCount));
 }
 
 
 @override
 int get hashCode {
   final _this = this as ConcertParticipant;
-  return Object.hash(runtimeType,_this.bandId,_this.name,_this.isHost);
+  return Object.hash(runtimeType,_this.bandId,_this.name,_this.isHost,_this.profileImageUrl,const DeepCollectionEquality().hash(_this.genres),_this.memberCount);
 }
 
 @override
 String toString() {
   final _this = this as ConcertParticipant;
-  return 'ConcertParticipant(bandId: ${_this.bandId}, name: ${_this.name}, isHost: ${_this.isHost})';
+  return 'ConcertParticipant(bandId: ${_this.bandId}, name: ${_this.name}, isHost: ${_this.isHost}, profileImageUrl: ${_this.profileImageUrl}, genres: ${_this.genres}, memberCount: ${_this.memberCount})';
 }
 
 
@@ -52,7 +53,7 @@ abstract mixin class $ConcertParticipantCopyWith<$Res>  {
   factory $ConcertParticipantCopyWith(ConcertParticipant value, $Res Function(ConcertParticipant) _then) = _$ConcertParticipantCopyWithImpl;
 @useResult
 $Res call({
- int bandId, String name, bool isHost
+ int bandId, String name, bool isHost, String? profileImageUrl, List<String> genres, int? memberCount
 });
 
 
@@ -69,12 +70,15 @@ class _$ConcertParticipantCopyWithImpl<$Res>
 
 /// Create a copy of ConcertParticipant
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? bandId = null,Object? name = null,Object? isHost = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? bandId = null,Object? name = null,Object? isHost = null,Object? profileImageUrl = freezed,Object? genres = null,Object? memberCount = freezed,}) {
   return _then(ConcertParticipant(
 bandId: null == bandId ? _self.bandId : bandId // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,isHost: null == isHost ? _self.isHost : isHost // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,profileImageUrl: freezed == profileImageUrl ? _self.profileImageUrl : profileImageUrl // ignore: cast_nullable_to_non_nullable
+as String?,genres: null == genres ? _self.genres : genres // ignore: cast_nullable_to_non_nullable
+as List<String>,memberCount: freezed == memberCount ? _self.memberCount : memberCount // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 
@@ -159,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int bandId,  String name,  bool isHost)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int bandId,  String name,  bool isHost,  String? profileImageUrl,  List<String> genres,  int? memberCount)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ConcertParticipant() when $default != null:
-return $default(_that.bandId,_that.name,_that.isHost);case _:
+return $default(_that.bandId,_that.name,_that.isHost,_that.profileImageUrl,_that.genres,_that.memberCount);case _:
   return orElse();
 
 }
@@ -180,10 +184,10 @@ return $default(_that.bandId,_that.name,_that.isHost);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int bandId,  String name,  bool isHost)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int bandId,  String name,  bool isHost,  String? profileImageUrl,  List<String> genres,  int? memberCount)  $default,) {final _that = this;
 switch (_that) {
 case _ConcertParticipant():
-return $default(_that.bandId,_that.name,_that.isHost);case _:
+return $default(_that.bandId,_that.name,_that.isHost,_that.profileImageUrl,_that.genres,_that.memberCount);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +204,10 @@ return $default(_that.bandId,_that.name,_that.isHost);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int bandId,  String name,  bool isHost)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int bandId,  String name,  bool isHost,  String? profileImageUrl,  List<String> genres,  int? memberCount)?  $default,) {final _that = this;
 switch (_that) {
 case _ConcertParticipant() when $default != null:
-return $default(_that.bandId,_that.name,_that.isHost);case _:
+return $default(_that.bandId,_that.name,_that.isHost,_that.profileImageUrl,_that.genres,_that.memberCount);case _:
   return null;
 
 }
@@ -215,13 +219,23 @@ return $default(_that.bandId,_that.name,_that.isHost);case _:
 
 
 class _ConcertParticipant implements ConcertParticipant {
-  const _ConcertParticipant({required this.bandId, required this.name, required this.isHost});
+  const _ConcertParticipant({required this.bandId, required this.name, required this.isHost, this.profileImageUrl,  List<String> genres = const <String>[], this.memberCount}): _genres = genres;
   
 
 @override final  int bandId;
 @override final  String name;
 /// 주최 팀인지 (`teams[].isHost`). 대표자 권한(`ConcertPermissions`)과는 다르다.
 @override final  bool isHost;
+@override final  String? profileImageUrl;
+ final  List<String> _genres;
+@override@JsonKey() List<String> get genres {
+  if (_genres is EqualUnmodifiableListView) return _genres;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_genres);
+}
+
+/// 이전의 최소 참여자 projection에는 없는 값. 모르면 0명으로 바꾸지 않고 숨긴다.
+@override final  int? memberCount;
 
 /// Create a copy of ConcertParticipant
 /// with the given fields replaced by the non-null parameter values.
@@ -233,18 +247,18 @@ _$ConcertParticipantCopyWith<_ConcertParticipant> get copyWith => __$ConcertPart
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConcertParticipant&&(identical(other.bandId, bandId) || other.bandId == bandId)&&(identical(other.name, name) || other.name == name)&&(identical(other.isHost, isHost) || other.isHost == isHost));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ConcertParticipant&&(identical(other.bandId, bandId) || other.bandId == bandId)&&(identical(other.name, name) || other.name == name)&&(identical(other.isHost, isHost) || other.isHost == isHost)&&(identical(other.profileImageUrl, profileImageUrl) || other.profileImageUrl == profileImageUrl)&&const DeepCollectionEquality().equals(other.genres, _genres)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,bandId,name,isHost);
+    return Object.hash(runtimeType,bandId,name,isHost,profileImageUrl,const DeepCollectionEquality().hash(_genres),memberCount);
 }
 
 @override
 String toString() {
-    return 'ConcertParticipant(bandId: $bandId, name: $name, isHost: $isHost)';
+    return 'ConcertParticipant(bandId: $bandId, name: $name, isHost: $isHost, profileImageUrl: $profileImageUrl, genres: $genres, memberCount: $memberCount)';
 }
 
 
@@ -255,7 +269,7 @@ abstract mixin class _$ConcertParticipantCopyWith<$Res> implements $ConcertParti
   factory _$ConcertParticipantCopyWith(_ConcertParticipant value, $Res Function(_ConcertParticipant) _then) = __$ConcertParticipantCopyWithImpl;
 @override @useResult
 $Res call({
- int bandId, String name, bool isHost
+ int bandId, String name, bool isHost, String? profileImageUrl, List<String> genres, int? memberCount
 });
 
 
@@ -272,12 +286,15 @@ class __$ConcertParticipantCopyWithImpl<$Res>
 
 /// Create a copy of ConcertParticipant
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? bandId = null,Object? name = null,Object? isHost = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? bandId = null,Object? name = null,Object? isHost = null,Object? profileImageUrl = freezed,Object? genres = null,Object? memberCount = freezed,}) {
   return _then(_ConcertParticipant(
 bandId: null == bandId ? _self.bandId : bandId // ignore: cast_nullable_to_non_nullable
 as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,isHost: null == isHost ? _self.isHost : isHost // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,profileImageUrl: freezed == profileImageUrl ? _self.profileImageUrl : profileImageUrl // ignore: cast_nullable_to_non_nullable
+as String?,genres: null == genres ? _self._genres : genres // ignore: cast_nullable_to_non_nullable
+as List<String>,memberCount: freezed == memberCount ? _self.memberCount : memberCount // ignore: cast_nullable_to_non_nullable
+as int?,
   ));
 }
 

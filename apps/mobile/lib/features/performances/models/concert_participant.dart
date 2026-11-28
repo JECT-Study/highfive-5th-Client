@@ -12,5 +12,10 @@ abstract class ConcertParticipant with _$ConcertParticipant {
 
     /// 주최 팀인지 (`teams[].isHost`). 대표자 권한(`ConcertPermissions`)과는 다르다.
     required bool isHost,
+    String? profileImageUrl,
+    @Default(<String>[]) List<String> genres,
+
+    /// 이전의 최소 참여자 projection에는 없는 값. 모르면 0명으로 바꾸지 않고 숨긴다.
+    int? memberCount,
   }) = _ConcertParticipant;
 }

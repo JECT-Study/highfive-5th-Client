@@ -14,18 +14,28 @@
 
 ## 읽는 값
 
-라인업 응답 `data.teams[]`(공연 순서대로)에서 아래 세 값만 읽는다.
-공연 순서·셋리스트 미리보기·빈자리 수(`emptySlotCount`)는 라인업 기능(JECT-165)이,
-밴드 사진·장르·인원은 참여 밴드 프로필(JECT-152)이 필요할 때 읽는다.
+라인업 응답 `data.teams[]`(공연 순서대로)에서 참여 밴드 미리보기와 프로필에 필요한 값만 읽는다.
+공연 순서·셋리스트 미리보기·`emptySlotCount`는 라인업 기능(JECT-165)이 다룬다.
 
 | 응답 필드 | `ConcertParticipant` | null |
 | --- | --- | --- |
 | `teams[].band.bandId` | `bandId` (JSON 정수만) | 불가 |
 | `teams[].band.name` | `name` | 불가 |
 | `teams[].isHost` | `isHost` | 불가 |
+| `teams[].band.profileImageUrl` | `profileImageUrl` | 허용 (응답 키는 필수) |
+| `teams[].band.genres` | `genres` (불변 목록) | 불가 |
+| `teams[].band.memberCount` | `memberCount` (JSON 정수만) | 불가 |
 
-필수 값이 없거나 null이면 파싱 실패다. 주최 여부를 false로 채우거나 소수 ID를 정수로 자르지 않는다.
+필수 값이 없거나 null이면 파싱 실패다(사진 값의 null은 허용).
+주최 여부를 false로 채우거나 소수 ID·인원을 정수로 자르지 않는다.
+이전 최소 `ConcertParticipant` 생성자도 계속 쓸 수 있으며 모르는 인원은 null이다. DTO는 그 기본값으로 잘못된 wire 응답을 감추지 않는다.
 `isHost`는 주최 팀 표시용이다. 관리 버튼은 공연 상세의 `myPermissions`(서버 판단)로 정한다.
+
+정보 탭의 빈자리 수는 모집 목표에서 현재 참여 목록의 비주최 팀 수를 빼 계산한다.
+요약에는 정확한 수를 보이고 빈자리 아바타는 최대 5개만 만든다.
+실제로 모집 중인 공고와 공연에서만 모집 안내를 보인다.
+공고가 없거나 마감·판매 단계면 남은 수는 빈자리로 표시한다.
+밴드 프로필은 같은 두 canonical 조회를 조합하며 별도 roster나 프로필 요청을 만들지 않는다.
 
 ## 오류
 

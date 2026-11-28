@@ -25,7 +25,17 @@ ConcertParticipantDto _$ConcertParticipantDtoFromJson(
 
 ConcertParticipantBandDto _$ConcertParticipantBandDtoFromJson(
   Map<String, dynamic> json,
-) => ConcertParticipantBandDto(
-  bandId: _integer(json['bandId'] as Object),
-  name: json['name'] as String,
-);
+) {
+  $checkKeys(
+    json,
+    requiredKeys: const ['profileImageUrl', 'genres', 'memberCount'],
+    disallowNullValues: const ['genres', 'memberCount'],
+  );
+  return ConcertParticipantBandDto(
+    bandId: _integer(json['bandId'] as Object),
+    name: json['name'] as String,
+    profileImageUrl: json['profileImageUrl'] as String?,
+    genres: (json['genres'] as List<dynamic>).map((e) => e as String).toList(),
+    memberCount: _integer(json['memberCount'] as Object),
+  );
+}

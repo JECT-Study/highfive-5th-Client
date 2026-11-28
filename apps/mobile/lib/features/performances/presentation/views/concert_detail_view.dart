@@ -38,6 +38,7 @@ class ConcertDetailView extends ConsumerStatefulWidget {
     required this.concertId,
     required this.onBack,
     required this.onEdit,
+    this.onBandTap,
     this.clock,
   });
 
@@ -47,6 +48,7 @@ class ConcertDetailView extends ConsumerStatefulWidget {
 
   /// 공연 정보 수정 화면으로 간다. 라우트 표에 수정 화면이 없으면 null이고, 정보 수정 버튼은 비활성이다.
   final VoidCallback? onEdit;
+  final ValueChanged<int>? onBandTap;
 
   /// 지금 시각(D-day 기준). 없으면 기기 시각이다. 테스트·골든에서 날짜를 정할 때만 넘긴다.
   final DateTime Function()? clock;
@@ -165,7 +167,12 @@ class _ConcertDetailViewState extends ConsumerState<ConcertDetailView> {
           maintainState: true,
           sliver: SliverSafeArea(
             top: false,
-            sliver: SliverToBoxAdapter(child: ConcertInfoTab(detail: concert)),
+            sliver: SliverToBoxAdapter(
+              child: ConcertInfoTab(
+                detail: concert,
+                onBandTap: widget.onBandTap,
+              ),
+            ),
           ),
         ),
         // 피드·일정 탭의 내용은 피드·일정 기능(리자 담당)이 채운다.

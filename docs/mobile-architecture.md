@@ -378,6 +378,7 @@ Figma `와이어프레임 New` → `11/8 pm 확정 영역: 티켓 신청 전까�
 | `/shows/:showId/schedule/new` | 일정 등록 | 일정-등록v2, 일정-날짜선택 v2 |
 | `/shows/:showId/schedule/:scheduleId` | 일정 상세·수정 | 일정 상세-* |
 | `/shows/:showId/setlist/:bandId` | 밴드별 셋리스트 (곡 추가·편집) | 라인업-각 밴드 셋리스트 페이지, 셋리스트-편집, 라인업-곡추가 |
+| `/shows/:showId/bands/:bandId` | 정보 탭 참여 밴드의 읽기 전용 프로필. 알려진 참여자 값만 표시하며 밴드 소유자 화면과 분리 | 내밴드프로필 (2217:124048) |
 | `/shows/:showId/roles` | 역할 관리 (현장 담당자) | 역할관리-페이지, 역할관리-현장담당자추가 |
 | `/shows/:showId/account-owner` | 계좌 주인 지정·변경 | 계좌주인_지정화면, 계좌주인 변경-* |
 | `/shows/:showId/entry` | 현장 입장 QR 스캔 | 공연당일-현장 입장 시작, 현장입장_* |
