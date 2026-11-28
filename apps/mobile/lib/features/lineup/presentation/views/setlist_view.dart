@@ -30,11 +30,15 @@ class SetlistView extends ConsumerStatefulWidget {
     required this.concertId,
     required this.bandId,
     this.onExit,
+    this.canPopRoute = false,
   });
 
   final int concertId;
   final int bandId;
   final VoidCallback? onExit;
+
+  /// 시트용 내부 Navigator 바깥에 이전 페이지가 있는지 라우터가 알려 준다.
+  final bool canPopRoute;
 
   static const backKey = ValueKey('setlist_back');
   static const editKey = ValueKey('setlist_edit');
@@ -187,7 +191,10 @@ class _SetlistViewState extends ConsumerState<SetlistView> {
     return PopScope(
       // 편집 중 뒤로 가기는 화면을 닫지 않고 편집만 취소한다.
       canPop:
-          !editing && (widget.onExit == null || Navigator.of(context).canPop()),
+          !editing &&
+          (widget.canPopRoute ||
+              widget.onExit == null ||
+              Navigator.of(context).canPop()),
       onPopInvokedWithResult: (didPop, _) {
         if (didPop) return;
         if (editing) {
@@ -432,11 +439,14 @@ class _SongEditRow extends StatelessWidget {
         key: SetlistView.dragHandleKey(index),
         index: index,
         enabled: enabled,
-        child: Icon(
-          Icons.menu,
-          size: _iconSize,
-          color: colors.labelAssistive,
-          semanticLabel: '순서 바꾸기',
+        child: SizedBox.square(
+          dimension: kMinInteractiveDimension,
+          child: Icon(
+            Icons.menu,
+            size: _iconSize,
+            color: colors.labelAssistive,
+            semanticLabel: '순서 바꾸기',
+          ),
         ),
       ),
       title: song.songTitle,
@@ -452,10 +462,13 @@ class _SongEditRow extends StatelessWidget {
           key: SetlistView.removeKey(index),
           behavior: HitTestBehavior.opaque,
           onTap: enabled ? onRemove : null,
-          child: Icon(
-            Icons.remove_circle,
-            size: _iconSize,
-            color: colors.statusDestructive,
+          child: SizedBox.square(
+            dimension: kMinInteractiveDimension,
+            child: Icon(
+              Icons.remove_circle,
+              size: _iconSize,
+              color: colors.statusDestructive,
+            ),
           ),
         ),
       ),

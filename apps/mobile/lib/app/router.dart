@@ -162,17 +162,22 @@ final routerProvider = Provider<GoRouter>((ref) {
             state.pathParameters['showId'],
             state.pathParameters['bandId'],
           )),
-          child: LineupRouteScope(
-            child: SetlistView(
-              concertId: int.parse(state.pathParameters['showId']!),
-              bandId: int.parse(state.pathParameters['bandId']!),
-              onExit: () => context.canPop()
-                  ? context.pop()
-                  : context.go(
-                      AppRoutes.showLineupOf(
-                        int.parse(state.pathParameters['showId']!),
+          child: Builder(
+            builder: (pageContext) => LineupRouteScope(
+              child: SetlistView(
+                concertId: int.parse(state.pathParameters['showId']!),
+                bandId: int.parse(state.pathParameters['bandId']!),
+                // pageBuilder 시점에는 push가 아직 라우터 스택에 반영되기 전이다.
+                // 실제 바깥 Page가 붙은 뒤 그 Page의 pop 가능 여부를 읽는다.
+                canPopRoute: !ModalRoute.of(pageContext)!.isFirst,
+                onExit: () => context.canPop()
+                    ? context.pop()
+                    : context.go(
+                        AppRoutes.showLineupOf(
+                          int.parse(state.pathParameters['showId']!),
+                        ),
                       ),
-                    ),
+              ),
             ),
           ),
         ),

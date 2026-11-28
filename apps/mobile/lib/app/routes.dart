@@ -68,7 +68,7 @@ abstract final class AppRoutes {
   /// 인증 뒤 복원할 수 있는 구현된 라인업 경로만 받는다.
   /// 외부 URI·임의 목적지·쿼리는 인증 흐름에 보관하지 않는다.
   static String? lineupDestination(Uri uri) {
-    if (uri.hasScheme || uri.hasAuthority || uri.hasQuery || uri.hasFragment) {
+    if (uri.hasScheme || uri.hasAuthority) {
       return null;
     }
     final parts = uri.pathSegments;

@@ -222,6 +222,11 @@ void main() {
     expect(key('setlist_song_1'), findsOneWidget);
     await tap('setlist_edit');
     final last = key('setlist_dragHandle_2');
+    for (final control in [last, key('setlist_remove_2')]) {
+      final size = tester.getSize(control);
+      expect(size.width, greaterThanOrEqualTo(44));
+      expect(size.height, greaterThanOrEqualTo(44));
+    }
     final toFirst =
         tester.getCenter(key('setlist_dragHandle_0')).dy -
         tester.getCenter(last).dy;
