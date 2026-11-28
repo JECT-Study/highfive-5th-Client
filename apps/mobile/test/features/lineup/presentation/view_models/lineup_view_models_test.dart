@@ -57,7 +57,9 @@ class _Repository implements LineupRepository {
   Object? loadError;
   Object? saveError;
   Completer<void>? saveGate;
+  Completer<void>? lineupSaveGate;
   Completer<Lineup>? loadGate;
+  Completer<void>? lineupLoadStarted;
   int lineupLoads = 0;
   int setlistLoads = 0;
   final orders = <(int, List<int>)>[];
@@ -67,6 +69,8 @@ class _Repository implements LineupRepository {
   @override
   Future<Lineup> getLineup(int concertId) async {
     lineupLoads++;
+    lineupLoadStarted?.complete();
+    lineupLoadStarted = null;
     if (loadError case final error?) throw error;
     return loadGate?.future ?? lineup;
   }
@@ -75,7 +79,7 @@ class _Repository implements LineupRepository {
   Future<void> saveLineup(int concertId, List<int> bandIds) async {
     orders.add((concertId, bandIds));
     if (saveError case final error?) throw error;
-    await saveGate?.future;
+    await (lineupSaveGate ?? saveGate)?.future;
   }
 
   @override
@@ -114,6 +118,109 @@ ProviderContainer _container(_Repository repository) {
 
 void main() {
   const key = (concertId: 1, bandId: 10);
+
+  for (final reorderFails in [false, true]) {
+    for (final setlistFirst in [false, true]) {
+      test('overlapping saves release lineup lock: '
+          'reorderFails=$reorderFails, setlistFirst=$setlistFirst', () async {
+        final gate = Completer<void>();
+        final repository = _Repository()..lineupSaveGate = gate;
+        final container = _container(repository);
+        container.listen(lineupProvider(1), (_, _) {});
+        container.listen(setlistProvider(key), (_, _) {});
+        await container.read(lineupProvider(1).future);
+        await container.read(setlistProvider(key).future);
+        final reorder = container
+            .read(lineupProvider(1).notifier)
+            .reorder(0, 1);
+        expect(container.read(lineupWriteProvider(1)).isSaving, isTrue);
+
+        Future<void> finishReorder() async {
+          if (reorderFails) {
+            gate.completeError(const NetworkException());
+          } else {
+            gate.complete();
+          }
+          await reorder;
+        }
+
+        Future<void> finishSetlist() async {
+          repository.lineup = repository.lineup.copyWith(
+            teams: [
+              repository.lineup.teams.first.copyWith(
+                setlistPreview: ['Updated'],
+                setlistTotalCount: 1,
+              ),
+              ...repository.lineup.teams.skip(1),
+            ],
+          );
+          expect(
+            await container.read(setlistProvider(key).notifier).save([_song]),
+            isTrue,
+          );
+        }
+
+        if (setlistFirst) {
+          await finishSetlist();
+          // Force any invalidated provider to rebuild before reorder finishes.
+          await container.read(lineupProvider(1).future);
+          await finishReorder();
+        } else {
+          await finishReorder();
+          await finishSetlist();
+        }
+        final latest = await container.read(lineupProvider(1).future);
+        expect(latest.teams.first.setlistPreview, ['Updated']);
+        expect(container.read(lineupWriteProvider(1)).isSaving, isFalse);
+        expect(
+          container.read(lineupWriteProvider(1)).error,
+          reorderFails ? isA<NetworkException>() : isNull,
+        );
+        repository.lineupSaveGate = null;
+        await container.read(lineupProvider(1).notifier).reorder(1, 0);
+        expect(repository.orders, hasLength(2));
+      });
+    }
+  }
+
+  test(
+    'setlist completion during reorder GET fetches the newer preview',
+    () async {
+      final repository = _Repository();
+      final container = _container(repository);
+      container.listen(lineupProvider(1), (_, _) {});
+      container.listen(setlistProvider(key), (_, _) {});
+      final stale = await container.read(lineupProvider(1).future);
+      await container.read(setlistProvider(key).future);
+      final oldResponse = Completer<Lineup>();
+      final loadStarted = Completer<void>();
+      repository
+        ..loadGate = oldResponse
+        ..lineupLoadStarted = loadStarted;
+      final reorder = container.read(lineupProvider(1).notifier).reorder(0, 1);
+      await loadStarted.future;
+      repository
+        ..loadGate = null
+        ..lineup = stale.copyWith(
+          teams: [
+            stale.teams.first.copyWith(setlistPreview: ['Newer']),
+            ...stale.teams.skip(1),
+          ],
+        );
+      expect(
+        await container.read(setlistProvider(key).notifier).save([_song]),
+        isTrue,
+      );
+      oldResponse.complete(stale);
+      await reorder;
+      expect(
+        container.read(lineupProvider(1)).value!.teams.first.setlistPreview,
+        ['Newer'],
+      );
+      expect(repository.lineupLoads, 3);
+      expect(container.read(lineupWriteProvider(1)).isSaving, isFalse);
+    },
+  );
 
   test('lineup load failure can retry and refresh', () async {
     final repository = _Repository()..loadError = const NetworkException();

@@ -45,9 +45,11 @@ class LineupViewModel extends AsyncNotifier<Lineup> {
   LineupViewModel(this.concertId);
 
   final int concertId;
+  bool _refreshRequested = false;
 
   @override
   Future<Lineup> build() {
+    _refreshRequested = false;
     ref.watch(lineupWriteProvider(concertId).notifier);
     return ref.watch(lineupRepositoryProvider).getLineup(concertId);
   }
@@ -62,6 +64,15 @@ class LineupViewModel extends AsyncNotifier<Lineup> {
     if (ref.read(lineupWriteProvider(concertId)).isSaving) return;
     ref.invalidateSelf();
     await future;
+  }
+
+  /// 재정렬 중인 Ref는 유지하고, 저장 완료 후 미리보기도 함께 갱신한다.
+  void refreshAfterSetlistSave() {
+    if (ref.read(lineupWriteProvider(concertId)).isSaving) {
+      _refreshRequested = true;
+    } else {
+      ref.invalidateSelf();
+    }
   }
 
   /// newIndex는 항목을 제거한 뒤의 최종 위치다. 빈 슬롯은 저장하지 않는다.
@@ -101,16 +112,20 @@ class LineupViewModel extends AsyncNotifier<Lineup> {
     write.update(
       LineupWriteState(isSaving: true, error: saveError, message: message),
     );
-    if (saveError == null || conflict) {
-      try {
-        final latest = await repository.getLineup(concertId);
-        if (!operationRef.mounted) return;
-        state = AsyncData(latest);
-      } catch (error, stack) {
-        if (!operationRef.mounted) return;
-        state = AsyncError<Lineup>(error, stack);
-        saveError ??= error;
-      }
+    if (saveError == null || conflict || _refreshRequested) {
+      do {
+        _refreshRequested = false;
+        try {
+          final latest = await repository.getLineup(concertId);
+          if (!operationRef.mounted) return;
+          state = AsyncData(latest);
+        } catch (error, stack) {
+          if (!operationRef.mounted) return;
+          state = AsyncError<Lineup>(error, stack);
+          saveError ??= error;
+          break;
+        }
+      } while (_refreshRequested);
     }
     if (!operationRef.mounted) return;
     write.update(LineupWriteState(error: saveError, message: message));
@@ -168,7 +183,7 @@ class SetlistViewModel extends AsyncNotifier<BandSetlist> {
       return false;
     }
     if (!operationRef.mounted) return false;
-    ref.invalidate(lineupProvider(key.concertId));
+    ref.read(lineupProvider(key.concertId).notifier).refreshAfterSetlistSave();
     // 저장은 완료됐다. 서버가 생성한 외부 링크까지 다시 조회한다.
     // 이 GET만 실패하면 이전 편집본으로 PUT을 재전송할 수 없게 한다.
     try {
