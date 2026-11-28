@@ -34,6 +34,8 @@ dev_dependencies:
   freezed: ^4.0.3
   json_serializable: ^6.15.2
   analyzer: ^14.7.0
+  # 실제 setupDi 테스트에서 네이티브 prefs 대신 공식 메모리 플랫폼을 등록한다.
+  shared_preferences_platform_interface: ^2.4.2
 
 flutter:
   uses-material-design: true
