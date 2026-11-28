@@ -24,6 +24,7 @@ class TicketPageView extends ConsumerStatefulWidget {
     this.actorScope,
     this.onConfigure,
     this.createdBuilder,
+    this.onBack,
   });
 
   final String concertId;
@@ -34,6 +35,7 @@ class TicketPageView extends ConsumerStatefulWidget {
   final ValueListenable<TicketPageScope>? actorScope;
   final Future<bool> Function()? onConfigure;
   final Widget Function(BuildContext, TicketApplicationPage)? createdBuilder;
+  final VoidCallback? onBack;
 
   static const createKey = ValueKey('ticket_page_create');
   static const createdKey = ValueKey('ticket_page_created');
@@ -140,11 +142,11 @@ class _TicketPageViewState extends ConsumerState<TicketPageView> {
     return Scaffold(
       appBar: AppTopBar(
         title: '합동 공연',
-        leading: Navigator.of(context).canPop()
+        leading: widget.onBack != null || Navigator.of(context).canPop()
             ? AppIconButton(
                 icon: const AppIcon(AppIcons.arrowBack),
                 tooltip: '뒤로가기',
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: widget.onBack ?? () => Navigator.of(context).pop(),
               )
             : null,
       ),

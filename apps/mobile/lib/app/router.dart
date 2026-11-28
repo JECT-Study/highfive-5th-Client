@@ -14,7 +14,7 @@ import '../features/home/presentation/views/home_view.dart';
 import '../features/my_page/presentation/views/my_page_view.dart';
 import '../features/recruitments/presentation/views/recruitment_list_view.dart';
 import '../features/ticketing/models/ticket_role.dart';
-import '../features/ticketing/presentation/views/ticket_page_view.dart';
+import '../features/ticketing/presentation/views/ticket_preview_workspace.dart';
 import 'main_shell.dart';
 import 'providers.dart';
 import 'routes.dart';
@@ -79,7 +79,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         GoRoute(
           path: AppRoutes.devTicketPage,
           builder: (context, state) =>
-              const TicketPageView(role: TicketRole.organizer),
+              const TicketPreviewWorkspace(role: TicketRole.organizer),
         ),
       if (isDev)
         GoRoute(
