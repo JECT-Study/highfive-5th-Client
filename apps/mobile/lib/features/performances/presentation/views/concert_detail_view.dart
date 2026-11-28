@@ -14,6 +14,7 @@ import '../providers/concert_detail_providers.dart';
 import '../providers/concert_participants_providers.dart';
 import '../widgets/concert_info_tab.dart';
 import '../widgets/concert_page_header.dart';
+import '../widgets/concert_management_feedback.dart';
 
 /// 합동공연 페이지 안의 탭. 경로를 나누지 않고 화면 상태로 둔다 (docs/mobile-architecture.md 11절).
 /// Figma의 `티켓 관리` 탭은 티켓 기능에서 값을 더한다.
@@ -38,12 +39,14 @@ class ConcertDetailView extends ConsumerStatefulWidget {
     required this.concertId,
     required this.onBack,
     required this.onEdit,
+    this.onDeleted,
     this.clock,
   });
 
   /// 주소의 공연 ID. null이면 주소가 잘못된 것으로 보고 요청 없이 없는 공연 안내를 보인다.
   final int? concertId;
   final VoidCallback onBack;
+  final VoidCallback? onDeleted;
 
   /// 공연 정보 수정 화면으로 간다. 라우트 표에 수정 화면이 없으면 null이고, 정보 수정 버튼은 비활성이다.
   final VoidCallback? onEdit;
@@ -78,7 +81,15 @@ class _ConcertDetailViewState extends ConsumerState<ConcertDetailView> {
           onPressed: widget.onBack,
         ),
       ),
-      body: concertId == null ? _notFound() : _body(concertId),
+      body: concertId == null
+          ? _notFound()
+          : ConcertManagementFeedback(
+              key: ValueKey(concertId),
+              concertId: concertId,
+              onDeleted: widget.onDeleted ?? widget.onBack,
+              onUnavailable: widget.onBack,
+              child: _body(concertId),
+            ),
     );
   }
 

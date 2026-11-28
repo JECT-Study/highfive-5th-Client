@@ -18,6 +18,8 @@ import '../features/performances/data/repositories/concert_participants_reposito
 import '../features/performances/data/repositories/concert_repository.dart';
 import '../features/performances/data/repositories/fake_concert_participants_repository.dart';
 import '../features/performances/data/repositories/fake_concert_repository.dart';
+import '../features/performances/data/repositories/fake_concert_management_repository.dart';
+import '../features/performances/data/repositories/concert_management_repository.dart';
 import 'env.dart';
 
 /// 앱 공통 객체를 생성·연결한다. 앱 시작 시 한 번만 호출한다.
@@ -68,5 +70,12 @@ void setupDi(AppEnv env) {
     // 라인업 조회 초안도 아직 미배포. 실 API 연결 시 이 등록만 교체한다.
     ..registerLazySingleton<ConcertParticipantsRepository>(
       FakeConcertParticipantsRepository.new,
+    )
+    // 조회와 쓰기를 같은 세션 저장소로 묶는다. 세션 Provider가 factory를 한 번씩 만든다.
+    ..registerFactory<ConcertManagementRepository>(
+      () => FakeConcertManagementRepository(
+        getIt<ConcertRepository>(),
+        getIt<ConcertParticipantsRepository>(),
+      ),
     );
 }

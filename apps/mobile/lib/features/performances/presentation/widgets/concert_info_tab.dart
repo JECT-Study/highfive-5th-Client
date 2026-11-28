@@ -6,6 +6,7 @@ import '../../../../shared/widgets/show/show_header.dart';
 import '../../models/concert_detail.dart';
 import 'concert_participants_preview.dart';
 import 'concert_section.dart';
+import 'concert_delete_button.dart';
 
 /// 합동공연 페이지의 정보 탭 (Figma `정보탭_*`, 2217:122814·2217:123232).
 /// 지금은 공연 날짜·시간·장소와 참여 밴드 이름만 보인다.
@@ -48,6 +49,10 @@ class ConcertInfoTab extends StatelessWidget {
           ),
         ),
         ConcertParticipantsPreview(concertId: detail.concertId),
+        Padding(
+          padding: const EdgeInsets.all(AppSpacing.x5),
+          child: ConcertDeleteButton(concertId: detail.concertId),
+        ),
       ],
     );
   }

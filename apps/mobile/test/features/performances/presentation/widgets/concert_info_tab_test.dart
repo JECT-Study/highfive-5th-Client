@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:highfive/features/performances/data/repositories/fake_concert_participants_repository.dart';
 import 'package:highfive/features/performances/data/repositories/fake_concert_repository.dart';
+import 'package:highfive/features/performances/data/repositories/fake_concert_management_repository.dart';
+import 'package:highfive/features/performances/presentation/providers/concert_detail_providers.dart';
+import 'package:highfive/features/performances/presentation/providers/concert_management_providers.dart';
 import 'package:highfive/features/performances/models/concert_detail.dart';
 import 'package:highfive/features/performances/presentation/providers/concert_participants_providers.dart';
 import 'package:highfive/features/performances/presentation/widgets/concert_info_tab.dart';
@@ -14,6 +17,15 @@ Future<void> _pump(WidgetTester tester, ConcertDetail detail) async {
     ProviderScope(
       key: UniqueKey(),
       overrides: [
+        concertRepositoryProvider.overrideWithValue(
+          FakeConcertRepository(concerts: [detail]),
+        ),
+        concertManagementRepositoryProvider.overrideWith(
+          (ref) => FakeConcertManagementRepository(
+            ref.watch(concertRepositoryProvider),
+            ref.watch(concertParticipantsRepositoryProvider),
+          ),
+        ),
         concertParticipantsRepositoryProvider.overrideWithValue(
           FakeConcertParticipantsRepository(),
         ),

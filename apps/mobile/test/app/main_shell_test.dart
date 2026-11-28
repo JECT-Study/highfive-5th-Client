@@ -15,6 +15,9 @@ import 'package:highfive/features/chat/presentation/views/chat_list_view.dart';
 import 'package:highfive/features/home/presentation/views/home_view.dart';
 import 'package:highfive/features/my_page/presentation/views/my_page_view.dart';
 import 'package:highfive/features/recruitments/presentation/views/recruitment_list_view.dart';
+import 'package:highfive/features/performances/data/repositories/fake_concert_management_repository.dart';
+import 'package:highfive/features/performances/data/repositories/fake_concert_repository.dart';
+import 'package:highfive/features/performances/data/repositories/fake_concert_participants_repository.dart';
 import 'package:highfive/shared/theme/app_colors.dart';
 import 'package:highfive/shared/widgets/app_bottom_nav_bar.dart';
 
@@ -26,6 +29,12 @@ Future<void> _open(WidgetTester tester, String location) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        sessionConcertRepositoryProvider.overrideWith(
+          (ref) => FakeConcertManagementRepository(
+            FakeConcertRepository(),
+            FakeConcertParticipantsRepository(),
+          ),
+        ),
         appEnvProvider.overrideWithValue(
           const AppEnv(
             flavor: Flavor.prod,

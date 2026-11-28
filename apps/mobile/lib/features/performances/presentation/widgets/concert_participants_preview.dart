@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/theme/app_spacing.dart';
+import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/empty_view.dart';
 import '../../../../shared/widgets/error_view.dart';
 import '../../../../shared/widgets/loading_view.dart';
 import '../../../../shared/widgets/show/show_team_avatar.dart';
 import '../providers/concert_participants_providers.dart';
+import '../providers/concert_detail_providers.dart';
+import '../../models/concert_access.dart';
+import '../view_models/concert_management_view_model.dart';
+import 'concert_participant_remove_button.dart';
 import 'concert_section.dart';
 
 /// 정보 탭의 참여 밴드 미리보기 (Figma `참여 밴드` Section, 2217:123297). 지금은 이름과 주최 배지만 보인다.
@@ -26,6 +31,7 @@ class _ConcertParticipantsPreviewState
     extends ConsumerState<ConcertParticipantsPreview> {
   /// 다시 시도로 보낸 요청의 결과를 기다리는 중. 자동 재시도 대기와 상태 값이 같아 화면이 따로 기억한다.
   var _retrying = false;
+  var _editing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +43,14 @@ class _ConcertParticipantsPreviewState
     });
     final participants = ref.watch(provider);
     final teams = participants.value;
+    final detail = ref
+        .watch(concertDetailProvider(widget.concertId))
+        .asData
+        ?.value;
+    final canManage = detail != null && ConcertAccess(detail).canManage;
+    final command = ref.watch(
+      concertManagementViewModelProvider(widget.concertId),
+    );
     final Widget content;
     if (participants.hasError) {
       // 자동 재시도를 기다리는 동안과 갱신이 실패한 뒤에도 이전 목록 대신 실패를 알리고 다시 시도하게 한다.
@@ -59,13 +73,50 @@ class _ConcertParticipantsPreviewState
         runSpacing: AppSpacing.x4,
         children: [
           for (final team in teams)
-            ShowTeamAvatar(
-              name: team.name,
-              hostLabel: team.isHost ? '주최' : null,
-            ),
+            if (!command.removedBandIds.contains(team.bandId))
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Padding(
+                    padding: canManage
+                        ? const EdgeInsets.only(
+                            top: AppSpacing.x3,
+                            right: AppSpacing.x3,
+                          )
+                        : EdgeInsets.zero,
+                    child: ShowTeamAvatar(
+                      name: team.name,
+                      hostLabel: team.isHost ? '주최' : null,
+                    ),
+                  ),
+                  if (_editing && canManage)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: ConcertParticipantRemoveButton(
+                        concertId: widget.concertId,
+                        participant: team,
+                      ),
+                    ),
+                ],
+              ),
         ],
       );
     }
-    return ConcertSection(title: '참여 밴드', child: content);
+    return ConcertSection(
+      title: '참여 밴드',
+      trailing: canManage && teams != null && !participants.hasError
+          ? AppButton(
+              key: const ValueKey('concert_participantsEdit'),
+              label: _editing ? '완료' : '편집',
+              size: AppButtonSize.small,
+              variant: AppButtonVariant.weak,
+              onPressed: command.submitting
+                  ? null
+                  : () => setState(() => _editing = !_editing),
+            )
+          : null,
+      child: content,
+    );
   }
 }
