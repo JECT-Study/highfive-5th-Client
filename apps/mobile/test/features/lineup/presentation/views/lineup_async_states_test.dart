@@ -110,143 +110,155 @@ Future<void> _submitSearch(WidgetTester tester) async {
 
 void main() {
   for (final empty in [true, false]) {
-    testWidgets('lineup retries a failed load into ${empty ? 'empty' : 'data'}', (
-      tester,
-    ) async {
-      final repository = _ControlledRepository();
-      await _open(
-        tester,
-        repository,
-        LineupView(concertId: 5, onOpenSetlist: (_) async {}),
-      );
-      expect(find.byKey(LineupView.loadingKey), findsOneWidget);
-      expect(find.byKey(LineupView.emptyKey), findsNothing);
-      expect(find.byKey(LineupView.errorKey), findsNothing);
-
-      repository.lineups.single.completeError(StateError('lineup unavailable'));
-      await tester.pumpAndSettle();
-      expect(find.byKey(LineupView.loadingKey), findsNothing);
-      expect(find.byKey(LineupView.errorKey), findsOneWidget);
-      expect(find.byKey(LineupView.emptyKey), findsNothing);
-
-      await tester.tap(find.byKey(LineupView.retryKey));
-      await tester.pump();
-      await tester.pump();
-      expect(repository.lineups, hasLength(2));
-      expect(find.byKey(LineupView.loadingKey), findsOneWidget);
-      expect(find.byKey(LineupView.errorKey), findsNothing);
-      repository.lineups.last.complete(
-        Lineup(teams: empty ? [] : [_team], emptySlotCount: 0),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byKey(LineupView.loadingKey), findsNothing);
-      expect(find.byKey(LineupView.errorKey), findsNothing);
-      expect(
-        find.byKey(LineupView.emptyKey),
-        empty ? findsOneWidget : findsNothing,
-      );
-      expect(
-        find.byKey(LineupView.teamKey(17)),
-        empty ? findsNothing : findsOneWidget,
-      );
-      expect(tester.takeException(), isNull);
-    });
-
-    testWidgets('setlist retries a failed load into ${empty ? 'empty' : 'data'}', (
-      tester,
-    ) async {
-      final repository = _ControlledRepository();
-      await _open(
-        tester,
-        repository,
-        const SetlistView(concertId: 5, bandId: 17),
-      );
-      expect(find.byKey(SetlistView.loadingKey), findsOneWidget);
-      expect(find.byKey(SetlistView.emptyKey), findsNothing);
-      expect(find.byKey(SetlistView.errorKey), findsNothing);
-
-      repository.setlists.single.completeError(StateError('setlist unavailable'));
-      await tester.pumpAndSettle();
-      expect(find.byKey(SetlistView.loadingKey), findsNothing);
-      expect(find.byKey(SetlistView.errorKey), findsOneWidget);
-      expect(find.byKey(SetlistView.emptyKey), findsNothing);
-
-      await tester.tap(find.byKey(SetlistView.retryKey));
-      await tester.pump();
-      await tester.pump();
-      expect(repository.setlists, hasLength(2));
-      expect(find.byKey(SetlistView.loadingKey), findsOneWidget);
-      expect(find.byKey(SetlistView.errorKey), findsNothing);
-      repository.setlists.last.complete(
-        BandSetlist(
-          isHost: true,
-          canEdit: true,
-          band: _band,
-          songs: empty ? [] : [_song],
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.byKey(SetlistView.loadingKey), findsNothing);
-      expect(find.byKey(SetlistView.errorKey), findsNothing);
-      expect(
-        find.byKey(SetlistView.emptyKey),
-        empty ? findsOneWidget : findsNothing,
-      );
-      expect(
-        find.byKey(SetlistView.songKey(0)),
-        empty ? findsNothing : findsOneWidget,
-      );
-      if (!empty) {
-        expect(tester.widget<SongRow>(find.byType(SongRow)).title, _song.songTitle);
-      }
-      expect(tester.takeException(), isNull);
-    });
-
-    testWidgets('song search retries failure into ${empty ? 'empty' : 'data'}', (
-      tester,
-    ) async {
-      final repository = _ControlledRepository();
-      await _openSearch(tester, repository);
-      await tester.enterText(find.byKey(SongAddSheet.queryKey), 'Recovery');
-      await _submitSearch(tester);
-      expect(find.byKey(SongAddSheet.loadingKey), findsOneWidget);
-      expect(find.byKey(SongAddSheet.noResultKey), findsNothing);
-
-      repository.searches.single.completeError(StateError('search unavailable'));
-      await tester.pumpAndSettle();
-      expect(find.byKey(SongAddSheet.errorKey), findsOneWidget);
-      expect(find.byKey(SongAddSheet.loadingKey), findsNothing);
-      expect(find.byKey(SongAddSheet.noResultKey), findsNothing);
-
-      // The sheet retries through the keyboard search action, not a separate
-      // retry button. Re-submit exactly the same query to exercise invalidation.
-      await _submitSearch(tester);
-      expect(repository.searches, hasLength(2));
-      expect(find.byKey(SongAddSheet.loadingKey), findsOneWidget);
-      expect(find.byKey(SongAddSheet.errorKey), findsNothing);
-      repository.searches.last.complete(empty ? [] : [_song]);
-      await tester.pumpAndSettle();
-
-      expect(find.byKey(SongAddSheet.loadingKey), findsNothing);
-      expect(find.byKey(SongAddSheet.errorKey), findsNothing);
-      expect(
-        find.byKey(SongAddSheet.noResultKey),
-        empty ? findsOneWidget : findsNothing,
-      );
-      expect(
-        find.byKey(SongAddSheet.resultKey(0)),
-        empty ? findsNothing : findsOneWidget,
-      );
-      if (!empty) {
-        final row = tester.widget<SongRow>(
-          find.byKey(SongAddSheet.resultKey(0)),
+    testWidgets(
+      'lineup retries a failed load into ${empty ? 'empty' : 'data'}',
+      (tester) async {
+        final repository = _ControlledRepository();
+        await _open(
+          tester,
+          repository,
+          LineupView(concertId: 5, onOpenSetlist: (_) async {}),
         );
-        expect(row.title, _song.songTitle);
-      }
-      expect(tester.takeException(), isNull);
-    });
+        expect(find.byKey(LineupView.loadingKey), findsOneWidget);
+        expect(find.byKey(LineupView.emptyKey), findsNothing);
+        expect(find.byKey(LineupView.errorKey), findsNothing);
+
+        repository.lineups.single.completeError(
+          StateError('lineup unavailable'),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byKey(LineupView.loadingKey), findsNothing);
+        expect(find.byKey(LineupView.errorKey), findsOneWidget);
+        expect(find.byKey(LineupView.emptyKey), findsNothing);
+
+        await tester.tap(find.byKey(LineupView.retryKey));
+        await tester.pump();
+        await tester.pump();
+        expect(repository.lineups, hasLength(2));
+        expect(find.byKey(LineupView.loadingKey), findsOneWidget);
+        expect(find.byKey(LineupView.errorKey), findsNothing);
+        repository.lineups.last.complete(
+          Lineup(teams: empty ? [] : [_team], emptySlotCount: 0),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byKey(LineupView.loadingKey), findsNothing);
+        expect(find.byKey(LineupView.errorKey), findsNothing);
+        expect(
+          find.byKey(LineupView.emptyKey),
+          empty ? findsOneWidget : findsNothing,
+        );
+        expect(
+          find.byKey(LineupView.teamKey(17)),
+          empty ? findsNothing : findsOneWidget,
+        );
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'setlist retries a failed load into ${empty ? 'empty' : 'data'}',
+      (tester) async {
+        final repository = _ControlledRepository();
+        await _open(
+          tester,
+          repository,
+          const SetlistView(concertId: 5, bandId: 17),
+        );
+        expect(find.byKey(SetlistView.loadingKey), findsOneWidget);
+        expect(find.byKey(SetlistView.emptyKey), findsNothing);
+        expect(find.byKey(SetlistView.errorKey), findsNothing);
+
+        repository.setlists.single.completeError(
+          StateError('setlist unavailable'),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byKey(SetlistView.loadingKey), findsNothing);
+        expect(find.byKey(SetlistView.errorKey), findsOneWidget);
+        expect(find.byKey(SetlistView.emptyKey), findsNothing);
+
+        await tester.tap(find.byKey(SetlistView.retryKey));
+        await tester.pump();
+        await tester.pump();
+        expect(repository.setlists, hasLength(2));
+        expect(find.byKey(SetlistView.loadingKey), findsOneWidget);
+        expect(find.byKey(SetlistView.errorKey), findsNothing);
+        repository.setlists.last.complete(
+          BandSetlist(
+            isHost: true,
+            canEdit: true,
+            band: _band,
+            songs: empty ? [] : [_song],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byKey(SetlistView.loadingKey), findsNothing);
+        expect(find.byKey(SetlistView.errorKey), findsNothing);
+        expect(
+          find.byKey(SetlistView.emptyKey),
+          empty ? findsOneWidget : findsNothing,
+        );
+        expect(
+          find.byKey(SetlistView.songKey(0)),
+          empty ? findsNothing : findsOneWidget,
+        );
+        if (!empty) {
+          expect(
+            tester.widget<SongRow>(find.byType(SongRow)).title,
+            _song.songTitle,
+          );
+        }
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'song search retries failure into ${empty ? 'empty' : 'data'}',
+      (tester) async {
+        final repository = _ControlledRepository();
+        await _openSearch(tester, repository);
+        await tester.enterText(find.byKey(SongAddSheet.queryKey), 'Recovery');
+        await _submitSearch(tester);
+        expect(find.byKey(SongAddSheet.loadingKey), findsOneWidget);
+        expect(find.byKey(SongAddSheet.noResultKey), findsNothing);
+
+        repository.searches.single.completeError(
+          StateError('search unavailable'),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byKey(SongAddSheet.errorKey), findsOneWidget);
+        expect(find.byKey(SongAddSheet.loadingKey), findsNothing);
+        expect(find.byKey(SongAddSheet.noResultKey), findsNothing);
+
+        // The sheet retries through the keyboard search action, not a separate
+        // retry button. Re-submit exactly the same query to exercise invalidation.
+        await _submitSearch(tester);
+        expect(repository.searches, hasLength(2));
+        expect(find.byKey(SongAddSheet.loadingKey), findsOneWidget);
+        expect(find.byKey(SongAddSheet.errorKey), findsNothing);
+        repository.searches.last.complete(empty ? [] : [_song]);
+        await tester.pumpAndSettle();
+
+        expect(find.byKey(SongAddSheet.loadingKey), findsNothing);
+        expect(find.byKey(SongAddSheet.errorKey), findsNothing);
+        expect(
+          find.byKey(SongAddSheet.noResultKey),
+          empty ? findsOneWidget : findsNothing,
+        );
+        expect(
+          find.byKey(SongAddSheet.resultKey(0)),
+          empty ? findsNothing : findsOneWidget,
+        );
+        if (!empty) {
+          final row = tester.widget<SongRow>(
+            find.byKey(SongAddSheet.resultKey(0)),
+          );
+          expect(row.title, _song.songTitle);
+        }
+        expect(tester.takeException(), isNull);
+      },
+    );
   }
 
   testWidgets('failed search can still add the entered original to the draft', (
