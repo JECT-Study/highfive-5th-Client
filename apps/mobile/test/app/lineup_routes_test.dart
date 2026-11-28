@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:flutter/gestures.dart' show kLongPressTimeout;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -148,12 +149,21 @@ void main() {
     }
 
     final repo = container.read(lineupRepositoryProvider);
+    await tap('lineup_position_1');
+    await _capture(tester, 'position');
+    await tap('lineupSlot_picker');
+    await tap('lineupSlot_option_3');
+    await _capture(tester, 'picker');
+    await tap('lineupSlot_load');
+    await _capture(tester, 'selection');
+    await tap('lineupSlot_back');
+    expect((await repo.getLineup(1)).teams.first.band.bandId, 3);
     final handle = key('lineup_dragHandle_3');
     final distance =
         tester.getCenter(key('lineup_dragHandle_7')).dy -
         tester.getCenter(handle).dy;
     final drag = await tester.startGesture(tester.getCenter(handle));
-    await tester.pump();
+    await tester.pump(kLongPressTimeout);
     for (var step = 0; step < 10; step++) {
       await drag.moveBy(Offset(0, (distance + 12) / 10));
       await tester.pump();
@@ -176,6 +186,13 @@ void main() {
     await tester.pumpAndSettle();
     await _capture(tester, 'search');
     await tap('songAdd_resultAdd_0');
+    final again = tester.getSemantics(key('songAdd_resultAdd_0'));
+    expect(again.getSemanticsData().hasAction(ui.SemanticsAction.tap), isTrue);
+    tester.binding.pipelineOwner.semanticsOwner!.performAction(
+      again.id,
+      ui.SemanticsAction.tap,
+    );
+    await tester.pumpAndSettle();
     await tester.enterText(field, '새벽의 노래');
     tester.view.physicalSize = const Size(320, 680);
     tester.view.viewInsets = const FakeViewPadding(bottom: 260);
@@ -194,6 +211,7 @@ void main() {
     expect((await repo.getSetlist(1, 3)).songs, isEmpty);
     await tap('setlist_done');
     expect((await repo.getSetlist(1, 3)).songs.map((s) => s.songTitle), [
+      'Wonderwall',
       'Wonderwall',
       '새벽의 노래',
     ]);

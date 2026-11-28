@@ -434,6 +434,7 @@ class _SongEditRow extends StatelessWidget {
         button: true,
         enabled: enabled,
         label: '${song.songTitle} 빼기',
+        onTap: enabled ? onRemove : null,
         excludeSemantics: true,
         child: GestureDetector(
           key: SetlistView.removeKey(index),
@@ -533,6 +534,7 @@ class _TopBarTextButton extends StatelessWidget {
       button: true,
       enabled: enabled,
       label: label,
+      onTap: onPressed,
       excludeSemantics: true,
       child: InkWell(
         onTap: onPressed,

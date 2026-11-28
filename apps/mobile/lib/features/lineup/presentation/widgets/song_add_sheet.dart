@@ -232,7 +232,7 @@ class _SearchNotice extends StatelessWidget {
 ///
 /// 공통 `AppTag`보다 글자(12)·여백(6·12)이 커서 여기서 그린다. 다크 시안의 보라(추가)·회색(추가됨)은
 /// 밝은 테마에서 라인업 "주최" 태그와 같은 진한 태그 · 회색 태그로 옮겼다.
-/// "추가됨"은 편집 목록에 이미 있다는 표시라 누를 수 없다 (자작곡·불러온 목록의 같은 곡은 그대로 둔다).
+/// "추가됨"은 포함 여부만 알린다. 같은 검색 곡도 반복 연주할 수 있다.
 class _AddTag extends StatelessWidget {
   const _AddTag({super.key, required this.added, required this.onTap});
 
@@ -250,12 +250,12 @@ class _AddTag extends StatelessWidget {
     final label = added ? '추가됨' : '추가';
     return Semantics(
       button: true,
-      enabled: !added,
-      label: label,
+      label: added ? '한 번 더 추가' : label,
+      onTap: onTap,
       excludeSemantics: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: added ? null : onTap,
+        onTap: onTap,
         child: SizedBox(
           height: _touchHeight,
           child: Center(
