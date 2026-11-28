@@ -25,6 +25,22 @@ import 'package:highfive/features/auth/presentation/view_models/session_view_mod
 import 'package:highfive/features/auth/presentation/views/login_view.dart';
 import 'package:highfive/features/home/presentation/views/home_view.dart';
 import 'package:highfive/features/my_page/presentation/views/my_page_view.dart';
+import 'package:highfive/features/performances/data/repositories/host_band_repository.dart';
+import 'package:highfive/features/performances/data/repositories/concert_creation_repository.dart';
+import 'package:highfive/features/performances/data/repositories/local_concert_creation_repository.dart';
+import 'package:highfive/features/performances/models/concert_draft.dart';
+import 'package:highfive/features/performances/models/host_band.dart';
+import 'package:highfive/features/performances/models/concert_genre.dart';
+import 'package:highfive/features/performances/presentation/providers/concert_creation_providers.dart';
+import 'package:highfive/features/performances/presentation/views/concert_creation_view.dart';
+import 'package:highfive/features/performances/presentation/widgets/host_band_picker_sheet.dart';
+import 'package:highfive/features/performances/presentation/widgets/perform_date_sheet.dart';
+import 'package:highfive/features/recruitments/presentation/views/recruitment_list_view.dart';
+import 'package:highfive/shared/widgets/app_bottom_nav_bar.dart';
+import 'package:highfive/shared/widgets/app_top_bar.dart';
+import 'package:highfive/shared/widgets/app_chip.dart';
+
+import '../support/capture.dart';
 
 const _session = Session(accessToken: 'a');
 
@@ -62,7 +78,12 @@ class _FakeGoogleAuthService extends GoogleAuthService {
 }
 
 /// [stored]가 저장된 상태로 앱을 처음부터 띄운다 (앱 재시작과 같다).
-Future<void> _start(WidgetTester tester, Map<String, String> stored) async {
+Future<void> _start(
+  WidgetTester tester,
+  Map<String, String> stored, {
+  LocalConcertCreationRepository? local,
+}) async {
+  usePhoneSize(tester);
   FlutterSecureStorage.setMockInitialValues(Map.of(stored));
   await tester.pumpWidget(
     ProviderScope(
@@ -87,14 +108,22 @@ Future<void> _start(WidgetTester tester, Map<String, String> stored) async {
             _FakeGoogleAuthService(),
           ),
         ),
+        hostBandRepositoryProvider.overrideWithValue(
+          const FakeHostBandRepository(),
+        ),
+        concertCreationRepositoryProvider.overrideWithValue(
+          ConcertCreationRepository(local: local),
+        ),
+        concertTodayProvider.overrideWithValue(() => DateTime(2026, 11, 28)),
       ],
-      child: const HighfiveApp(),
+      child: capturable(const HighfiveApp()),
     ),
   );
   await tester.pumpAndSettle();
 }
 
 void main() {
+  setUpAll(loadCaptureFonts);
   group('sessionRedirect', () {
     test('세션을 읽는 중이면 스플래시로 보낸다', () {
       const loading = AsyncLoading<Session?>();
@@ -170,15 +199,32 @@ void main() {
   });
 
   testWidgets('로그인 상태에서 로그아웃하면 로그인 화면으로 간다', (tester) async {
-    await _start(tester, {SecureStore.accessTokenKey: 'a'});
+    final local = LocalConcertCreationRepository();
+    await _start(tester, {SecureStore.accessTokenKey: 'a'}, local: local);
     final container = ProviderScope.containerOf(
       tester.element(find.byType(HighfiveApp)),
     );
+
+    await container
+        .read(concertCreationRepositoryProvider)
+        .create(
+          FakeHostBandRepository.devBands.first,
+          ConcertDraft(
+            title: '미리보기',
+            genres: const {ConcertGenre.rock},
+            recruitTeamCount: 1,
+            performDate: DateTime(2026, 12, 20),
+            rentalFeeUndecided: true,
+            rentalFeeText: '',
+          ),
+        );
+    expect(local.concerts, hasLength(1));
 
     await container.read(sessionProvider.notifier).signOut();
     await tester.pumpAndSettle();
 
     expect(find.byType(LoginView), findsOneWidget);
+    expect(local.concerts, isEmpty);
     expect(
       container.read(routerProvider).state.matchedLocation,
       AppRoutes.login,
@@ -214,5 +260,151 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await _start(tester, stored);
     expect(find.byType(LoginView), findsOneWidget);
+  });
+
+  testWidgets('홈에서 공연 열고 팀 모집하기 → 주최 밴드를 고르면 공연 만들기가 열리고, 닫으면 홈이다', (
+    tester,
+  ) async {
+    await _start(tester, {SecureStore.accessTokenKey: 'a'});
+
+    await tester.tap(find.byKey(HomeView.createConcertKey));
+    await tester.pumpAndSettle();
+    expect(find.byType(HostBandPickerSheet), findsOneWidget);
+    await capture(tester, 'flow-1-host-selection');
+    await tester.tap(find.byKey(HostBandPickerSheet.optionKey(2)));
+    await tester.pump();
+    await tester.tap(find.byKey(HostBandPickerSheet.nextKey));
+    await tester.pumpAndSettle();
+
+    final creation = tester.widget<ConcertCreationView>(
+      find.byType(ConcertCreationView),
+    );
+    expect(creation.hostBand.id, 2);
+    await capture(tester, 'flow-2-creation-form');
+
+    await tester.tap(
+      find.descendant(
+        of: find.byType(ConcertCreationView),
+        matching: find.byType(AppIconButton),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(ConcertCreationView), findsNothing);
+    expect(find.byType(HomeView), findsOneWidget);
+  });
+
+  testWidgets('밴드 선택 시트는 하단 탭까지 덮고, 닫으면 공연 만들기를 열지 않는다', (tester) async {
+    await _start(tester, {SecureStore.accessTokenKey: 'a'});
+
+    await tester.tap(find.byKey(HomeView.createConcertKey));
+    await tester.pumpAndSettle();
+    // 하단 탭 자리는 시트가 덮는다. 눌러도 밑의 마이페이지 탭으로 바뀌지 않는다.
+    await tester.tapAt(
+      tester.getBottomRight(find.byType(AppBottomNavBar)) -
+          const Offset(24, 24),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(HostBandPickerSheet), findsOneWidget);
+    expect(find.byType(MyPageView), findsNothing);
+
+    await tester.tapAt(const Offset(8, 8));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HostBandPickerSheet), findsNothing);
+    expect(find.byType(ConcertCreationView), findsNothing);
+    expect(find.byType(MyPageView), findsNothing);
+    expect(find.byType(HomeView), findsOneWidget);
+  });
+
+  testWidgets('주최 밴드 없이 생성 주소를 push해도 선택 시트와 생성 폼으로 이어진다', (tester) async {
+    await _start(tester, {SecureStore.accessTokenKey: 'a'});
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(HighfiveApp)),
+    );
+
+    container.read(routerProvider).push(AppRoutes.showNew);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HostBandPickerSheet), findsOneWidget);
+    expect(find.byType(ConcertCreationView), findsNothing);
+    expect(
+      container.read(routerProvider).state.matchedLocation,
+      AppRoutes.showNew,
+    );
+    await tester.tap(find.byKey(HostBandPickerSheet.optionKey(1)));
+    await tester.pump();
+    await tester.tap(find.byKey(HostBandPickerSheet.nextKey));
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<ConcertCreationView>(find.byType(ConcertCreationView))
+          .hostBand
+          .id,
+      1,
+    );
+  });
+
+  testWidgets('검증된 실제 주최 밴드를 extra로 주면 선택 없이 폼을 연다', (tester) async {
+    await _start(tester, {SecureStore.accessTokenKey: 'a'});
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(HighfiveApp)),
+    );
+    const band = HostBand.authenticated(
+      id: 42,
+      name: '서버에서 확인한 대표 밴드',
+      genres: [ConcertGenre.rock],
+      memberCount: 4,
+    );
+
+    container.read(routerProvider).push(AppRoutes.showNew, extra: band);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(HostBandPickerSheet), findsNothing);
+    expect(
+      tester
+          .widget<ConcertCreationView>(find.byType(ConcertCreationView))
+          .hostBand,
+      same(band),
+    );
+  });
+
+  testWidgets('공용 라우트에서 임시 밴드를 고르고 만들면 원격 없이 로컬 ID를 돌려준다', (tester) async {
+    await _start(tester, {SecureStore.accessTokenKey: 'a'});
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(HighfiveApp)),
+    );
+    final result = container.read(routerProvider).push<int>(AppRoutes.showNew);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(HostBandPickerSheet.optionKey(1)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(HostBandPickerSheet.nextKey));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(ConcertCreationView.titleKey), '로컬 미리보기');
+    await tester.tap(find.byType(AppChip).first);
+    await tester.tap(find.byKey(ConcertCreationView.performDateKey));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(PerformDateSheet.dayKey(DateTime(2026, 11, 30))),
+    );
+    await tester.pump();
+    await tester.tap(find.byKey(PerformDateSheet.confirmKey));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(ConcertCreationView.submitKey));
+    await tester.pumpAndSettle();
+
+    expect(await result.timeout(const Duration(seconds: 5)), -1);
+    expect(find.byType(ConcertCreationView), findsNothing);
+    expect(find.byType(HomeView), findsOneWidget);
+    await capture(tester, 'flow-3-local-created-return-home');
+  });
+
+  testWidgets('모집 중인 공연 찾기는 팀 모집 탭으로 간다', (tester) async {
+    await _start(tester, {SecureStore.accessTokenKey: 'a'});
+
+    await tester.tap(find.byKey(HomeView.findRecruitmentsKey));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RecruitmentListView), findsOneWidget);
   });
 }
