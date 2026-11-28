@@ -24,6 +24,9 @@ class AuthInterceptor extends QueuedInterceptor {
 
   static const refreshPath = '/api/v1/auth/refresh';
 
+  /// 멱등성·결과 확인 계약이 없는 쓰기 요청은 false로 지정한다.
+  static const allowReplayKey = 'auth.allowReplay';
+
   @override
   Future<void> onRequest(
     RequestOptions options,
@@ -43,7 +46,10 @@ class AuthInterceptor extends QueuedInterceptor {
   ) async {
     switch (_codeOf(err.response)) {
       case 'AUTH_001' || 'AUTH_003':
-        _expiry.notify(_codeOf(err.response)!);
+        if (_bearerOf(err.requestOptions) ==
+            await _store.read(SecureStore.accessTokenKey)) {
+          _expiry.notify(_codeOf(err.response)!);
+        }
         return handler.next(err);
       case 'AUTH_002':
         break;
@@ -59,6 +65,10 @@ class AuthInterceptor extends QueuedInterceptor {
       if (accessToken == null) return handler.next(err);
     }
 
+    // AUTH_002는 확정 거절이다. 토큰만 갱신하고 사용자의 다음 제출을 기다린다.
+    if (err.requestOptions.extra[allowReplayKey] == false) {
+      return handler.next(err);
+    }
     final options = err.requestOptions;
     options.headers['Authorization'] = 'Bearer $accessToken';
     try {
@@ -82,6 +92,10 @@ class AuthInterceptor extends QueuedInterceptor {
       );
       final data = response.data!['data'] as Map<String, dynamic>;
       final accessToken = data['accessToken'] as String;
+      // 갱신 중 로그아웃·다른 계정 로그인으로 바뀐 세션을 덮어쓰지 않는다.
+      if (await _store.read(SecureStore.refreshTokenKey) != refreshToken) {
+        return null;
+      }
       // 재발급하면 리프레시 토큰도 바뀐다. 쓴 값은 다시 못 쓰므로 새 값으로 바꿔 둔다.
       await _store.write(
         SecureStore.refreshTokenKey,
@@ -90,7 +104,10 @@ class AuthInterceptor extends QueuedInterceptor {
       await _store.write(SecureStore.accessTokenKey, accessToken);
       return accessToken;
     } on DioException catch (error) {
-      if (_codeOf(error.response) == 'AUTH_004') _expiry.notify('AUTH_004');
+      if (_codeOf(error.response) == 'AUTH_004' &&
+          await _store.read(SecureStore.refreshTokenKey) == refreshToken) {
+        _expiry.notify('AUTH_004');
+      }
       return null;
     }
   }

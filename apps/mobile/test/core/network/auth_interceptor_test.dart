@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -20,6 +21,8 @@ class _FakeServer implements HttpClientAdapter {
   final _Refresh refresh;
   final String meError;
   int refreshCalls = 0;
+  final refreshStarted = Completer<void>();
+  Completer<void>? refreshRelease;
   final meTokens = <String?>[];
 
   @override
@@ -30,6 +33,8 @@ class _FakeServer implements HttpClientAdapter {
   ) async {
     if (options.path == AuthInterceptor.refreshPath) {
       refreshCalls++;
+      if (!refreshStarted.isCompleted) refreshStarted.complete();
+      await refreshRelease?.future;
       return switch (refresh) {
         _Refresh.ok => _json(200, {
           'code': 'COMMON_000',
@@ -87,6 +92,69 @@ class _FakeServer implements HttpClientAdapter {
 }
 
 void main() {
+  test('재전송을 끈 POST도 확정 만료 시 토큰만 갱신하고 다음 수동 요청은 성공한다', () async {
+    final server = _FakeServer();
+    final (:dio, :store, :expired) = _setUp(server);
+    final options = Options(extra: {AuthInterceptor.allowReplayKey: false});
+
+    await expectLater(
+      dio.post<Object?>('/concerts', options: options),
+      throwsA(isA<DioException>()),
+    );
+
+    expect(server.refreshCalls, 1);
+    expect(server.meTokens, ['Bearer old-access']);
+    expect(await store.read(SecureStore.accessTokenKey), 'new-access');
+    final response = await dio.post<Map<String, dynamic>>(
+      '/concerts',
+      options: options,
+    );
+    expect(response.data?['data'], 'me');
+    expect(server.meTokens, ['Bearer old-access', 'Bearer new-access']);
+    expect(expired, isEmpty);
+  });
+
+  test('재전송을 끈 요청도 재발급이 최종 거절되면 세션 만료를 알린다', () async {
+    final server = _FakeServer(refresh: _Refresh.expired);
+    final (:dio, store: _, :expired) = _setUp(server);
+
+    await expectLater(
+      dio.post<Object?>(
+        '/concerts',
+        options: Options(extra: {AuthInterceptor.allowReplayKey: false}),
+      ),
+      throwsA(isA<DioException>()),
+    );
+
+    expect(server.meTokens, ['Bearer old-access']);
+    expect(expired, ['AUTH_004']);
+  });
+
+  test('재발급을 기다리는 동안 계정이 바뀌면 새 계정 토큰을 덮거나 POST를 재전송하지 않는다', () async {
+    for (final refresh in [_Refresh.ok, _Refresh.expired]) {
+      final server = _FakeServer(refresh: refresh)
+        ..refreshRelease = Completer<void>();
+      final (:dio, :store, :expired) = _setUp(server);
+      final result = expectLater(
+        dio.post<Object?>(
+          '/concerts',
+          options: Options(extra: {AuthInterceptor.allowReplayKey: false}),
+        ),
+        throwsA(isA<DioException>()),
+      );
+      await server.refreshStarted.future;
+      await store.write(SecureStore.refreshTokenKey, 'other-refresh');
+      await store.write(SecureStore.accessTokenKey, 'other-access');
+      server.refreshRelease!.complete();
+      await result;
+
+      expect(await store.read(SecureStore.accessTokenKey), 'other-access');
+      expect(await store.read(SecureStore.refreshTokenKey), 'other-refresh');
+      expect(server.meTokens, ['Bearer old-access']);
+      expect(expired, isEmpty);
+    }
+  });
+
   test('저장된 액세스 토큰을 Bearer 헤더로 붙인다', () async {
     final server = _FakeServer();
     final (:dio, store: _, expired: _) = _setUp(

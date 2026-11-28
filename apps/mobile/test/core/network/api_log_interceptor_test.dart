@@ -29,13 +29,21 @@ class _FakeAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
-Future<List<String>> _logsOf(int statusCode, Map<String, Object?> body) async {
+Future<List<String>> _logsOf(
+  int statusCode,
+  Map<String, Object?> body, {
+  bool logBody = true,
+}) async {
   final logs = <String>[];
   final dio = Dio(BaseOptions(baseUrl: 'https://api.test'))
     ..httpClientAdapter = _FakeAdapter(statusCode, body)
     ..interceptors.add(ApiLogInterceptor(log: logs.add));
   try {
-    await dio.post<Object?>('/login', data: {'token': 'social-secret'});
+    await dio.post<Object?>(
+      '/login',
+      data: {'token': 'social-secret', 'address': 'private-address'},
+      options: Options(extra: {ApiLogInterceptor.logBodyKey: logBody}),
+    );
   } on DioException {
     // 오류 응답도 로그만 본다.
   }
@@ -43,6 +51,17 @@ Future<List<String>> _logsOf(int statusCode, Map<String, Object?> body) async {
 }
 
 void main() {
+  test('본문 로그 제외 옵션은 성공과 오류 양쪽에서 개인정보를 남기지 않는다', () async {
+    for (final status in [200, 400]) {
+      final logs = await _logsOf(status, {
+        'data': 'private-response',
+      }, logBody: false);
+      expect(logs.join(), isNot(contains('private-address')));
+      expect(logs.join(), isNot(contains('private-response')));
+      expect(logs.join(), contains('$status'));
+      expect(logs.join(), contains('/login'));
+    }
+  });
   test('요청·응답을 찍되 토큰 값은 가리고 나머지는 그대로 둔다', () async {
     final logs = await _logsOf(200, {
       'code': 'COMMON_000',
