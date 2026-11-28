@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -13,6 +13,12 @@ import '../features/dev_gallery/presentation/views/widget_gallery_view.dart';
 import '../features/home/presentation/views/home_view.dart';
 import '../features/my_page/presentation/views/my_page_view.dart';
 import '../features/recruitments/presentation/views/recruitment_list_view.dart';
+import '../features/performances/data/repositories/concert_edit_repository.dart';
+import '../features/performances/models/concert_edit_context.dart';
+import '../features/performances/presentation/providers/concert_edit_providers.dart';
+import '../features/performances/presentation/view_models/concert_edit_view_model.dart';
+import '../features/performances/presentation/views/concert_edit_view.dart';
+import 'concert_edit_preview.dart';
 import 'main_shell.dart';
 import 'providers.dart';
 import 'routes.dart';
@@ -34,7 +40,10 @@ bool _isTermsDetail(String location) =>
 /// 프로필·밴드 시작 단계는 그 화면이 생길 때 추가한다. 그 전까지는 홈으로 간다.
 String? sessionRedirect(AsyncValue<Session?> session, String location) {
   // dev 위젯 모음은 로그인과 상관없이 연다 (dev flavor 라우터에만 등록된다).
-  if (location == AppRoutes.devWidgets) return null;
+  if (location == AppRoutes.devWidgets ||
+      location == AppRoutes.devConcertEdit) {
+    return null;
+  }
   if (session.isLoading && !session.hasValue && !session.hasError) {
     return location == AppRoutes.splash ? null : AppRoutes.splash;
   }
@@ -74,8 +83,48 @@ final routerProvider = Provider<GoRouter>((ref) {
           path: AppRoutes.devWidgets,
           builder: (context, state) => WidgetGalleryView(
             initialFolder: state.uri.queryParameters['folder'],
+            onConcertEditPreview: () => context.push(AppRoutes.devConcertEdit),
           ),
         ),
+      if (isDev)
+        GoRoute(
+          path: AppRoutes.devConcertEdit,
+          builder: (context, state) => ConcertEditPreview(
+            onClose: () => context.go(AppRoutes.devWidgets),
+          ),
+        ),
+      GoRoute(
+        path: AppRoutes.showEdit,
+        builder: (context, state) {
+          final data = state.extra;
+          final currentSession = session.value.value;
+          if (data is! ConcertEditContext ||
+              data.concertId.toString() != state.pathParameters['showId'] ||
+              currentSession == null) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('공연 정보 수정')),
+              body: const Center(child: Text('최신 공연 상세에서 수정 화면을 다시 열어 주세요.')),
+            );
+          }
+          return ConcertEditView(
+            entry: ConcertEditEntry(
+              initial: data.snapshot,
+              repository: LiveConcertEditRepository(
+                service: ref.read(concertEditServiceProvider),
+                concertId: data.concertId,
+                reload: data.reload,
+              ),
+              isSessionCurrent: () =>
+                  identical(session.value.value, currentSession),
+            ),
+            onClose: () =>
+                context.canPop() ? context.pop() : context.go(AppRoutes.home),
+            onSaved: () => context.canPop()
+                ? context.pop(true)
+                : context.go(AppRoutes.home),
+          );
+        },
+      ),
       GoRoute(
         path: AppRoutes.splash,
         builder: (context, state) => const SplashView(),

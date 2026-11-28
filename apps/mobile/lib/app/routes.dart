@@ -83,4 +83,5 @@ abstract final class AppRoutes {
 
   // dev 빌드 전용 (prod 라우터에는 등록하지 않는다)
   static const devWidgets = '/dev/widgets';
+  static const devConcertEdit = '/dev/concert-edit';
 }

@@ -35,7 +35,13 @@ import 'sections/show_schedule_ticket_gallery_section.dart';
 /// dev 빌드 전용 공통 컴포넌트 모음. 컴포넌트마다 코드 이름과 Figma 컴포넌트 이름을 같이 보여준다.
 /// 앱 어디에서도 링크하지 않고, dev에서 왼쪽 위 DEV 띠를 길게 누르면 열린다.
 class WidgetGalleryView extends StatefulWidget {
-  const WidgetGalleryView({super.key, this.initialFolder});
+  const WidgetGalleryView({
+    super.key,
+    this.initialFolder,
+    this.onConcertEditPreview,
+  });
+
+  final VoidCallback? onConcertEditPreview;
 
   /// 처음 보여 줄 폴더 이름(`message`, `show` …, 범용은 `generic`). 없거나 모르는 이름이면 전체.
   /// `/dev/widgets?folder=message`처럼 경로로 넘긴다.
@@ -126,6 +132,11 @@ class _WidgetGalleryViewState extends State<WidgetGalleryView> {
               key: ValueKey(_folder),
               padding: const EdgeInsets.all(AppSpacing.x4),
               children: [
+                if (widget.onConcertEditPreview != null)
+                  AppButton(
+                    label: '공연 정보 수정 미리보기',
+                    onPressed: widget.onConcertEditPreview,
+                  ),
                 for (final folder in _GalleryFolder.values)
                   if (_folder == null || _folder == folder) ...[
                     GalleryFolderHeader(

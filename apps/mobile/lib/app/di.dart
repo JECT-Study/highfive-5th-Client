@@ -14,6 +14,7 @@ import '../features/auth/data/services/auth_service.dart';
 import '../features/auth/data/services/google_auth_service.dart';
 import '../features/auth/data/services/kakao_auth_service.dart';
 import '../features/auth/data/services/terms_service.dart';
+import '../features/performances/data/services/concert_edit_service.dart';
 import 'env.dart';
 
 /// 앱 공통 객체를 생성·연결한다. 앱 시작 시 한 번만 호출한다.
@@ -58,5 +59,6 @@ void setupDi(AppEnv env) {
       ),
     )
     ..registerLazySingleton(() => TermsService(getIt<Dio>()))
-    ..registerLazySingleton(() => TermsRepository(getIt<TermsService>()));
+    ..registerLazySingleton(() => TermsRepository(getIt<TermsService>()))
+    ..registerLazySingleton(() => ConcertEditService(getIt<Dio>()));
 }
