@@ -13,6 +13,8 @@ import '../features/dev_gallery/presentation/views/widget_gallery_view.dart';
 import '../features/home/presentation/views/home_view.dart';
 import '../features/my_page/presentation/views/my_page_view.dart';
 import '../features/recruitments/presentation/views/recruitment_list_view.dart';
+import '../features/ticketing/models/ticket_role.dart';
+import '../features/ticketing/presentation/views/ticket_page_view.dart';
 import 'main_shell.dart';
 import 'providers.dart';
 import 'routes.dart';
@@ -66,9 +68,19 @@ final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     initialLocation: AppRoutes.splash,
     refreshListenable: session,
-    redirect: (context, state) =>
-        sessionRedirect(session.value, state.matchedLocation),
+    redirect: (context, state) {
+      if (isDev && state.matchedLocation == AppRoutes.devTicketPage) {
+        return null;
+      }
+      return sessionRedirect(session.value, state.matchedLocation);
+    },
     routes: [
+      if (isDev)
+        GoRoute(
+          path: AppRoutes.devTicketPage,
+          builder: (context, state) =>
+              const TicketPageView(role: TicketRole.organizer),
+        ),
       if (isDev)
         GoRoute(
           path: AppRoutes.devWidgets,
