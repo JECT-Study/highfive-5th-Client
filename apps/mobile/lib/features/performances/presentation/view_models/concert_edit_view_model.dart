@@ -38,7 +38,11 @@ class ConcertEditState {
 final concertEditProvider = NotifierProvider.autoDispose
     .family<ConcertEditViewModel, ConcertEditState, int>(
       ConcertEditViewModel.new,
-      dependencies: [concertEditRepositoryProvider, concertRepositoryProvider],
+      dependencies: [
+        concertEditRepositoryProvider,
+        concertRepositoryProvider,
+        concertDetailProvider,
+      ],
     );
 
 class ConcertEditViewModel extends Notifier<ConcertEditState> {
