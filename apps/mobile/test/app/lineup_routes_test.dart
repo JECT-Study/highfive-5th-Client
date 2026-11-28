@@ -123,6 +123,21 @@ void main() {
     expect((await next.getLineup(1)).teams.map((t) => t.band.bandId), initial);
   });
 
+  testWidgets('다른 공연으로 바로 이동하면 이전 화면의 미저장 초안을 버린다', (tester) async {
+    final container = await _open(tester, AppRoutes.showSetlistOf('1', '3'));
+    await tester.tap(find.byKey(SetlistView.emptyAddKey));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(EditableText), '이 공연만의 초안');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('songAdd_original')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(SetlistView.doneKey), findsOneWidget);
+    container.read(routerProvider).go(AppRoutes.showSetlistOf('2', '3'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(SetlistView.emptyAddKey), findsOneWidget);
+    expect(find.byKey(SetlistView.doneKey), findsNothing);
+  });
+
   testWidgets('라인업 순서를 옮기고 두 종류의 곡을 저장한 뒤 다시 연다', (tester) async {
     final container = await _open(tester, AppRoutes.showLineupOf(1));
     Finder key(String id) => find.byKey(ValueKey(id));
@@ -162,7 +177,20 @@ void main() {
     await _capture(tester, 'search');
     await tap('songAdd_resultAdd_0');
     await tester.enterText(field, '새벽의 노래');
+    tester.view.physicalSize = const Size(320, 680);
+    tester.view.viewInsets = const FakeViewPadding(bottom: 260);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(key('songAdd_original'));
+    await tester.pumpAndSettle();
+    expect(
+      tester.getBottomRight(key('songAdd_original')).dy,
+      lessThanOrEqualTo(420),
+    );
     await tap('songAdd_original');
+    tester.view.resetViewInsets();
+    tester.view.physicalSize = const Size(390, 844);
+    await tester.pumpAndSettle();
     expect((await repo.getSetlist(1, 3)).songs, isEmpty);
     await tap('setlist_done');
     expect((await repo.getSetlist(1, 3)).songs.map((s) => s.songTitle), [

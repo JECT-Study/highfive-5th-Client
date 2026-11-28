@@ -24,10 +24,17 @@ Future<void> showSongAddSheet(
   required ValueChanged<LineupSong> onAdd,
 }) => showAppBottomSheet<void>(
   context,
-  builder: (_) => SongAddSheet(
-    key: SongAddSheet.sheetKey,
-    addedTrackIds: addedTrackIds,
-    onAdd: onAdd,
+  builder: (context) => Flexible(
+    child: Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: SingleChildScrollView(
+        child: SongAddSheet(
+          key: SongAddSheet.sheetKey,
+          addedTrackIds: addedTrackIds,
+          onAdd: onAdd,
+        ),
+      ),
+    ),
   ),
 );
 

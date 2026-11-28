@@ -121,9 +121,17 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.showSetlist,
         redirect: (_, state) => _validConcertIds(state),
-        builder: (_, state) => SetlistView(
-          concertId: int.parse(state.pathParameters['showId']!),
-          bandId: int.parse(state.pathParameters['bandId']!),
+        builder: (_, state) => Consumer(
+          builder: (_, ref, _) => SetlistView(
+            // 다른 계정·공연·밴드로 바뀌면 편집 중이던 로컬 초안도 폐기한다.
+            key: ValueKey((
+              ref.watch(lineupRepositoryProvider),
+              state.pathParameters['showId'],
+              state.pathParameters['bandId'],
+            )),
+            concertId: int.parse(state.pathParameters['showId']!),
+            bandId: int.parse(state.pathParameters['bandId']!),
+          ),
         ),
       ),
       // 하단 탭. 탭마다 스택을 따로 유지한다. 순서 = MainShell의 탭 순서.
