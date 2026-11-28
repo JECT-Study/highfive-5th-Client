@@ -11,6 +11,23 @@ SessionRepository _repo([Map<String, String> stored = const {}]) {
 }
 
 void main() {
+  test('로그인과 로그아웃은 기능의 세션 수명을 바꾸고 온보딩 변경은 유지한다', () async {
+    final repo = _repo();
+    final initial = repo.identity;
+    final signedIn = repo.changes.first;
+    await repo.save(const Session(accessToken: 'a'));
+    await signedIn;
+    final active = repo.identity;
+    expect(identical(initial, active), isFalse);
+
+    await repo.saveNextStep(NextStep.profile);
+    expect(identical(repo.identity, active), isTrue);
+
+    final signedOut = repo.changes.first;
+    await repo.clear();
+    await signedOut;
+    expect(identical(repo.identity, active), isFalse);
+  });
   test('저장된 토큰이 없으면 복원 결과는 null이다', () async {
     expect(await _repo().restore(), isNull);
   });

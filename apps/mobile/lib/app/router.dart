@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,6 +12,14 @@ import '../features/chat/presentation/views/chat_list_view.dart';
 import '../features/dev_gallery/presentation/views/widget_gallery_view.dart';
 import '../features/home/presentation/views/home_view.dart';
 import '../features/my_page/presentation/views/my_page_view.dart';
+import '../features/performances/data/repositories/concert_edit_repository.dart';
+import '../features/performances/models/concert_edit_context.dart';
+import '../features/performances/presentation/providers/concert_edit_providers.dart';
+import '../features/performances/presentation/view_models/concert_edit_view_model.dart';
+import '../features/performances/presentation/views/concert_edit_view.dart';
+import '../features/performances/models/concert_draft.dart';
+import '../features/performances/presentation/providers/concert_providers.dart';
+import '../features/performances/presentation/views/concert_creation_view.dart';
 import '../features/recruitments/presentation/views/recruitment_list_view.dart';
 import 'main_shell.dart';
 import 'providers.dart';
@@ -93,6 +101,86 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => TermsDetailView(
           termId: int.tryParse(state.pathParameters['termId']!) ?? -1,
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.showNew,
+        builder: (context, state) {
+          void close() {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.home);
+            }
+          }
+
+          // 대표자 밴드 선택은 미구현. 경로·쿼리로 raw ID를 받지 않는다.
+          final hostBand = state.extra;
+          if (hostBand is! HostBand) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('합동공연 만들기')),
+              body: Center(
+                child: TextButton(
+                  onPressed: close,
+                  child: const Text('주최 밴드를 먼저 선택해야 해요. 이전 화면으로'),
+                ),
+              ),
+            );
+          }
+          return Consumer(
+            builder: (context, routeRef, _) {
+              final owner = routeRef.watch(concertSessionProvider);
+              routeRef.listen(concertSessionProvider, (previous, next) {
+                if (previous != next) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (context.mounted) close();
+                  });
+                }
+              });
+              return ConcertCreationView(
+                key: ValueKey((hostBand.id, owner)),
+                hostBand: hostBand,
+                onClose: close,
+                onCreated: (id) {
+                  // 공연 상세 라우트가 생기면 showOf로 연결한다.
+                  // 현재는 성공 ID를 호출자에게 반환한다.
+                  if (context.canPop()) context.pop<int>(id);
+                },
+              );
+            },
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.showEdit,
+        builder: (context, state) {
+          final data = state.extra;
+          final currentSession = session.value.value;
+          if (data is! ConcertEditContext ||
+              data.concertId.toString() != state.pathParameters['showId'] ||
+              currentSession == null) {
+            return Scaffold(
+              appBar: AppBar(title: const Text('공연 정보 수정')),
+              body: const Center(child: Text('최신 공연 상세에서 수정 화면을 다시 열어 주세요.')),
+            );
+          }
+          return ConcertEditView(
+            entry: ConcertEditEntry(
+              initial: data.snapshot,
+              repository: LiveConcertEditRepository(
+                service: ref.read(concertEditServiceProvider),
+                concertId: data.concertId,
+                reload: data.reload,
+              ),
+              isSessionCurrent: () =>
+                  identical(session.value.value, currentSession),
+            ),
+            onClose: () =>
+                context.canPop() ? context.pop() : context.go(AppRoutes.home),
+            onSaved: () => context.canPop()
+                ? context.pop(true)
+                : context.go(AppRoutes.home),
+          );
+        },
       ),
       // 하단 탭. 탭마다 스택을 따로 유지한다. 순서 = MainShell의 탭 순서.
       // 탭 안에서 이어지는 화면(예: /recruit/:postId)은 해당 branch의 routes 아래에 붙인다.

@@ -9,6 +9,12 @@ class ApiLogInterceptor extends Interceptor {
 
   final void Function(String message) _log;
 
+  /// 개인정보가 포함된 폼은 요청·응답 본문을 기록하지 않는다.
+  static const logBodyKey = 'api.logBody';
+
+  static Object? _body(RequestOptions options, Object? data) =>
+      options.extra[logBodyKey] == false ? '' : _mask(data);
+
   /// 값을 가리는 키. 요청 본문의 소셜 토큰(`token`)과 응답의 서비스 토큰이다.
   static const _secretKeys = {
     'token',
@@ -19,7 +25,10 @@ class ApiLogInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    _log('[API] → ${options.method} ${options.path} ${_mask(options.data)}');
+    _log(
+      '[API] → ${options.method} ${options.path} '
+      '${_body(options, options.data)}',
+    );
     handler.next(options);
   }
 
@@ -31,7 +40,7 @@ class ApiLogInterceptor extends Interceptor {
     final options = response.requestOptions;
     _log(
       '[API] ← ${response.statusCode} ${options.method} ${options.path}\n'
-      '${_mask(response.data)}',
+      '${_body(options, response.data)}',
     );
     handler.next(response);
   }
@@ -44,7 +53,7 @@ class ApiLogInterceptor extends Interceptor {
       response == null
           ? '[API] ✕ ${options.method} ${options.path} ${err.type.name}'
           : '[API] ✕ ${response.statusCode} ${options.method} ${options.path}\n'
-                '${_mask(response.data)}',
+                '${_body(options, response.data)}',
     );
     handler.next(err);
   }

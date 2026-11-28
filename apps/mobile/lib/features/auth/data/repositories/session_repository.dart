@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '../../../../core/storage/secure_store.dart';
 import '../../models/next_step.dart';
 import '../../models/session.dart';
@@ -10,6 +12,17 @@ class SessionRepository {
   SessionRepository(this._store);
 
   final SecureStore _store;
+  Object _identity = Object();
+  final _changes = StreamController<void>.broadcast(sync: true);
+
+  /// 토큰 갱신·온보딩 변경과 구분되는 로그인 수명. 토큰·사용자 정보를 노출하지 않는다.
+  Object get identity => _identity;
+  Stream<void> get changes => _changes.stream;
+
+  void _changeSession() {
+    _identity = Object();
+    _changes.add(null);
+  }
 
   /// 저장된 세션. access token이 없으면 로그인 안 된 상태(null).
   /// 저장된 `nextStep`이 없거나 모르는 값이면 홈으로 본다.
@@ -26,6 +39,7 @@ class SessionRepository {
   }
 
   Future<void> save(Session session) async {
+    _changeSession();
     await _store.write(SecureStore.accessTokenKey, session.accessToken);
     final refreshToken = session.refreshToken;
     if (refreshToken == null) {
@@ -41,6 +55,7 @@ class SessionRepository {
       _store.write(SecureStore.nextStepKey, nextStep.name);
 
   Future<void> clear() async {
+    _changeSession();
     await _store.delete(SecureStore.accessTokenKey);
     await _store.delete(SecureStore.refreshTokenKey);
     await _store.delete(SecureStore.nextStepKey);
