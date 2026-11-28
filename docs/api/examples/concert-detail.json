@@ -1,0 +1,33 @@
+{
+  "status": 200,
+  "code": "COMMON_000",
+  "message": "요청이 성공했습니다.",
+  "data": {
+    "concertId": 12,
+    "title": "겨울 합동공연",
+    "genres": ["ROCK", "INDIE"],
+    "recruitTeamCount": 3,
+    "performDate": "2026-12-20",
+    "startTime": null,
+    "endTime": null,
+    "place": "홍대 롤링홀",
+    "address": "서울 마포구 어울마당로 35",
+    "region": "SEOUL",
+    "rentalFee": 500000,
+    "posterImageUrl": null,
+    "status": "RECRUITING",
+    "hostBandId": 3,
+    "myBandIds": [3],
+    "myPermissions": { "isHostLeader": true, "isTeamLeader": true },
+    "recruitment": {
+      "recruitPostId": 5,
+      "status": "RECRUITING",
+      "deadline": "2026-12-01",
+      "joinedTeamCount": 1,
+      "recruitTeamCount": 3,
+      "newInquiryCount": 2
+    },
+    "version": 3,
+    "updatedAt": "2026-11-11T14:02:00"
+  }
+}
