@@ -12,6 +12,7 @@ import '../features/chat/presentation/views/chat_list_view.dart';
 import '../features/dev_gallery/presentation/views/widget_gallery_view.dart';
 import '../features/home/presentation/views/home_view.dart';
 import '../features/my_page/presentation/views/my_page_view.dart';
+import '../features/performances/presentation/views/concert_edit_view.dart';
 import '../features/recruitments/presentation/views/recruitment_list_view.dart';
 import 'main_shell.dart';
 import 'providers.dart';
@@ -66,6 +67,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     initialLocation: AppRoutes.splash,
     refreshListenable: session,
+    observers: [concertEditRouteObserver],
     redirect: (context, state) =>
         sessionRedirect(session.value, state.matchedLocation),
     routes: [
@@ -92,6 +94,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         // 경로는 termsDetailOf로만 만들어 숫자다. 아니면 없는 약관으로 보고 빈 화면을 보인다.
         builder: (context, state) => TermsDetailView(
           termId: int.tryParse(state.pathParameters['termId']!) ?? -1,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.showEdit,
+        builder: (context, state) => ConcertEditView(
+          concertId:
+              int.tryParse(state.pathParameters['showId']!, radix: 10) ?? -1,
+          onClose: () =>
+              context.canPop() ? context.pop() : context.go(AppRoutes.home),
+          onSaved: () =>
+              context.canPop() ? context.pop(true) : context.go(AppRoutes.home),
         ),
       ),
       // 하단 탭. 탭마다 스택을 따로 유지한다. 순서 = MainShell의 탭 순서.

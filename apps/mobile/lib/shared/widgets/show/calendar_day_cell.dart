@@ -23,7 +23,7 @@ class CalendarDayCell extends StatelessWidget {
       selected = false,
       onTap = null;
 
-  static const _size = 44.0; // Figma: Day 44 × 44 (누르는 영역도 44)
+  static const size = 44.0; // Figma: Day 44 × 44 (누르는 영역도 44)
 
   /// 날짜 숫자. 빈 칸이면 null.
   final String? date;
@@ -34,7 +34,7 @@ class CalendarDayCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final date = this.date;
-    if (date == null) return const SizedBox.square(dimension: _size);
+    if (date == null) return const SizedBox.square(dimension: size);
 
     final colors = context.colors;
     final textStyles = context.textStyles;
@@ -66,8 +66,8 @@ class CalendarDayCell extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: Container(
-          width: _size,
-          height: _size,
+          width: size,
+          height: size,
           alignment: Alignment.center,
           decoration: circle == null
               ? null

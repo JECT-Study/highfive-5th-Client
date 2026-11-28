@@ -23,6 +23,7 @@ class AppTextField extends StatelessWidget {
   const AppTextField({
     super.key,
     this.controller,
+    this.focusNode,
     this.hintText,
     this.enabled = true,
     this.invalid = false,
@@ -38,6 +39,7 @@ class AppTextField extends StatelessWidget {
   });
 
   final TextEditingController? controller;
+  final FocusNode? focusNode;
   final String? hintText;
   final bool enabled;
 
@@ -75,6 +77,7 @@ class AppTextField extends StatelessWidget {
 
     return TextField(
       controller: controller,
+      focusNode: focusNode,
       enabled: enabled,
       readOnly: readOnly,
       onTap: onTap,
