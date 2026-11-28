@@ -92,6 +92,10 @@ class ShowConfirmPopup extends StatelessWidget {
     final cancelLabel = this.cancelLabel;
 
     return Dialog(
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.x5,
+        vertical: AppSpacing.x6,
+      ),
       backgroundColor: colors.backgroundNormal,
       surfaceTintColor: colors.backgroundNormal,
       shape: RoundedRectangleBorder(

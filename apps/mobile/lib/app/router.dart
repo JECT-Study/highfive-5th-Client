@@ -92,6 +92,7 @@ GoRoute concertShowRoute() => GoRoute(
       child: ConcertDetailView(
         concertId: _concertIdFrom(showId),
         onBack: () => context.canPop() ? context.pop() : goHome(),
+        onDeleted: goHome,
         onEdit: canEdit
             ? () => context.push(AppRoutes.showEditOf(showId))
             : null,

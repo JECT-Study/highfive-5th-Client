@@ -9,9 +9,11 @@ import 'package:highfive/app/routes.dart';
 import 'package:highfive/features/performances/data/repositories/concert_repository.dart';
 import 'package:highfive/features/performances/data/repositories/fake_concert_participants_repository.dart';
 import 'package:highfive/features/performances/data/repositories/fake_concert_repository.dart';
+import 'package:highfive/features/performances/data/repositories/fake_concert_management_repository.dart';
 import 'package:highfive/features/performances/models/concert_detail.dart';
 import 'package:highfive/features/performances/presentation/providers/concert_detail_providers.dart';
 import 'package:highfive/features/performances/presentation/providers/concert_participants_providers.dart';
+import 'package:highfive/features/performances/presentation/providers/concert_management_providers.dart';
 import 'package:highfive/features/performances/presentation/views/concert_detail_view.dart';
 import 'package:highfive/features/performances/presentation/widgets/concert_page_header.dart';
 import 'package:highfive/shared/theme/app_theme.dart';
@@ -70,6 +72,12 @@ Future<GoRouter> _pumpRouter(
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
+        concertManagementRepositoryProvider.overrideWith(
+          (ref) => FakeConcertManagementRepository(
+            ref.watch(concertRepositoryProvider),
+            ref.watch(concertParticipantsRepositoryProvider),
+          ),
+        ),
         concertRepositoryProvider.overrideWithValue(
           concerts ?? FakeConcertRepository(),
         ),
