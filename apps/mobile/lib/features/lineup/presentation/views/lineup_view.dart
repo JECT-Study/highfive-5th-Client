@@ -12,12 +12,13 @@ import '../../models/lineup.dart';
 import '../view_models/lineup_view_models.dart';
 import '../widgets/lineup_feedback.dart';
 import '../widgets/lineup_formats.dart';
+import '../widgets/lineup_slot_settings.dart';
 
 /// 공연 라인업 (Figma 정보 탭 라인업 블록 `2220:137235`, 화면 `3팀 모집, 1팀 들어온 상태` 2217:123232).
 ///
 /// 합류한 팀은 서버가 공연 순서대로 모두 준다 (명세 1.4). 카드를 끌어 놓으면 전체 순서를 저장하고 (1.10),
-/// 누르면 그 팀의 셋리스트를 연다. 시안의 "팀 추가하기"와 슬롯별 `라인업-설정`·`라인업-밴드불러오기`는
-/// 팀을 라인업에 직접 넣는 API가 없어 (합류하면 자동으로 맨 뒤에 붙는다) 만들지 않는다.
+/// 누르면 그 팀의 셋리스트를 연다. 순서 칸에서는 이미 합류한 팀을 선택해 그 위치로 옮긴다.
+/// 빈 모집 슬롯은 편집하지 않는다.
 class LineupView extends ConsumerStatefulWidget {
   const LineupView({
     super.key,
@@ -42,6 +43,8 @@ class LineupView extends ConsumerStatefulWidget {
       ValueKey('lineup_team_$bandId');
   static ValueKey<String> dragHandleKey(int bandId) =>
       ValueKey('lineup_dragHandle_$bandId');
+  static ValueKey<String> positionKey(int index) =>
+      ValueKey('lineup_position_$index');
 
   @override
   ConsumerState<LineupView> createState() => _LineupViewState();
@@ -56,6 +59,44 @@ class _LineupViewState extends ConsumerState<LineupView> {
 
   /// 셋리스트를 여는 중이면 같은 카드를 두 번 눌러도 한 번만 연다.
   bool _opening = false;
+  bool _settingPosition = false;
+
+  Future<void> _openPosition(List<LineupTeam> teams, int target) async {
+    if (_settingPosition) return;
+    _settingPosition = true;
+    final snapshot = List<LineupTeam>.of(teams);
+    final selected = await Navigator.of(context).push<int>(
+      MaterialPageRoute(
+        builder: (_) =>
+            LineupSlotSettings(teams: snapshot, targetIndex: target),
+      ),
+    );
+    _settingPosition = false;
+    if (!mounted || selected == null) return;
+    final current = ref.read(lineupProvider(widget.concertId));
+    final latest = current.value?.teams;
+    final stale =
+        current.isLoading ||
+        current.hasError ||
+        latest == null ||
+        latest.length != snapshot.length ||
+        List.generate(snapshot.length, (i) => i).any(
+          (i) =>
+              latest[i].concertTeamId != snapshot[i].concertTeamId ||
+              latest[i].band.bandId != snapshot[i].band.bandId ||
+              latest[i].lineupOrder != snapshot[i].lineupOrder,
+        );
+    if (stale) {
+      showLineupToast(context, '라인업이 변경되었습니다. 최신 정보를 확인해 주세요.');
+      ref.read(lineupProvider(widget.concertId).notifier).retry();
+      return;
+    }
+    await _reorder(
+      snapshot,
+      snapshot.indexWhere((team) => team.band.bandId == selected),
+      target,
+    );
+  }
 
   /// [newIndex]는 옮길 팀을 뺀 뒤의 위치다 (`onReorderItem`, ViewModel과 같은 기준).
   Future<void> _reorder(
@@ -158,6 +199,7 @@ class _LineupViewState extends ConsumerState<LineupView> {
                   onReorder: (oldIndex, newIndex) =>
                       _reorder(teams, oldIndex, newIndex),
                   onOpenSetlist: _openSetlist,
+                  onOpenPosition: (index) => _openPosition(teams, index),
                 ),
         ),
       ],
@@ -218,6 +260,7 @@ class _LineupTimeline extends StatelessWidget {
     required this.reorderEnabled,
     required this.onReorder,
     required this.onOpenSetlist,
+    required this.onOpenPosition,
   });
 
   final List<LineupTeam> teams;
@@ -225,6 +268,7 @@ class _LineupTimeline extends StatelessWidget {
   final bool reorderEnabled;
   final void Function(int oldIndex, int newIndex) onReorder;
   final ValueChanged<int> onOpenSetlist;
+  final ValueChanged<int> onOpenPosition;
 
   @override
   Widget build(BuildContext context) {
@@ -235,9 +279,7 @@ class _LineupTimeline extends StatelessWidget {
         Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.only(
-                left: _timeColumnWidth + AppSpacing.x3_5,
-              ),
+              padding: const EdgeInsets.only(left: 0),
               child: ReorderableListView.builder(
                 key: LineupView.listKey,
                 shrinkWrap: true,
@@ -257,23 +299,16 @@ class _LineupTimeline extends StatelessWidget {
               top: 0,
               bottom: 0,
               width: _timeColumnWidth,
-              child: CustomPaint(
-                painter: _RailPainter(
-                  lineColor: colors.labelAlternative,
-                  markerFill: colors.backgroundNormal,
-                  markerStroke: colors.labelNormal,
-                  markerY: _RailPainter.startMarkerY,
-                  lineBelow: showEmptySlot || teams.length > 1,
-                ),
-                child: Padding(
-                  // Figma: "미정" 글자는 칸 위에서 16
-                  padding: const EdgeInsets.only(top: AppSpacing.x4),
-                  child: Text(
-                    '미정',
-                    style: context.textStyles.body1Medium.copyWith(
-                      color: colors.labelNeutral,
-                    ),
+              child: IgnorePointer(
+                child: CustomPaint(
+                  painter: _RailPainter(
+                    lineColor: colors.labelAlternative,
+                    markerFill: colors.backgroundNormal,
+                    markerStroke: colors.labelNormal,
+                    markerY: _RailPainter.startMarkerY,
+                    lineBelow: showEmptySlot || teams.length > 1,
                   ),
+                  child: const SizedBox.expand(),
                 ),
               ),
             ),
@@ -326,25 +361,49 @@ class _LineupTimeline extends StatelessWidget {
       padding: EdgeInsets.only(
         bottom: index == teams.length - 1 ? 0 : AppSpacing.x3_5,
       ),
-      // 시안에 손잡이가 없어 카드 전체를 끌어 놓는다 ("드래그 앤 드롭으로 수정").
-      child: ReorderableDragStartListener(
-        key: LineupView.dragHandleKey(band.bandId),
-        index: index,
-        enabled: reorderEnabled,
-        child: ShowLineupItem(
-          key: LineupView.teamKey(band.bandId),
-          name: band.name,
-          roleLabel: team.isHost ? '주최' : null,
-          details: [
-            if (band.genres.isNotEmpty) genreNames(band.genres),
-            '${band.memberCount}명',
-          ],
-          setList: team.setlistPreview,
-          // 명세 1.4: 앞 3곡만 오고, 넘는 곡 수는 "+N"으로 보인다.
-          setListMoreLabel: hiddenSongs > 0 ? '+$hiddenSongs' : null,
-          image: imageUrl == null ? null : NetworkImage(imageUrl),
-          onTap: () => onOpenSetlist(band.bandId),
-        ),
+      // 스크롤을 순서 변경으로 저장하지 않도록 길게 누른 뒤 카드를 끈다.
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: AppSpacing.x3_5,
+        children: [
+          SizedBox(
+            width: _timeColumnWidth,
+            child: Semantics(
+              label: '${index + 1}번째 공연 순서 설정',
+              child: TextButton(
+                key: LineupView.positionKey(index),
+                onPressed: reorderEnabled ? () => onOpenPosition(index) : null,
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  foregroundColor: context.colors.labelNeutral,
+                  textStyle: context.textStyles.caption1Medium,
+                ),
+                child: Text('${index + 1}번째'),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ReorderableDelayedDragStartListener(
+              key: LineupView.dragHandleKey(band.bandId),
+              index: index,
+              enabled: reorderEnabled,
+              child: ShowLineupItem(
+                key: LineupView.teamKey(band.bandId),
+                name: band.name,
+                roleLabel: team.isHost ? '주최' : null,
+                details: [
+                  if (band.genres.isNotEmpty) genreNames(band.genres),
+                  '${band.memberCount}명',
+                ],
+                setList: team.setlistPreview,
+                // 명세 1.4: 앞 3곡만 오고, 넘는 곡 수는 "+N"으로 보인다.
+                setListMoreLabel: hiddenSongs > 0 ? '+$hiddenSongs' : null,
+                image: imageUrl == null ? null : NetworkImage(imageUrl),
+                onTap: () => onOpenSetlist(band.bandId),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
