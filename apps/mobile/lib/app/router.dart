@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,11 +9,13 @@ import '../features/auth/presentation/views/login_view.dart';
 import '../features/auth/presentation/views/splash_view.dart';
 import '../features/auth/presentation/views/terms_detail_view.dart';
 import '../features/chat/presentation/views/chat_list_view.dart';
+import '../features/chat/presentation/views/chat_room_view.dart';
 import '../features/dev_gallery/presentation/views/widget_gallery_view.dart';
 import '../features/home/presentation/views/home_view.dart';
 import '../features/my_page/presentation/views/my_page_view.dart';
 import '../features/recruitments/presentation/views/recruitment_list_view.dart';
 import 'main_shell.dart';
+import 'chat_composition.dart';
 import 'providers.dart';
 import 'routes.dart';
 
@@ -61,9 +63,16 @@ final routerProvider = Provider<GoRouter>((ref) {
   // flavor는 앱 실행 중 바뀌지 않으므로 read로 한 번만 읽는다.
   final isDev = ref.read(appEnvProvider).isDev;
   final session = ValueNotifier(ref.read(sessionProvider));
+  final rootNavigator = GlobalKey<NavigatorState>();
   ref.listen(sessionProvider, (_, next) => session.value = next);
+  // 채팅 첫 진입 전 만료도 기록한다. 구독 자체를 router 수명 동안 유지하고,
+  // gate 변경으로 GoRouter나 내비게이션 스택을 다시 만들지 않는다.
+  if (isDev && ref.read(appEnvProvider).chatFakeEnabled) {
+    ref.listen(chatSessionGateProvider, (_, _) {}, fireImmediately: true);
+  }
 
   final router = GoRouter(
+    navigatorKey: rootNavigator,
     initialLocation: AppRoutes.splash,
     refreshListenable: session,
     redirect: (context, state) =>
@@ -120,7 +129,32 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.chat,
-                builder: (context, state) => const ChatListView(),
+                builder: (context, state) => ChatComposition(
+                  builder: (context, controls, target) => ChatListView(
+                    demoControls: controls,
+                    inquiryTarget: target,
+                    onOpenRoom: (id) => context.push(AppRoutes.chatRoomOf(id)),
+                  ),
+                ),
+                routes: [
+                  GoRoute(
+                    path: AppRoutes.chatRoomSegment,
+                    parentNavigatorKey: rootNavigator,
+                    builder: (context, state) => ChatComposition(
+                      builder: (context, controls, _) {
+                        final onPost = ref.read(chatPostNavigationProvider);
+                        return ChatRoomView(
+                          roomId: state.pathParameters['roomId']!,
+                          demoControls: controls,
+                          onBack: () => context.go(AppRoutes.chat),
+                          onViewPost: onPost == null
+                              ? null
+                              : (target) => onPost(context, target),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -129,7 +163,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.my,
                 builder: (context, state) => MyPageView(
-                  onSignOut: () => ref.read(sessionProvider.notifier).logout(),
+                  onSignOut: () async {
+                    ref.read(chatSessionGateProvider.notifier).close();
+                    await ref.read(sessionProvider.notifier).logout();
+                  },
                 ),
               ),
             ],

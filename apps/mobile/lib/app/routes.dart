@@ -32,6 +32,7 @@ abstract final class AppRoutes {
 
   // 채팅
   static const chatRoom = '/chat/:roomId';
+  static const chatRoomSegment = ':roomId';
   static String chatRoomOf(String roomId) => '/chat/$roomId';
   static const chatMembers = '/chat/:roomId/members';
   static String chatMembersOf(String roomId) => '/chat/$roomId/members';

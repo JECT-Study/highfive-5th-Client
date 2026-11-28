@@ -13,6 +13,7 @@ class AppEnv {
     required this.kakaoNativeAppKey,
     required this.googleIosClientId,
     required this.googleServerClientId,
+    this.chatFakeEnabled = false,
   });
 
   /// `FLUTTER_APP_FLAVOR` → `FLAVOR` 순서로 읽고, 둘 다 없으면 dev.
@@ -29,6 +30,7 @@ class AppEnv {
     return switch (Flavor.values.byName(name)) {
       Flavor.dev => const AppEnv(
         flavor: Flavor.dev,
+        chatFakeEnabled: bool.fromEnvironment('CHAT_FAKE'),
         // dev 서버. DB는 개발 중 초기화될 수 있다.
         apiBaseUrl: 'https://dev-api.highfive-app.link',
         kakaoNativeAppKey: '8f7351ffe7f85cf74698761a2029c90e', // Dev 키
@@ -47,6 +49,9 @@ class AppEnv {
   }
 
   final Flavor flavor;
+
+  /// 명시적 dev fake만 허용한다. prod에서는 이 값과 무관하게 차단한다.
+  final bool chatFakeEnabled;
   final String apiBaseUrl;
 
   /// 카카오 네이티브 앱 키. 같은 값이 네이티브 설정에도 있다 (iOS 빌드 설정
