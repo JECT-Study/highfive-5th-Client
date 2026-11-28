@@ -439,13 +439,16 @@ class _SongEditRow extends StatelessWidget {
         key: SetlistView.dragHandleKey(index),
         index: index,
         enabled: enabled,
-        child: SizedBox.square(
-          dimension: kMinInteractiveDimension,
-          child: Icon(
-            Icons.menu,
-            size: _iconSize,
-            color: colors.labelAssistive,
-            semanticLabel: '순서 바꾸기',
+        child: Listener(
+          behavior: HitTestBehavior.opaque,
+          child: SizedBox.square(
+            dimension: kMinInteractiveDimension,
+            child: Icon(
+              Icons.menu,
+              size: _iconSize,
+              color: colors.labelAssistive,
+              semanticLabel: '순서 바꾸기',
+            ),
           ),
         ),
       ),

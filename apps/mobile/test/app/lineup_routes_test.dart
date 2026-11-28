@@ -230,7 +230,9 @@ void main() {
     final toFirst =
         tester.getCenter(key('setlist_dragHandle_0')).dy -
         tester.getCenter(last).dy;
-    final songDrag = await tester.startGesture(tester.getCenter(last));
+    final songDrag = await tester.startGesture(
+      tester.getTopLeft(last) + Offset(4, tester.getSize(last).height / 2),
+    );
     await tester.pump();
     for (var step = 0; step < 10; step++) {
       await songDrag.moveBy(Offset(0, (toFirst - 12) / 10));
