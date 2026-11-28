@@ -11,6 +11,9 @@ import '../features/auth/presentation/views/terms_detail_view.dart';
 import '../features/chat/presentation/views/chat_list_view.dart';
 import '../features/dev_gallery/presentation/views/widget_gallery_view.dart';
 import '../features/home/presentation/views/home_view.dart';
+import '../features/lineup/presentation/providers/lineup_providers.dart';
+import '../features/lineup/presentation/views/lineup_view.dart';
+import '../features/lineup/presentation/views/setlist_view.dart';
 import '../features/my_page/presentation/views/my_page_view.dart';
 import '../features/recruitments/presentation/views/recruitment_list_view.dart';
 import 'main_shell.dart';
@@ -61,7 +64,13 @@ final routerProvider = Provider<GoRouter>((ref) {
   // flavor는 앱 실행 중 바뀌지 않으므로 read로 한 번만 읽는다.
   final isDev = ref.read(appEnvProvider).isDev;
   final session = ValueNotifier(ref.read(sessionProvider));
-  ref.listen(sessionProvider, (_, next) => session.value = next);
+  ref.listen(sessionProvider, (previous, next) {
+    if (previous?.value != null &&
+        previous?.value?.accessToken != next.value?.accessToken) {
+      ref.invalidate(lineupRepositoryProvider);
+    }
+    session.value = next;
+  });
 
   final router = GoRouter(
     initialLocation: AppRoutes.splash,
@@ -92,6 +101,29 @@ final routerProvider = Provider<GoRouter>((ref) {
         // 경로는 termsDetailOf로만 만들어 숫자다. 아니면 없는 약관으로 보고 빈 화면을 보인다.
         builder: (context, state) => TermsDetailView(
           termId: int.tryParse(state.pathParameters['termId']!) ?? -1,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.showLineup,
+        redirect: (_, state) => _validConcertIds(state),
+        builder: (context, state) {
+          final showId = state.pathParameters['showId']!;
+          return LineupView(
+            concertId: int.parse(showId),
+            onOpenSetlist: (bandId) async {
+              await context.push<void>(
+                AppRoutes.showSetlistOf(showId, bandId.toString()),
+              );
+            },
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.showSetlist,
+        redirect: (_, state) => _validConcertIds(state),
+        builder: (_, state) => SetlistView(
+          concertId: int.parse(state.pathParameters['showId']!),
+          bandId: int.parse(state.pathParameters['bandId']!),
         ),
       ),
       // 하단 탭. 탭마다 스택을 따로 유지한다. 순서 = MainShell의 탭 순서.
@@ -144,3 +176,8 @@ final routerProvider = Provider<GoRouter>((ref) {
   });
   return router;
 });
+
+String? _validConcertIds(GoRouterState state) =>
+    state.pathParameters.values.every((id) => (int.tryParse(id) ?? 0) > 0)
+    ? null
+    : AppRoutes.home;

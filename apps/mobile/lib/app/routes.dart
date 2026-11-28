@@ -59,6 +59,8 @@ abstract final class AppRoutes {
   static const showSchedule = '/shows/:showId/schedule/:scheduleId';
   static String showScheduleOf(String showId, String scheduleId) =>
       '/shows/$showId/schedule/$scheduleId';
+  static const showLineup = '/shows/:showId/lineup';
+  static String showLineupOf(int concertId) => '/shows/$concertId/lineup';
   static const showSetlist = '/shows/:showId/setlist/:bandId';
   static String showSetlistOf(String showId, String bandId) =>
       '/shows/$showId/setlist/$bandId';
