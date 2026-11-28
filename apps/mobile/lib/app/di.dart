@@ -14,6 +14,9 @@ import '../features/auth/data/services/auth_service.dart';
 import '../features/auth/data/services/google_auth_service.dart';
 import '../features/auth/data/services/kakao_auth_service.dart';
 import '../features/auth/data/services/terms_service.dart';
+import '../features/performances/data/repositories/concert_creation_repository.dart';
+import '../features/performances/data/repositories/host_band_repository.dart';
+import '../features/performances/data/repositories/local_concert_creation_repository.dart';
 import 'env.dart';
 
 /// 앱 공통 객체를 생성·연결한다. 앱 시작 시 한 번만 호출한다.
@@ -58,5 +61,19 @@ void setupDi(AppEnv env) {
       ),
     )
     ..registerLazySingleton(() => TermsService(getIt<Dio>()))
-    ..registerLazySingleton(() => TermsRepository(getIt<TermsService>()));
+    ..registerLazySingleton(() => TermsRepository(getIt<TermsService>()))
+    ..registerLazySingleton(LocalConcertCreationRepository.new)
+    ..registerLazySingleton(
+      () => ConcertCreationRepository(
+        local: getIt<LocalConcertCreationRepository>(),
+      ),
+    )
+    // 명세 없음: 밴드 조회 API가 생기면 실제 구현으로 이 등록만 바꾼다.
+    // 기본 앱 실서버 POST 비활성, 인증된 dev 환경 미검증.
+    // 임시 밴드는 로컬 생성으로만 보낸다. prod에서는 임시 목록도 노출하지 않는다.
+    ..registerLazySingleton<HostBandRepository>(
+      () => FakeHostBandRepository(
+        bands: env.isDev ? FakeHostBandRepository.devBands : const [],
+      ),
+    );
 }

@@ -14,6 +14,8 @@ Future<T?> showAppBottomSheet<T>(
   required WidgetBuilder builder,
   bool isDismissible = true,
   bool enableDrag = true,
+  double horizontalPadding = AppBottomSheetTokens.paddingX,
+  bool scrollable = false,
 }) {
   return showModalBottomSheet<T>(
     context: context,
@@ -28,15 +30,26 @@ Future<T?> showAppBottomSheet<T>(
       ),
     ),
     barrierColor: context.colors.materialDimmer,
-    builder: (context) => AppBottomSheet(child: builder(context)),
+    builder: (context) {
+      final sheet = AppBottomSheet(
+        horizontalPadding: horizontalPadding,
+        child: builder(context),
+      );
+      return scrollable ? SingleChildScrollView(child: sheet) : sheet;
+    },
   );
 }
 
 /// Figma `BottomSheet` 겉모양: 위쪽 둥근 흰 판 + 손잡이.
 class AppBottomSheet extends StatelessWidget {
-  const AppBottomSheet({super.key, required this.child});
+  const AppBottomSheet({
+    super.key,
+    required this.child,
+    this.horizontalPadding = AppBottomSheetTokens.paddingX,
+  });
 
   final Widget child;
+  final double horizontalPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -49,10 +62,10 @@ class AppBottomSheet extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          AppBottomSheetTokens.paddingX,
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
           AppBottomSheetTokens.paddingTop,
-          AppBottomSheetTokens.paddingX,
+          horizontalPadding,
           AppBottomSheetTokens.paddingBottom,
         ),
         child: Column(

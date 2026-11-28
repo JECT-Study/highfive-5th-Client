@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,7 +12,10 @@ import '../features/chat/presentation/views/chat_list_view.dart';
 import '../features/dev_gallery/presentation/views/widget_gallery_view.dart';
 import '../features/home/presentation/views/home_view.dart';
 import '../features/my_page/presentation/views/my_page_view.dart';
+import '../features/performances/models/host_band.dart';
+import '../features/performances/presentation/providers/concert_creation_providers.dart';
 import '../features/recruitments/presentation/views/recruitment_list_view.dart';
+import 'concert_creation_entry.dart';
 import 'main_shell.dart';
 import 'providers.dart';
 import 'routes.dart';
@@ -55,13 +58,24 @@ String? sessionRedirect(AsyncValue<Session?> session, String location) {
   return null;
 }
 
+/// 쌓인 화면이면 닫고, 바로 들어온 화면이면 홈으로 간다.
+void _leave(BuildContext context, [Object? result]) =>
+    context.canPop() ? context.pop(result) : context.go(AppRoutes.home);
+
 /// 세션 상태는 `ref.listen`으로 구독해 `refreshListenable`에 연결한다.
 /// `ref.watch`로 GoRouter를 다시 만들면 내비게이션 스택이 초기화되므로 쓰지 않는다.
 final routerProvider = Provider<GoRouter>((ref) {
   // flavor는 앱 실행 중 바뀌지 않으므로 read로 한 번만 읽는다.
   final isDev = ref.read(appEnvProvider).isDev;
   final session = ValueNotifier(ref.read(sessionProvider));
-  ref.listen(sessionProvider, (_, next) => session.value = next);
+  ref.listen(sessionProvider, (_, next) {
+    if (next is AsyncData<Session?> &&
+        next.value == null &&
+        ref.exists(concertCreationRepositoryProvider)) {
+      ref.read(concertCreationRepositoryProvider).clearLocalPreviews();
+    }
+    session.value = next;
+  });
 
   final router = GoRouter(
     initialLocation: AppRoutes.splash,
@@ -94,6 +108,25 @@ final routerProvider = Provider<GoRouter>((ref) {
           termId: int.tryParse(state.pathParameters['termId']!) ?? -1,
         ),
       ),
+      GoRoute(
+        path: AppRoutes.showNew,
+        // extra가 없으면 밴드 선택부터 연다. JECT-154도 같은 주소만 push한다.
+        pageBuilder: (context, state) => CustomTransitionPage<int>(
+          key: state.pageKey,
+          // 밴드 선택 중에는 이전 화면 위에 시트만 겹쳐 보인다.
+          opaque: false,
+          transitionsBuilder: (_, _, _, child) => child,
+          child: ConcertCreationEntry(
+            hostBand: switch (state.extra) {
+              final HostBand band => band,
+              _ => null,
+            },
+            onClose: () => _leave(context),
+            // 공연 페이지 연결 전까지 만든 ID를 호출자에게 돌려준다.
+            onCreated: (concertId) => _leave(context, concertId),
+          ),
+        ),
+      ),
       // 하단 탭. 탭마다 스택을 따로 유지한다. 순서 = MainShell의 탭 순서.
       // 탭 안에서 이어지는 화면(예: /recruit/:postId)은 해당 branch의 routes 아래에 붙인다.
       StatefulShellRoute.indexedStack(
@@ -104,7 +137,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.home,
-                builder: (context, state) => const HomeView(),
+                builder: (context, state) => HomeView(
+                  onCreateConcert: () => context.push(AppRoutes.showNew),
+                  onFindRecruitments: () => context.go(AppRoutes.recruit),
+                ),
               ),
             ],
           ),
