@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -25,6 +27,14 @@ import 'package:highfive/features/auth/presentation/view_models/session_view_mod
 import 'package:highfive/features/auth/presentation/views/login_view.dart';
 import 'package:highfive/features/home/presentation/views/home_view.dart';
 import 'package:highfive/features/my_page/presentation/views/my_page_view.dart';
+import 'package:highfive/features/performances/data/repositories/fake_concert_participants_repository.dart';
+import 'package:highfive/features/performances/data/repositories/fake_concert_repository.dart';
+import 'package:highfive/features/performances/presentation/providers/concert_detail_providers.dart';
+import 'package:highfive/features/performances/presentation/providers/concert_participants_providers.dart';
+import 'package:highfive/features/performances/presentation/views/concert_detail_view.dart';
+import 'package:highfive/features/performances/presentation/widgets/concert_page_header.dart';
+import 'package:highfive/shared/widgets/app_bottom_nav_bar.dart';
+import 'package:highfive/shared/widgets/app_button.dart';
 
 const _session = Session(accessToken: 'a');
 
@@ -86,6 +96,10 @@ Future<void> _start(WidgetTester tester, Map<String, String> stored) async {
             _FakeKakaoAuthService(),
             _FakeGoogleAuthService(),
           ),
+        ),
+        concertRepositoryProvider.overrideWithValue(FakeConcertRepository()),
+        concertParticipantsRepositoryProvider.overrideWithValue(
+          FakeConcertParticipantsRepository(),
         ),
       ],
       child: const HighfiveApp(),
@@ -215,4 +229,32 @@ void main() {
     await _start(tester, stored);
     expect(find.byType(LoginView), findsOneWidget);
   });
+
+  testWidgets(
+    '로그인 상태에서 공연 경로를 열면 하단 탭 없이 공연 페이지를 보이고, 수정 화면이 등록됐을 때만 정보 수정을 켠다',
+    (tester) async {
+      await _start(tester, {SecureStore.accessTokenKey: 'a'});
+      final router = ProviderScope.containerOf(
+        tester.element(find.byType(HighfiveApp)),
+      ).read(routerProvider);
+
+      unawaited(router.push(AppRoutes.showOf('12')));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ConcertDetailView), findsOneWidget);
+      expect(find.byType(AppBottomNavBar), findsNothing);
+      final edit = tester.widget<AppButton>(
+        find.descendant(
+          of: find.byType(ConcertPageHeader),
+          matching: find.byType(AppButton),
+        ),
+      );
+      expect(
+        edit.onPressed != null,
+        !router.configuration
+            .findMatch(Uri.parse(AppRoutes.showEditOf('12')))
+            .isError,
+      );
+    },
+  );
 }

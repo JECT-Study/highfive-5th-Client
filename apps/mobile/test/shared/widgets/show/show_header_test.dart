@@ -64,4 +64,20 @@ void main() {
       expect(find.byType(AppTag), findsNWidgets(tags), reason: '$dDayLabel');
     }
   });
+
+  testWidgets('상태 태그도 값을 줄 때만 보이고, 둘 다 없으면 태그 줄이 없다', (tester) async {
+    for (final (dDayLabel, tags) in [('D - 10', 1), (null, 0)]) {
+      await _pump(
+        tester,
+        ShowHeader.compact(
+          title: '소음공장 합동공연',
+          statusLabel: null,
+          dDayLabel: dDayLabel,
+          editLabel: '정보 수정',
+          onEdit: () {},
+        ),
+      );
+      expect(find.byType(AppTag), findsNWidgets(tags), reason: '$dDayLabel');
+    }
+  });
 }

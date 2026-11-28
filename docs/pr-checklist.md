@@ -202,5 +202,5 @@ PR 템플릿(`.github/PULL_REQUEST_TEMPLATE.md`)의 체크박스는 이 문서�
 - 문구 톤: 존댓말("~해요" / "~합니다"), 마침표 사용, 느낌표 금지 여부
 - 용어집: 공연·행사, 예매·예약, 신청·지원, 밴드·팀, 공연장·장소 — 각각 하나로
 - 오류 문구 사전: 네트워크·인증 만료·서버 오류·찾을 수 없음 네 가지의 표준 문구
-- 공통 위젯 1차 목록: Button, TextField, LoadingView, EmptyView, ErrorView, Card — 언제 만들지
+- 공통 위젯 1차 목록: Button·TextField·LoadingView·EmptyView·ErrorView는 있다. Card — 언제 만들지
 - 캡처 기준 기기: iOS 시뮬레이터 모델, Android 에뮬레이터 API, 웹 폭(예: 390px)

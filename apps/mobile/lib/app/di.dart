@@ -14,7 +14,9 @@ import '../features/auth/data/services/auth_service.dart';
 import '../features/auth/data/services/google_auth_service.dart';
 import '../features/auth/data/services/kakao_auth_service.dart';
 import '../features/auth/data/services/terms_service.dart';
+import '../features/performances/data/repositories/concert_participants_repository.dart';
 import '../features/performances/data/repositories/concert_repository.dart';
+import '../features/performances/data/repositories/fake_concert_participants_repository.dart';
 import '../features/performances/data/repositories/fake_concert_repository.dart';
 import 'env.dart';
 
@@ -62,5 +64,9 @@ void setupDi(AppEnv env) {
     ..registerLazySingleton(() => TermsService(getIt<Dio>()))
     ..registerLazySingleton(() => TermsRepository(getIt<TermsService>()))
     // GET 초안은 아직 미배포. 실 API 연결 시 이 등록만 교체한다.
-    ..registerLazySingleton<ConcertRepository>(FakeConcertRepository.new);
+    ..registerLazySingleton<ConcertRepository>(FakeConcertRepository.new)
+    // 라인업 조회 초안도 아직 미배포. 실 API 연결 시 이 등록만 교체한다.
+    ..registerLazySingleton<ConcertParticipantsRepository>(
+      FakeConcertParticipantsRepository.new,
+    );
 }

@@ -55,6 +55,6 @@ Flutter 버전은 `apps/mobile/.fvmrc`, Node는 `apps/web/.nvmrc`·`packageManag
 ## 아직 안 한 것
 
 - Shorebird, Fastlane, 스토어 배포, 실기기 서명
-- "다른 기기에서 로그인했어요" 안내, WebView bridge, `shared/widgets`(Loading/Error/Empty)
+- "다른 기기에서 로그인했어요" 안내, WebView bridge
 - 웹 서버 데이터 라이브러리(TanStack Query) 도입 여부, 웹 호스팅
 - `develop` 브랜치, `docs/releases.md`
