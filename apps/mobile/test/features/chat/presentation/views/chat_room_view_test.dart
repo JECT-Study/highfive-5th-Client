@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -132,12 +130,12 @@ void main() {
   });
 
   testWidgets('초기 읽기 대기는 빈 대화로 표시하지 않는다', (tester) async {
-    final events = StreamController<ChatRoom>();
-    addTearDown(events.close);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          chatRoomProvider('held').overrideWith((ref) => events.stream),
+          // 결과를 아직 전달하지 않는 구독. 닫기를 기다리는 별도 producer는 없다.
+          chatRoomProvider('held')
+              .overrideWith((ref) => Stream<ChatRoom>.multi((_) {})),
         ],
         child: MaterialApp(
           theme: AppTheme.light,
@@ -149,9 +147,6 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     expect(find.byType(MessageInputBar), findsNothing);
     await tester.pumpWidget(const SizedBox());
-    final closed = events.close();
-    await tester.pump();
-    await closed;
   });
 
   testWidgets('알 수 없는 방은 오류와 뒤로가기만 표시한다', (tester) async {
