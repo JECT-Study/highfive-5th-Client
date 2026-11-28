@@ -14,8 +14,9 @@ import '../features/auth/data/services/auth_service.dart';
 import '../features/auth/data/services/google_auth_service.dart';
 import '../features/auth/data/services/kakao_auth_service.dart';
 import '../features/auth/data/services/terms_service.dart';
+import '../features/performances/data/repositories/concert_edit_repository.dart';
 import '../features/performances/data/repositories/concert_repository.dart';
-import '../features/performances/data/repositories/fake_concert_repository.dart';
+import '../features/performances/data/repositories/fake_concert_edit_repository.dart';
 import 'env.dart';
 
 /// 앱 공통 객체를 생성·연결한다. 앱 시작 시 한 번만 호출한다.
@@ -61,6 +62,13 @@ void setupDi(AppEnv env) {
     )
     ..registerLazySingleton(() => TermsService(getIt<Dio>()))
     ..registerLazySingleton(() => TermsRepository(getIt<TermsService>()))
-    // GET 초안은 아직 미배포. 실 API 연결 시 이 등록만 교체한다.
-    ..registerLazySingleton<ConcertRepository>(FakeConcertRepository.new);
+    // 공연 미리보기: 상세 조회와 수정을 같은 메모리 객체가 처리한다.
+    // 실제 PUT 전송은 연결하지 않는다. 실서버 연동은 별도 계약·통합 검증 후 진행한다.
+    ..registerLazySingleton(FakeConcertEditRepository.new)
+    ..registerLazySingleton<ConcertRepository>(
+      () => getIt<FakeConcertEditRepository>(),
+    )
+    ..registerLazySingleton<ConcertEditRepository>(
+      () => getIt<FakeConcertEditRepository>(),
+    );
 }

@@ -36,6 +36,7 @@ class QrListCard extends StatelessWidget {
           children: [
             for (final row in rows)
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: AppSpacing.x3,
                 children: [
                   Text(
@@ -46,8 +47,6 @@ class QrListCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       row.value,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       textAlign: TextAlign.right,
                       style: style.copyWith(color: colors.labelNormal),
                     ),

@@ -106,58 +106,71 @@ class ShowConfirmPopup extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             spacing: AppSpacing.x4,
             children: [
-              if (alert)
-                Center(
-                  child: Container(
-                    width: _alertSize,
-                    height: _alertSize,
-                    alignment: Alignment.center,
-                    // Figma: #FDECEC 바탕 → 가장 가까운 의미 색 background.warning.
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: colors.backgroundWarning,
-                    ),
-                    child: Text(
-                      '!',
-                      style: textStyles.head.copyWith(
-                        color: colors.statusDestructive,
-                      ),
-                    ),
-                  ),
-                ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.x1),
-                child: Column(
-                  spacing: AppSpacing.x2_5,
-                  children: [
-                    Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: textStyles.title1Bold.copyWith(
-                        color: colors.gray800,
-                      ),
-                    ),
-                    if (message != null)
-                      Text(
-                        message,
-                        textAlign: TextAlign.center,
-                        // Figma: #858586 → 가장 가까운 의미 색 label.alternative.
-                        style: textStyles.body1Regular.copyWith(
-                          color: colors.labelAlternative,
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: AppSpacing.x4,
+                    children: [
+                      if (alert)
+                        Center(
+                          child: Container(
+                            width: _alertSize,
+                            height: _alertSize,
+                            alignment: Alignment.center,
+                            // Figma: #FDECEC 바탕 → 가장 가까운 의미 색 background.warning.
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: colors.backgroundWarning,
+                            ),
+                            child: Text(
+                              '!',
+                              style: textStyles.head.copyWith(
+                                color: colors.statusDestructive,
+                              ),
+                            ),
+                          ),
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.x1,
+                        ),
+                        child: Column(
+                          spacing: AppSpacing.x2_5,
+                          children: [
+                            Text(
+                              title,
+                              textAlign: TextAlign.center,
+                              style: textStyles.title1Bold.copyWith(
+                                color: colors.gray800,
+                              ),
+                            ),
+                            if (message != null)
+                              Text(
+                                message,
+                                textAlign: TextAlign.center,
+                                // Figma: #858586 → 가장 가까운 의미 색 label.alternative.
+                                style: textStyles.body1Regular.copyWith(
+                                  color: colors.labelAlternative,
+                                ),
+                              ),
+                          ],
                         ),
                       ),
-                  ],
-                ),
-              ),
-              if (details.isNotEmpty) QrListCard(rows: details),
-              if (warning != null)
-                Text(
-                  warning,
-                  style: textStyles.caption1Regular.copyWith(
-                    color: colors.statusDestructive,
+                      if (details.isNotEmpty) QrListCard(rows: details),
+                      if (warning != null)
+                        Text(
+                          warning,
+                          style: textStyles.caption1Regular.copyWith(
+                            color: colors.statusDestructive,
+                          ),
+                        ),
+                      if (notice != null) AppNotice(message: notice),
+                    ],
                   ),
                 ),
-              if (notice != null) AppNotice(message: notice),
+              ),
               Row(
                 spacing: AppSpacing.x2,
                 children: [
