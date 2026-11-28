@@ -56,8 +56,8 @@ lib/
 │   │   ├── onboarding/              (있음) Figma '온보딩' 섹션
 │   │   ├── list/                    (있음) Figma '목록' 섹션: 목록 카드, 알림 줄
 │   │   └── qr/                      (있음) Figma 'QR' 섹션
-│   │                                loading_view.dart, error_view.dart, empty_view.dart
-│   ├── utils/                       date_format.dart, money_format.dart 같은 순수 함수
+│   │                                (있음) loading_view.dart, error_view.dart, empty_view.dart: 로딩·실패·빈 결과 (6절)
+│   ├── utils/                       (있음) date_format.dart: 서버의 시간대 없는 날짜·시간 → 화면 글자. money_format.dart 같은 순수 함수
 │   └── extensions/                  context_extensions.dart 등
 │
 └── features/
@@ -251,7 +251,8 @@ Service(DioException) ─► core/network/api_error_mapper ─► AppException
 ```
 
 - `AppException`은 `core/error/app_exception.dart`의 sealed class. 서버 오류는 `ApiException`에 HTTP 상태와 서버 오류 코드(예: `AUTH_006`)를 담는다. 기능의 Repository가 코드를 그 기능의 실패 이유로 바꾸고(예: `AuthRepository` → `LoginFailureReason`), 화면은 이유별로 문구·행동(재시도, 로그인 이동)을 정한다. 코드별 처리는 `docs/api/`의 명세에 적는다.
-- View는 `AsyncValue.when`으로 로딩·오류·빈 결과를 반드시 그린다. `shared/widgets`의 `LoadingView`·`ErrorView`·`EmptyView`를 쓴다(첫 화면 만들 때 생성).
+- View는 로딩·오류·빈 결과를 반드시 그린다. `shared/widgets`의 `LoadingView`·`ErrorView`·`EmptyView`를 쓴다.
+- Riverpod 3는 일시 오류를 자동 재시도하고, 그동안 상태는 오류를 담은 `AsyncLoading`(`retrying`)이다. `AsyncValue.when`은 이 상태를 로딩으로 그려 재시도가 끝날 때까지(기본 최대 10회) 진행 표시만 보인다. 실패를 바로 알리려면 `value`·`error`로 나눈다(예: `ConcertDetailView`). 다시 시도 버튼의 `ref.invalidate`는 기다리던 재시도를 취소하고 바로 다시 부른다.
 - 네트워크 단절·5xx로 로그아웃하지 않는다. `unauthorized`(갱신 실패)만 세션을 정리한다.
 
 ## 7. 하면 안 되는 것
@@ -325,6 +326,7 @@ Figma `와이어프레임 New` → `11/8 pm 확정 영역: 티켓 신청 전까�
 - 화면 안의 탭(공연 페이지의 정보·피드·일정·티켓 관리, 메시지함의 전체·받은 문의·보낸 문의·공연 채팅, 마이의 내 공연·찜한 공연)은 경로를 나누지 않고 화면 상태로 둔다.
 - 팝업·바텀시트·토스트·확인창은 경로가 아니다. 띄운 화면의 ViewModel이 연다.
 - 고정 하위 경로(`/recruit/new`, `/recruit/search`, `/shows/new`)는 `:id` 경로보다 먼저 등록한다. 아니면 `new`가 id로 잡힌다.
+- 공연 페이지(`/shows/:showId`, `concertShowRoute`)는 하단 탭 밖 루트에 등록해 탭 바 없이 연다. 스택에 이전 화면이 없으면 상단·시스템 뒤로 가기가 홈으로 간다. 콜드 스타트 때 인증 복원 이후 원래 딥링크를 여는 것은 아직 지원하지 않는다. 다른 작업이 만드는 화면으로 가는 버튼(예: 정보 수정 → `/shows/:showId/edit`)은 `hasRoutePath(router.configuration, path)`로 그 경로가 라우트 표에 있을 때만 켠다. 그 화면의 `GoRoute`가 등록되면 따로 연결하지 않아도 버튼이 켜진다.
 - `/dev/widgets`(공통 위젯 모음)는 dev flavor 라우터에만 등록한다. 왼쪽 위 DEV 띠를 길게 누르거나 `fvm flutter run --flavor dev --route /dev/widgets`로 연다. 위쪽 칩으로 폴더(범용 · message · show · qr · home · onboarding · list)를 고르고, `--route "/dev/widgets?folder=message"`처럼 폴더를 바로 열 수도 있다. 화면은 `features/dev_gallery/`. 로그인 redirect(`sessionRedirect`)에서 제외해 로그아웃 상태에서도 열린다.
 - 로그인 전 화면 외에는 전부 로그인 필요. 인증 redirect는 `routerProvider`의 `sessionRedirect`: 앱 시작 → `/splash`에서 저장된 세션(`sessionProvider`, secure storage) 복원 → 세션 있으면 `/home`, 없거나 복원 실패면 `/login`. 로그아웃하면 `/login`. 온보딩 미완료 → 온보딩 분기는 온보딩 정보를 받을 때 추가한다.
 - 지금 로그인은 임시다: 로그인 화면의 "임시 로그인" 버튼이 `AuthService`의 고정 토큰으로 세션을 만든다. 로그인 API가 나오면 `features/auth/data/services/auth_service.dart`만 실제 호출로 바꾸고 버튼을 소셜 로그인으로 교체한다. 로그아웃은 마이페이지 버튼 → 라우터가 넘긴 `onSignOut` → `sessionProvider.signOut()` (설정 화면이 생기면 그쪽으로 옮긴다).

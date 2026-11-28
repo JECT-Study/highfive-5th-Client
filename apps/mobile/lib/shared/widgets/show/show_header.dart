@@ -44,8 +44,8 @@ class ShowHeader extends StatelessWidget {
   final bool _compact;
   final String title;
 
-  /// 진한 태그 (예: 티켓 판매 중, 팀 모집 전).
-  final String statusLabel;
+  /// 진한 태그 (예: 티켓 판매 중, 팀 모집 전). null이면 보이지 않는다 (예: 앱이 모르는 새 상태).
+  final String? statusLabel;
 
   /// 옅은 태그 (예: D - 10).
   final String? dDayLabel;
@@ -148,6 +148,7 @@ class ShowHeader extends StatelessWidget {
   Widget _summary(BuildContext context) {
     final colors = context.colors;
     final textStyles = context.textStyles;
+    final statusLabel = this.statusLabel;
     final dDayLabel = this.dDayLabel;
     final genreStyle = textStyles.caption1Regular.copyWith(
       color: colors.labelAlternative,
@@ -156,22 +157,24 @@ class ShowHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       spacing: AppSpacing.x2_5,
       children: [
-        Row(
-          spacing: AppSpacing.x1_5,
-          children: [
-            Flexible(
-              child: AppTag(
-                label: statusLabel,
-                style: AppTagStyle.filled,
-                size: AppTagSize.medium,
-              ),
-            ),
-            if (dDayLabel != null)
-              Flexible(
-                child: AppTag(label: dDayLabel, size: AppTagSize.medium),
-              ),
-          ],
-        ),
+        if (statusLabel != null || dDayLabel != null)
+          Row(
+            spacing: AppSpacing.x1_5,
+            children: [
+              if (statusLabel != null)
+                Flexible(
+                  child: AppTag(
+                    label: statusLabel,
+                    style: AppTagStyle.filled,
+                    size: AppTagSize.medium,
+                  ),
+                ),
+              if (dDayLabel != null)
+                Flexible(
+                  child: AppTag(label: dDayLabel, size: AppTagSize.medium),
+                ),
+            ],
+          ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: AppSpacing.x1_5,

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -12,6 +12,7 @@ import '../features/chat/presentation/views/chat_list_view.dart';
 import '../features/dev_gallery/presentation/views/widget_gallery_view.dart';
 import '../features/home/presentation/views/home_view.dart';
 import '../features/my_page/presentation/views/my_page_view.dart';
+import '../features/performances/presentation/views/concert_detail_view.dart';
 import '../features/recruitments/presentation/views/recruitment_list_view.dart';
 import 'main_shell.dart';
 import 'providers.dart';
@@ -54,6 +55,50 @@ String? sessionRedirect(AsyncValue<Session?> session, String location) {
   }
   return null;
 }
+
+/// [configuration] 안에 전체 경로가 [path]인 `GoRoute`가 있는지.
+/// 다른 작업이 만드는 화면(예: 공연 정보 수정)이 라우트 표에 들어온 뒤에만 그 화면으로 가는 버튼을 켜는 데 쓴다.
+/// 전체 경로는 go_router가 매칭에 쓰는 `locationForRoute`로 구한다.
+bool hasRoutePath(RouteConfiguration configuration, String path) {
+  bool visit(Iterable<RouteBase> routes) => routes.any(
+    (route) =>
+        (route is GoRoute && configuration.locationForRoute(route) == path) ||
+        visit(route.routes),
+  );
+  return visit(configuration.routes);
+}
+
+/// 주소의 공연 ID. 10진수 양의 정수만 받는다(`int.tryParse`는 `0xC` 같은 16진수도 받는다). 아니면 null.
+int? _concertIdFrom(String showId) =>
+    RegExp(r'^[1-9][0-9]*$').hasMatch(showId) ? int.tryParse(showId) : null;
+
+/// 공연 페이지(`/shows/:showId`). 하단 탭 밖에 등록해 탭 바 없이 전체 화면으로 연다 (Figma 정보탭).
+/// 정보 수정은 수정 화면(`AppRoutes.showEdit`)이 같은 라우트 표에 있을 때만 그 화면으로 push한다.
+/// 스택에 이전 화면이 없으면(`go`로 바로 연 경우 등) 상단 버튼과 시스템 뒤로 가기 모두 홈으로 간다.
+GoRoute concertShowRoute() => GoRoute(
+  path: AppRoutes.show,
+  builder: (context, state) {
+    final showId = state.pathParameters['showId']!;
+    final canEdit = hasRoutePath(
+      GoRouter.of(context).configuration,
+      AppRoutes.showEdit,
+    );
+    void goHome() => context.go(AppRoutes.home);
+    return PopScope(
+      canPop: context.canPop(),
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) goHome();
+      },
+      child: ConcertDetailView(
+        concertId: _concertIdFrom(showId),
+        onBack: () => context.canPop() ? context.pop() : goHome(),
+        onEdit: canEdit
+            ? () => context.push(AppRoutes.showEditOf(showId))
+            : null,
+      ),
+    );
+  },
+);
 
 /// 세션 상태는 `ref.listen`으로 구독해 `refreshListenable`에 연결한다.
 /// `ref.watch`로 GoRouter를 다시 만들면 내비게이션 스택이 초기화되므로 쓰지 않는다.
@@ -136,6 +181,8 @@ final routerProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
+      // 고정 하위 경로(`/shows/new`)는 이보다 먼저 등록한다. 아니면 `new`가 showId로 잡힌다.
+      concertShowRoute(),
     ],
   );
   ref.onDispose(() {
