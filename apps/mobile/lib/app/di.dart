@@ -14,6 +14,8 @@ import '../features/auth/data/services/auth_service.dart';
 import '../features/auth/data/services/google_auth_service.dart';
 import '../features/auth/data/services/kakao_auth_service.dart';
 import '../features/auth/data/services/terms_service.dart';
+import '../features/lineup/data/repositories/fake_lineup_repository.dart';
+import '../features/lineup/data/repositories/lineup_repository.dart';
 import 'env.dart';
 
 /// 앱 공통 객체를 생성·연결한다. 앱 시작 시 한 번만 호출한다.
@@ -58,5 +60,7 @@ void setupDi(AppEnv env) {
       ),
     )
     ..registerLazySingleton(() => TermsService(getIt<Dio>()))
+    // 미배포 계약. 연결 Provider가 세션 동안만 이 인스턴스를 유지한다.
+    ..registerFactory<LineupRepository>(FakeLineupRepository.new)
     ..registerLazySingleton(() => TermsRepository(getIt<TermsService>()));
 }

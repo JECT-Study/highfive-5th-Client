@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -11,11 +11,15 @@ import '../features/auth/presentation/views/terms_detail_view.dart';
 import '../features/chat/presentation/views/chat_list_view.dart';
 import '../features/dev_gallery/presentation/views/widget_gallery_view.dart';
 import '../features/home/presentation/views/home_view.dart';
+import '../features/lineup/presentation/providers/lineup_providers.dart';
+import '../features/lineup/presentation/views/lineup_view.dart';
+import '../features/lineup/presentation/views/setlist_view.dart';
 import '../features/my_page/presentation/views/my_page_view.dart';
 import '../features/recruitments/presentation/views/recruitment_list_view.dart';
 import 'main_shell.dart';
 import 'providers.dart';
 import 'routes.dart';
+import 'lineup_route_scope.dart';
 
 /// 로그인 전에만 머무는 화면. 로그인 상태면 홈으로 보낸다.
 const _signedOutRoutes = {AppRoutes.login, AppRoutes.signup};
@@ -61,13 +65,44 @@ final routerProvider = Provider<GoRouter>((ref) {
   // flavor는 앱 실행 중 바뀌지 않으므로 read로 한 번만 읽는다.
   final isDev = ref.read(appEnvProvider).isDev;
   final session = ValueNotifier(ref.read(sessionProvider));
-  ref.listen(sessionProvider, (_, next) => session.value = next);
+  String? pendingLineup;
+  var discardProtectedLocation = false;
+  ref.listen(sessionProvider, (previous, next) {
+    // 로그아웃·약관 취소 직후에는 아직 보이는 보호 경로를 다시 저장하지 않는다.
+    if (previous?.isLoading == false && next.hasValue && next.value == null) {
+      pendingLineup = null;
+      discardProtectedLocation = previous?.value != null;
+    }
+    if (previous?.value != null &&
+        previous?.value?.accessToken != next.value?.accessToken) {
+      ref.invalidate(lineupRepositoryProvider);
+    }
+    session.value = next;
+  });
 
   final router = GoRouter(
     initialLocation: AppRoutes.splash,
     refreshListenable: session,
-    redirect: (context, state) =>
-        sessionRedirect(session.value, state.matchedLocation),
+    redirect: (context, state) {
+      final location = state.matchedLocation;
+      final redirect = sessionRedirect(session.value, location);
+      final destination = AppRoutes.lineupDestination(state.uri);
+      if (redirect != null && destination != null) {
+        if (!discardProtectedLocation) pendingLineup = destination;
+      } else if (location == AppRoutes.login ||
+          location == AppRoutes.splash ||
+          _isTermsDetail(location)) {
+        discardProtectedLocation = false;
+      } else {
+        pendingLineup = null;
+      }
+      if (redirect == AppRoutes.home && pendingLineup != null) {
+        final destination = pendingLineup;
+        pendingLineup = null;
+        return destination;
+      }
+      return redirect;
+    },
     routes: [
       if (isDev)
         GoRoute(
@@ -92,6 +127,59 @@ final routerProvider = Provider<GoRouter>((ref) {
         // 경로는 termsDetailOf로만 만들어 숫자다. 아니면 없는 약관으로 보고 빈 화면을 보인다.
         builder: (context, state) => TermsDetailView(
           termId: int.tryParse(state.pathParameters['termId']!) ?? -1,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.showLineup,
+        redirect: (_, state) => _validConcertIds(state),
+        pageBuilder: (context, state) {
+          final showId = state.pathParameters['showId']!;
+          return MaterialPage<void>(
+            key: ValueKey((state.pageKey, showId)),
+            child: LineupRouteScope(
+              child: LineupView(
+                concertId: int.parse(showId),
+                onExit: () => context.canPop()
+                    ? context.pop()
+                    : context.go(AppRoutes.home),
+                onOpenSetlist: (bandId) async {
+                  await context.push<void>(
+                    AppRoutes.showSetlistOf(showId, bandId.toString()),
+                  );
+                },
+              ),
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.showSetlist,
+        redirect: (_, state) => _validConcertIds(state),
+        pageBuilder: (context, state) => MaterialPage<void>(
+          // Page 교체로 그 위에 열린 곡 시트·슬롯 설정도 함께 제거한다.
+          key: ValueKey((
+            state.pageKey,
+            state.pathParameters['showId'],
+            state.pathParameters['bandId'],
+          )),
+          child: Builder(
+            builder: (pageContext) => LineupRouteScope(
+              child: SetlistView(
+                concertId: int.parse(state.pathParameters['showId']!),
+                bandId: int.parse(state.pathParameters['bandId']!),
+                // pageBuilder 시점에는 push가 아직 라우터 스택에 반영되기 전이다.
+                // 실제 바깥 Page가 붙은 뒤 그 Page의 pop 가능 여부를 읽는다.
+                canPopRoute: !ModalRoute.of(pageContext)!.isFirst,
+                onExit: () => context.canPop()
+                    ? context.pop()
+                    : context.go(
+                        AppRoutes.showLineupOf(
+                          int.parse(state.pathParameters['showId']!),
+                        ),
+                      ),
+              ),
+            ),
+          ),
         ),
       ),
       // 하단 탭. 탭마다 스택을 따로 유지한다. 순서 = MainShell의 탭 순서.
@@ -144,3 +232,8 @@ final routerProvider = Provider<GoRouter>((ref) {
   });
   return router;
 });
+
+String? _validConcertIds(GoRouterState state) =>
+    state.pathParameters.values.every((id) => (int.tryParse(id) ?? 0) > 0)
+    ? null
+    : AppRoutes.home;
