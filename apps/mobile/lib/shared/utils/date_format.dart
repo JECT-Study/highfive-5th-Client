@@ -15,6 +15,21 @@ String? formatLocalDate(String? value) {
       '(${_weekdays[date.weekday - 1]})';
 }
 
+/// `2026-12-20` → `12.20(일)` (Figma BandCard).
+String? formatLocalMonthDay(String? value) {
+  final date = _parseLocalDate(value);
+  if (date == null) return null;
+  return '${_twoDigits(date.month)}.${_twoDigits(date.day)}'
+      '(${_weekdays[date.weekday - 1]})';
+}
+
+/// `2026-10-02` → `2026.10.02` (Figma 공연 이력).
+String? formatLocalDateDotted(String? value) {
+  final date = _parseLocalDate(value);
+  if (date == null) return null;
+  return '${date.year}.${_twoDigits(date.month)}.${_twoDigits(date.day)}';
+}
+
 /// `19:00:00`·`19:00` → `19:00`.
 String? formatLocalTime(String? value) {
   final match = value == null ? null : _localTime.firstMatch(value);

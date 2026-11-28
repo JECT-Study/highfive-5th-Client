@@ -22,6 +22,31 @@ void main() {
     });
   });
 
+  group('formatLocalMonthDay', () {
+    test('서버 날짜를 월.일(요일) 카드 날짜로 바꾼다', () {
+      expect(formatLocalMonthDay('2026-12-20'), '12.20(일)');
+      expect(formatLocalMonthDay('2027-01-05'), '01.05(화)');
+    });
+
+    test('없거나 형식이 다르거나 없는 날짜면 null이다', () {
+      for (final value in [null, '', '2026/12/20', '2026-02-30']) {
+        expect(formatLocalMonthDay(value), isNull, reason: '$value');
+      }
+    });
+  });
+
+  group('formatLocalDateDotted', () {
+    test('서버 날짜를 연.월.일 이력 날짜로 바꾼다', () {
+      expect(formatLocalDateDotted('2026-10-02'), '2026.10.02');
+    });
+
+    test('없거나 형식이 다르거나 없는 날짜면 null이다', () {
+      for (final value in [null, '', '2026/10/02', '2026-13-01']) {
+        expect(formatLocalDateDotted(value), isNull, reason: '$value');
+      }
+    });
+  });
+
   group('formatLocalTime', () {
     test('초가 있든 없든 시와 분만 남긴다', () {
       expect(formatLocalTime('19:00:00'), '19:00');

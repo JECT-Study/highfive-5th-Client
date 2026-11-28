@@ -15,7 +15,12 @@ POST·PUT DTO, 티켓 계약, 라인업·피드·일정, 화면·경로는 이�
 후자는 `FutureProvider.autoDispose.family`이며 쓰기 담당자가 성공 후 해당 ID를 invalidate한다.
 403·404는 자동 재시도하지 않고 즉시 오류로 전달한다.
 실제 API가 배포되면 Service에서 응답 `data`를 `ConcertDetailDto.fromJson`으로 읽고
-Repository에서 `toModel()`로 변환하는 구현을 추가한 뒤 DI 한 줄을 교체한다.
+Repository에서 `toModel()`로 변환하는 구현을 추가한 뒤 DI 등록을 교체한다.
+현재 내 공연 목록(JECT-154)도 같은 상세 fixture를 읽으므로 상세·참여 밴드·목록의
+fake 등록을 함께 교체해야 한다. 목록의 합성 ID를 실제 상세 API에 보내지 않는다.
+수정 기능(JECT-153)과 조합할 때는 조회·수정이 하나의 `FakeConcertEditRepository`를
+공유한다. 합성 ID의 크기는 서버 쓰기 방어가 아니며, 실제 GET을 연결하기 전에는
+그 ID·version으로 실서버 PUT을 보내면 안 된다.
 
 ## 응답
 

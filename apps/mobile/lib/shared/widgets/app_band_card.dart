@@ -106,30 +106,37 @@ class AppBandCard extends StatelessWidget {
                               color: colors.labelNormal,
                             ),
                           ),
-                          Row(
+                          Wrap(
                             spacing: AppSpacing.x1,
+                            runSpacing: AppSpacing.x1,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(date, style: detailStyle),
                               if (time != null) Text(time!, style: detailStyle),
-                              if (place != null) ...[
-                                Container(
-                                  key: const ValueKey('appBandCard_dot'),
-                                  width: _dotSize,
-                                  height: _dotSize,
-                                  decoration: BoxDecoration(
-                                    color: colors.labelAlternative,
-                                    shape: BoxShape.circle,
-                                  ),
+                              if (place != null)
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  spacing: AppSpacing.x1,
+                                  children: [
+                                    Container(
+                                      key: const ValueKey('appBandCard_dot'),
+                                      width: _dotSize,
+                                      height: _dotSize,
+                                      decoration: BoxDecoration(
+                                        color: colors.labelAlternative,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    Flexible(
+                                      child: Text(
+                                        place!,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: detailStyle,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                Flexible(
-                                  child: Text(
-                                    place!,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: detailStyle,
-                                  ),
-                                ),
-                              ],
                             ],
                           ),
                         ],
@@ -140,6 +147,57 @@ class AppBandCard extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Figma `BandCard`의 `티켓 판매 상태 = 공연없음`. 보여 줄 공연이 없을 때 카드 자리에 두는 안내.
+/// 생김새가 전혀 달라 [AppBandCard]와 나눴다.
+class AppBandEmptyCard extends StatelessWidget {
+  const AppBandEmptyCard({
+    super.key,
+    required this.title,
+    required this.description,
+  });
+
+  /// 위 줄 (예: `아직 참여 중인 공연이 없어요`).
+  final String title;
+
+  /// 아래 흐린 줄 (예: `공연을 만들어 함께할 팀을 모집해 보세요.`).
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final textStyles = context.textStyles;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.fillNormal,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.x5),
+        // Figma: 카드 자리의 폭을 채우고(FILL) 글자는 가운데에 둔다.
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: AppSpacing.x1_5,
+          children: [
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: textStyles.body1Medium.copyWith(color: colors.labelStrong),
+            ),
+            Text(
+              description,
+              textAlign: TextAlign.center,
+              style: textStyles.caption1Regular.copyWith(
+                color: colors.labelAlternative,
+              ),
+            ),
+          ],
         ),
       ),
     );

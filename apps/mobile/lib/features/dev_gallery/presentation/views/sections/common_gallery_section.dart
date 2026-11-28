@@ -7,7 +7,7 @@ import '../../../../../shared/widgets/app_member_header.dart';
 import '../../../../../shared/widgets/app_tag.dart';
 import 'gallery_item.dart';
 
-/// 모음 화면의 공통 영역: Figma `공통` 섹션의 BandCard · MemberHeader · Chipwarp.
+/// 모음 화면의 공통 영역: Figma `공통` 섹션의 BandCard(공연없음 포함) · MemberHeader · Chipwarp.
 class CommonGallerySection extends StatefulWidget {
   const CommonGallerySection({super.key});
 
@@ -64,6 +64,14 @@ class _CommonGallerySectionState extends State<CommonGallerySection> {
                 onTap: () {},
               ),
             ],
+          ),
+        ),
+        const GalleryItem(
+          code: 'AppBandEmptyCard',
+          figma: 'BandCard (티켓 판매 상태 = 공연없음)',
+          child: AppBandEmptyCard(
+            title: '아직 참여 중인 공연이 없어요',
+            description: '공연을 만들어 함께할 팀을 모집해 보세요.',
           ),
         ),
         const GalleryItem(

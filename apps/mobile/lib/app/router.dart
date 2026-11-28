@@ -12,7 +12,10 @@ import '../features/chat/presentation/views/chat_list_view.dart';
 import '../features/dev_gallery/presentation/views/widget_gallery_view.dart';
 import '../features/home/presentation/views/home_view.dart';
 import '../features/my_page/presentation/views/my_page_view.dart';
+import '../features/performances/presentation/providers/my_concerts_providers.dart';
+import '../features/performances/presentation/view_models/my_concerts_view_model.dart';
 import '../features/performances/presentation/views/concert_detail_view.dart';
+import '../features/performances/presentation/views/my_concerts_section.dart';
 import '../features/recruitments/presentation/views/recruitment_list_view.dart';
 import 'main_shell.dart';
 import 'providers.dart';
@@ -102,92 +105,126 @@ GoRoute concertShowRoute() => GoRoute(
 
 /// 세션 상태는 `ref.listen`으로 구독해 `refreshListenable`에 연결한다.
 /// `ref.watch`로 GoRouter를 다시 만들면 내비게이션 스택이 초기화되므로 쓰지 않는다.
-final routerProvider = Provider<GoRouter>((ref) {
-  // flavor는 앱 실행 중 바뀌지 않으므로 read로 한 번만 읽는다.
-  final isDev = ref.read(appEnvProvider).isDev;
-  final session = ValueNotifier(ref.read(sessionProvider));
-  ref.listen(sessionProvider, (_, next) => session.value = next);
+final routerProvider = Provider<GoRouter>(
+  (ref) {
+    // flavor는 앱 실행 중 바뀌지 않으므로 read로 한 번만 읽는다.
+    final isDev = ref.read(appEnvProvider).isDev;
+    final session = ValueNotifier(ref.read(sessionProvider));
+    ref.listen(sessionProvider, (previous, next) {
+      if (next.hasValue &&
+          previous?.value?.accessToken != next.value?.accessToken) {
+        ref.invalidate(myConcertsViewModelProvider);
+        ref.invalidate(myConcertsRepositoryProvider);
+      }
+      session.value = next;
+    });
 
-  final router = GoRouter(
-    initialLocation: AppRoutes.splash,
-    refreshListenable: session,
-    redirect: (context, state) =>
-        sessionRedirect(session.value, state.matchedLocation),
-    routes: [
-      if (isDev)
+    final router = GoRouter(
+      initialLocation: AppRoutes.splash,
+      refreshListenable: session,
+      redirect: (context, state) =>
+          sessionRedirect(session.value, state.matchedLocation),
+      routes: [
+        if (isDev)
+          GoRoute(
+            path: AppRoutes.devWidgets,
+            builder: (context, state) => WidgetGalleryView(
+              initialFolder: state.uri.queryParameters['folder'],
+            ),
+          ),
         GoRoute(
-          path: AppRoutes.devWidgets,
-          builder: (context, state) => WidgetGalleryView(
-            initialFolder: state.uri.queryParameters['folder'],
+          path: AppRoutes.splash,
+          builder: (context, state) => const SplashView(),
+        ),
+        GoRoute(
+          path: AppRoutes.login,
+          // push: 약관 상세를 로그인 화면·약관 동의 시트 위에 쌓아 뒤로 가면 시트로 돌아온다.
+          builder: (context, state) => LoginView(
+            onViewTerm: (term) =>
+                context.push(AppRoutes.termsDetailOf(term.id)),
           ),
         ),
-      GoRoute(
-        path: AppRoutes.splash,
-        builder: (context, state) => const SplashView(),
-      ),
-      GoRoute(
-        path: AppRoutes.login,
-        // push: 약관 상세를 로그인 화면·약관 동의 시트 위에 쌓아 뒤로 가면 시트로 돌아온다.
-        builder: (context, state) => LoginView(
-          onViewTerm: (term) => context.push(AppRoutes.termsDetailOf(term.id)),
+        GoRoute(
+          path: AppRoutes.termsDetail,
+          // 경로는 termsDetailOf로만 만들어 숫자다. 아니면 없는 약관으로 보고 빈 화면을 보인다.
+          builder: (context, state) => TermsDetailView(
+            termId: int.tryParse(state.pathParameters['termId']!) ?? -1,
+          ),
         ),
-      ),
-      GoRoute(
-        path: AppRoutes.termsDetail,
-        // 경로는 termsDetailOf로만 만들어 숫자다. 아니면 없는 약관으로 보고 빈 화면을 보인다.
-        builder: (context, state) => TermsDetailView(
-          termId: int.tryParse(state.pathParameters['termId']!) ?? -1,
-        ),
-      ),
-      // 하단 탭. 탭마다 스택을 따로 유지한다. 순서 = MainShell의 탭 순서.
-      // 탭 안에서 이어지는 화면(예: /recruit/:postId)은 해당 branch의 routes 아래에 붙인다.
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) =>
-            MainShell(navigationShell: navigationShell),
-        branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.home,
-                builder: (context, state) => const HomeView(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.recruit,
-                builder: (context, state) => const RecruitmentListView(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.chat,
-                builder: (context, state) => const ChatListView(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.my,
-                builder: (context, state) => MyPageView(
-                  onSignOut: () => ref.read(sessionProvider.notifier).logout(),
+        // 하단 탭. 탭마다 스택을 따로 유지한다. 순서 = MainShell의 탭 순서.
+        // 탭 안에서 이어지는 화면(예: /recruit/:postId)은 해당 branch의 routes 아래에 붙인다.
+        StatefulShellRoute.indexedStack(
+          builder: (context, state, navigationShell) =>
+              MainShell(navigationShell: navigationShell),
+          branches: [
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.home,
+                  builder: (context, state) => const HomeView(),
                 ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      // 고정 하위 경로(`/shows/new`)는 이보다 먼저 등록한다. 아니면 `new`가 showId로 잡힌다.
-      concertShowRoute(),
-    ],
-  );
-  ref.onDispose(() {
-    router.dispose();
-    session.dispose();
-  });
-  return router;
-});
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.recruit,
+                  builder: (context, state) => const RecruitmentListView(),
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.chat,
+                  builder: (context, state) => const ChatListView(),
+                ),
+              ],
+            ),
+            StatefulShellBranch(
+              routes: [
+                GoRoute(
+                  path: AppRoutes.my,
+                  builder: (context, state) => MyPageView(
+                    onSignOut: () =>
+                        ref.read(sessionProvider.notifier).logout(),
+                    activity: MyConcertsSection(
+                      onOpenConcert: (concertId) async {
+                        await context.push<void>(
+                          AppRoutes.showOf('$concertId'),
+                        );
+                      },
+                      // 149의 public 진입점은 extra 없이 밴드 선택부터 연다.
+                      onAddConcert:
+                          hasRoutePath(
+                            GoRouter.of(context).configuration,
+                            AppRoutes.showNew,
+                          )
+                          ? () async {
+                              await context.push<int>(AppRoutes.showNew);
+                            }
+                          : null,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        // 고정 하위 경로(`/shows/new`)는 이보다 먼저 등록한다. 아니면 `new`가 showId로 잡힌다.
+        concertShowRoute(),
+      ],
+    );
+    ref.onDispose(() {
+      router.dispose();
+      session.dispose();
+    });
+    return router;
+  },
+  dependencies: [
+    appEnvProvider,
+    sessionProvider,
+    myConcertsRepositoryProvider,
+    myConcertsViewModelProvider,
+  ],
+);
