@@ -25,10 +25,16 @@ import '../widgets/song_row.dart';
 /// 저장이 실패하면 초안을 그대로 둬서 다시 "완료"를 누를 수 있다.
 /// "편집"·"곡 추가"는 `canEdit`(그 밴드의 멤버)일 때만 보인다. 최종 권한은 서버가 판단한다.
 class SetlistView extends ConsumerStatefulWidget {
-  const SetlistView({super.key, required this.concertId, required this.bandId});
+  const SetlistView({
+    super.key,
+    required this.concertId,
+    required this.bandId,
+    this.onExit,
+  });
 
   final int concertId;
   final int bandId;
+  final VoidCallback? onExit;
 
   static const backKey = ValueKey('setlist_back');
   static const editKey = ValueKey('setlist_edit');
@@ -150,12 +156,12 @@ class _SetlistViewState extends ConsumerState<SetlistView> {
             tooltip: '편집 취소',
             onPressed: saving ? null : _cancelEditing,
           )
-        : Navigator.of(context).canPop()
+        : widget.onExit != null || Navigator.of(context).canPop()
         ? AppIconButton(
             key: SetlistView.backKey,
             icon: const AppIcon(AppIcons.arrowBack),
             tooltip: '뒤로',
-            onPressed: () => Navigator.of(context).maybePop(),
+            onPressed: widget.onExit ?? () => Navigator.of(context).maybePop(),
           )
         : null;
     final Widget? trailing = editing
@@ -180,9 +186,15 @@ class _SetlistViewState extends ConsumerState<SetlistView> {
 
     return PopScope(
       // 편집 중 뒤로 가기는 화면을 닫지 않고 편집만 취소한다.
-      canPop: !editing,
+      canPop:
+          !editing && (widget.onExit == null || Navigator.of(context).canPop()),
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _cancelEditing();
+        if (didPop) return;
+        if (editing) {
+          _cancelEditing();
+        } else {
+          widget.onExit?.call();
+        }
       },
       child: Scaffold(
         appBar: AppTopBar(title: '셋리스트', leading: leading, trailing: trailing),

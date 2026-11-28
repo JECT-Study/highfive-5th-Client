@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -19,6 +19,7 @@ import '../features/recruitments/presentation/views/recruitment_list_view.dart';
 import 'main_shell.dart';
 import 'providers.dart';
 import 'routes.dart';
+import 'lineup_route_scope.dart';
 
 /// 로그인 전에만 머무는 화면. 로그인 상태면 홈으로 보낸다.
 const _signedOutRoutes = {AppRoutes.login, AppRoutes.signup};
@@ -64,7 +65,14 @@ final routerProvider = Provider<GoRouter>((ref) {
   // flavor는 앱 실행 중 바뀌지 않으므로 read로 한 번만 읽는다.
   final isDev = ref.read(appEnvProvider).isDev;
   final session = ValueNotifier(ref.read(sessionProvider));
+  String? pendingLineup;
+  var discardProtectedLocation = false;
   ref.listen(sessionProvider, (previous, next) {
+    // 로그아웃·약관 취소 직후에는 아직 보이는 보호 경로를 다시 저장하지 않는다.
+    if (previous?.isLoading == false && next.hasValue && next.value == null) {
+      pendingLineup = null;
+      discardProtectedLocation = previous?.value != null;
+    }
     if (previous?.value != null &&
         previous?.value?.accessToken != next.value?.accessToken) {
       ref.invalidate(lineupRepositoryProvider);
@@ -75,8 +83,26 @@ final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     initialLocation: AppRoutes.splash,
     refreshListenable: session,
-    redirect: (context, state) =>
-        sessionRedirect(session.value, state.matchedLocation),
+    redirect: (context, state) {
+      final location = state.matchedLocation;
+      final redirect = sessionRedirect(session.value, location);
+      final destination = AppRoutes.lineupDestination(state.uri);
+      if (redirect != null && destination != null) {
+        if (!discardProtectedLocation) pendingLineup = destination;
+      } else if (location == AppRoutes.login ||
+          location == AppRoutes.splash ||
+          _isTermsDetail(location)) {
+        discardProtectedLocation = false;
+      } else {
+        pendingLineup = null;
+      }
+      if (redirect == AppRoutes.home && pendingLineup != null) {
+        final destination = pendingLineup;
+        pendingLineup = null;
+        return destination;
+      }
+      return redirect;
+    },
     routes: [
       if (isDev)
         GoRoute(
@@ -106,31 +132,48 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.showLineup,
         redirect: (_, state) => _validConcertIds(state),
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final showId = state.pathParameters['showId']!;
-          return LineupView(
-            concertId: int.parse(showId),
-            onOpenSetlist: (bandId) async {
-              await context.push<void>(
-                AppRoutes.showSetlistOf(showId, bandId.toString()),
-              );
-            },
+          return MaterialPage<void>(
+            key: ValueKey((state.pageKey, showId)),
+            child: LineupRouteScope(
+              child: LineupView(
+                concertId: int.parse(showId),
+                onExit: () => context.canPop()
+                    ? context.pop()
+                    : context.go(AppRoutes.home),
+                onOpenSetlist: (bandId) async {
+                  await context.push<void>(
+                    AppRoutes.showSetlistOf(showId, bandId.toString()),
+                  );
+                },
+              ),
+            ),
           );
         },
       ),
       GoRoute(
         path: AppRoutes.showSetlist,
         redirect: (_, state) => _validConcertIds(state),
-        builder: (_, state) => Consumer(
-          builder: (_, ref, _) => SetlistView(
-            // 다른 계정·공연·밴드로 바뀌면 편집 중이던 로컬 초안도 폐기한다.
-            key: ValueKey((
-              ref.watch(lineupRepositoryProvider),
-              state.pathParameters['showId'],
-              state.pathParameters['bandId'],
-            )),
-            concertId: int.parse(state.pathParameters['showId']!),
-            bandId: int.parse(state.pathParameters['bandId']!),
+        pageBuilder: (context, state) => MaterialPage<void>(
+          // Page 교체로 그 위에 열린 곡 시트·슬롯 설정도 함께 제거한다.
+          key: ValueKey((
+            state.pageKey,
+            state.pathParameters['showId'],
+            state.pathParameters['bandId'],
+          )),
+          child: LineupRouteScope(
+            child: SetlistView(
+              concertId: int.parse(state.pathParameters['showId']!),
+              bandId: int.parse(state.pathParameters['bandId']!),
+              onExit: () => context.canPop()
+                  ? context.pop()
+                  : context.go(
+                      AppRoutes.showLineupOf(
+                        int.parse(state.pathParameters['showId']!),
+                      ),
+                    ),
+            ),
           ),
         ),
       ),

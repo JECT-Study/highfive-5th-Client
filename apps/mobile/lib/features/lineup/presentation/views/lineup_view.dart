@@ -24,9 +24,11 @@ class LineupView extends ConsumerStatefulWidget {
     super.key,
     required this.concertId,
     required this.onOpenSetlist,
+    this.onExit,
   });
 
   final int concertId;
+  final VoidCallback? onExit;
 
   /// 팀 카드를 눌렀다. 셋리스트 화면이 닫힐 때 끝나는 Future를 돌려준다 (그동안 다시 열지 않는다).
   final Future<void> Function(int bandId) onOpenSetlist;
@@ -143,31 +145,39 @@ class _LineupViewState extends ConsumerState<LineupView> {
 
     final lineup = state.value;
     final failed = state.hasError && !state.isLoading;
-    return Scaffold(
-      appBar: AppTopBar(
-        leading: Navigator.of(context).canPop()
-            ? AppIconButton(
-                key: LineupView.backKey,
-                icon: const AppIcon(AppIcons.arrowBack),
-                tooltip: '뒤로',
-                onPressed: () => Navigator.of(context).maybePop(),
-              )
-            : null,
-      ),
-      body: SafeArea(
-        top: false,
-        child: failed
-            ? LineupLoadFailure(
-                key: LineupView.errorKey,
-                retryKey: LineupView.retryKey,
-                title: '라인업을 불러오지 못했어요.',
-                message: failureMessage(state.error, '잠시 후 다시 시도해 주세요.'),
-                onRetry: () =>
-                    ref.read(lineupProvider(widget.concertId).notifier).retry(),
-              )
-            : lineup == null
-            ? const LineupLoading(key: LineupView.loadingKey)
-            : _content(lineup, saving: saving, reloading: state.isLoading),
+    return PopScope(
+      canPop: widget.onExit == null || Navigator.of(context).canPop(),
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) widget.onExit?.call();
+      },
+      child: Scaffold(
+        appBar: AppTopBar(
+          leading: widget.onExit != null || Navigator.of(context).canPop()
+              ? AppIconButton(
+                  key: LineupView.backKey,
+                  icon: const AppIcon(AppIcons.arrowBack),
+                  tooltip: '뒤로',
+                  onPressed:
+                      widget.onExit ?? () => Navigator.of(context).maybePop(),
+                )
+              : null,
+        ),
+        body: SafeArea(
+          top: false,
+          child: failed
+              ? LineupLoadFailure(
+                  key: LineupView.errorKey,
+                  retryKey: LineupView.retryKey,
+                  title: '라인업을 불러오지 못했어요.',
+                  message: failureMessage(state.error, '잠시 후 다시 시도해 주세요.'),
+                  onRetry: () => ref
+                      .read(lineupProvider(widget.concertId).notifier)
+                      .retry(),
+                )
+              : lineup == null
+              ? const LineupLoading(key: LineupView.loadingKey)
+              : _content(lineup, saving: saving, reloading: state.isLoading),
+        ),
       ),
     );
   }

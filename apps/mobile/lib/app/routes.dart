@@ -64,6 +64,29 @@ abstract final class AppRoutes {
   static const showSetlist = '/shows/:showId/setlist/:bandId';
   static String showSetlistOf(String showId, String bandId) =>
       '/shows/$showId/setlist/$bandId';
+
+  /// 인증 뒤 복원할 수 있는 구현된 라인업 경로만 받는다.
+  /// 외부 URI·임의 목적지·쿼리는 인증 흐름에 보관하지 않는다.
+  static String? lineupDestination(Uri uri) {
+    if (uri.hasScheme || uri.hasAuthority || uri.hasQuery || uri.hasFragment) {
+      return null;
+    }
+    final parts = uri.pathSegments;
+    if (parts.length < 3 || parts[0] != 'shows') return null;
+    final concertId = int.tryParse(parts[1]);
+    if (concertId == null || concertId <= 0) return null;
+    if (parts.length == 3 && parts[2] == 'lineup') {
+      return showLineupOf(concertId);
+    }
+    if (parts.length == 4 && parts[2] == 'setlist') {
+      final bandId = int.tryParse(parts[3]);
+      if (bandId != null && bandId > 0) {
+        return showSetlistOf('$concertId', '$bandId');
+      }
+    }
+    return null;
+  }
+
   static const showRoles = '/shows/:showId/roles';
   static String showRolesOf(String showId) => '/shows/$showId/roles';
   static const showAccountOwner = '/shows/:showId/account-owner';
