@@ -188,10 +188,7 @@ void main() {
     await tap('songAdd_resultAdd_0');
     final again = tester.getSemantics(key('songAdd_resultAdd_0'));
     expect(again.getSemanticsData().hasAction(ui.SemanticsAction.tap), isTrue);
-    tester.binding.pipelineOwner.semanticsOwner!.performAction(
-      again.id,
-      ui.SemanticsAction.tap,
-    );
+    again.owner!.performAction(again.id, ui.SemanticsAction.tap);
     await tester.pumpAndSettle();
     await tester.enterText(field, '새벽의 노래');
     tester.view.physicalSize = const Size(320, 680);
@@ -223,6 +220,26 @@ void main() {
     await tap('setlist_remove_0');
     await tap('setlist_back');
     expect(key('setlist_song_1'), findsOneWidget);
+    await tap('setlist_edit');
+    final last = key('setlist_dragHandle_2');
+    final toFirst =
+        tester.getCenter(key('setlist_dragHandle_0')).dy -
+        tester.getCenter(last).dy;
+    final songDrag = await tester.startGesture(tester.getCenter(last));
+    await tester.pump();
+    for (var step = 0; step < 10; step++) {
+      await songDrag.moveBy(Offset(0, (toFirst - 12) / 10));
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+    await songDrag.up();
+    await tester.pumpAndSettle();
+    await tap('setlist_remove_2');
+    await tap('setlist_done');
+    expect((await repo.getSetlist(1, 3)).songs.map((s) => s.songTitle), [
+      '새벽의 노래',
+      'Wonderwall',
+    ]);
     await tap('setlist_back');
     await tap('lineup_team_7');
     expect(key('setlist_edit'), findsNothing);
