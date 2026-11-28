@@ -29,14 +29,21 @@ import 'package:highfive/features/home/presentation/views/home_view.dart';
 import 'package:highfive/features/my_page/presentation/views/my_page_view.dart';
 import 'package:highfive/features/performances/data/repositories/fake_concert_participants_repository.dart';
 import 'package:highfive/features/performances/data/repositories/fake_concert_repository.dart';
+import 'package:highfive/features/performances/data/repositories/fake_my_concerts_repository.dart';
 import 'package:highfive/features/performances/presentation/providers/concert_detail_providers.dart';
 import 'package:highfive/features/performances/presentation/providers/concert_participants_providers.dart';
+import 'package:highfive/features/performances/presentation/providers/my_concerts_providers.dart';
 import 'package:highfive/features/performances/presentation/views/concert_detail_view.dart';
+import 'package:highfive/features/performances/presentation/views/my_concerts_section.dart';
 import 'package:highfive/features/performances/presentation/widgets/concert_page_header.dart';
 import 'package:highfive/shared/widgets/app_bottom_nav_bar.dart';
 import 'package:highfive/shared/widgets/app_button.dart';
 
 const _session = Session(accessToken: 'a');
+
+final _concerts = FakeConcertRepository(
+  concerts: FakeMyConcertsRepository.samples,
+);
 
 /// 서버 대신 바로 로그인 응답을 돌려준다.
 class _FakeAuthService extends AuthService {
@@ -73,6 +80,7 @@ class _FakeGoogleAuthService extends GoogleAuthService {
 
 /// [stored]가 저장된 상태로 앱을 처음부터 띄운다 (앱 재시작과 같다).
 Future<void> _start(WidgetTester tester, Map<String, String> stored) async {
+  addTearDown(() => tester.pumpWidget(const SizedBox.shrink()));
   FlutterSecureStorage.setMockInitialValues(Map.of(stored));
   await tester.pumpWidget(
     ProviderScope(
@@ -97,9 +105,17 @@ Future<void> _start(WidgetTester tester, Map<String, String> stored) async {
             _FakeGoogleAuthService(),
           ),
         ),
-        concertRepositoryProvider.overrideWithValue(FakeConcertRepository()),
+        concertRepositoryProvider.overrideWithValue(_concerts),
         concertParticipantsRepositoryProvider.overrideWithValue(
-          FakeConcertParticipantsRepository(),
+          FakeConcertParticipantsRepository(
+            participants: FakeMyConcertsRepository.participantSamples,
+          ),
+        ),
+        myConcertsRepositoryProvider.overrideWithValue(
+          FakeMyConcertsRepository(_concerts),
+        ),
+        myConcertsClockProvider.overrideWithValue(
+          () => DateTime(2026, 11, 28, 12),
         ),
       ],
       child: const HighfiveApp(),
@@ -257,4 +273,39 @@ void main() {
       );
     },
   );
+
+  testWidgets('마이페이지의 각 공연을 누르면 그 상세가 열리고 돌아오면 목록이 보인다', (tester) async {
+    await _start(tester, {SecureStore.accessTokenKey: 'a'});
+    final router = ProviderScope.containerOf(
+      tester.element(find.byType(HighfiveApp)),
+    ).read(routerProvider);
+    router.go(AppRoutes.my);
+    await tester.pumpAndSettle();
+
+    for (final concert in FakeMyConcertsRepository.samples) {
+      final card = find.byKey(MyConcertsSection.cardKey(concert.concertId));
+      final item = card.evaluate().isNotEmpty
+          ? card
+          : find.byKey(MyConcertsSection.historyKey(concert.concertId));
+      await tester.ensureVisible(item);
+      await tester.tap(item);
+      await tester.pumpAndSettle();
+
+      expect(
+        router.state.matchedLocation,
+        AppRoutes.showOf('${concert.concertId}'),
+      );
+      expect(
+        find.descendant(
+          of: find.byType(ConcertDetailView),
+          matching: find.text(concert.title),
+        ),
+        findsWidgets,
+      );
+
+      router.pop();
+      await tester.pumpAndSettle();
+      expect(find.byType(MyPageView), findsOneWidget);
+    }
+  });
 }

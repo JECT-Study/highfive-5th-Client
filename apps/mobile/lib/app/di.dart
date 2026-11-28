@@ -18,6 +18,8 @@ import '../features/performances/data/repositories/concert_participants_reposito
 import '../features/performances/data/repositories/concert_repository.dart';
 import '../features/performances/data/repositories/fake_concert_participants_repository.dart';
 import '../features/performances/data/repositories/fake_concert_repository.dart';
+import '../features/performances/data/repositories/fake_my_concerts_repository.dart';
+import '../features/performances/data/repositories/my_concerts_repository.dart';
 import 'env.dart';
 
 /// 앱 공통 객체를 생성·연결한다. 앱 시작 시 한 번만 호출한다.
@@ -63,10 +65,18 @@ void setupDi(AppEnv env) {
     )
     ..registerLazySingleton(() => TermsService(getIt<Dio>()))
     ..registerLazySingleton(() => TermsRepository(getIt<TermsService>()))
-    // GET 초안은 아직 미배포. 실 API 연결 시 이 등록만 교체한다.
-    ..registerLazySingleton<ConcertRepository>(FakeConcertRepository.new)
-    // 라인업 조회 초안도 아직 미배포. 실 API 연결 시 이 등록만 교체한다.
+    // 상세·참여 밴드·목록은 같은 예시 세트다. 실제 API로 전환할 때 세 등록을 함께 바꾼다.
+    // 153과 조합할 때는 이 상세 객체를 FakeConcertEditRepository로 만들어 수정에도 공유한다.
+    ..registerLazySingleton<ConcertRepository>(
+      () => FakeConcertRepository(concerts: FakeMyConcertsRepository.samples),
+    )
     ..registerLazySingleton<ConcertParticipantsRepository>(
-      FakeConcertParticipantsRepository.new,
+      () => FakeConcertParticipantsRepository(
+        participants: FakeMyConcertsRepository.participantSamples,
+      ),
+    )
+    // 명세 없음: 연결 Provider가 넘긴 현재 세션의 상세 저장소에서 목록을 만든다.
+    ..registerFactoryParam<MyConcertsRepository, ConcertRepository, void>(
+      (concerts, _) => FakeMyConcertsRepository(concerts),
     );
 }

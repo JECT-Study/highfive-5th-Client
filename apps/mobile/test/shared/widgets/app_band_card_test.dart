@@ -44,4 +44,13 @@ void main() {
     );
     expect(find.byKey(_dot), findsOneWidget);
   });
+
+  testWidgets('빈 카드는 카드처럼 놓인 자리의 폭을 채운다', (tester) async {
+    await _pump(tester, const AppBandEmptyCard(title: '제목', description: '설명'));
+
+    expect(
+      tester.getSize(find.byType(AppBandEmptyCard)).width,
+      tester.getSize(find.byType(Scaffold)).width,
+    );
+  });
 }
